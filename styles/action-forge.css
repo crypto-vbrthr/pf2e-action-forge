@@ -1,0 +1,243 @@
+.pf2e-action-forge {
+  --af-border: color-mix(in srgb, var(--color-border-light-primary, #8a7f70) 62%, transparent);
+  --af-panel: color-mix(in srgb, var(--color-cool-5, #25282b) 76%, transparent);
+  --af-panel-strong: color-mix(in srgb, var(--color-cool-5, #25282b) 88%, transparent);
+  --af-accent: var(--color-warm-1, #f0b35a);
+  --af-muted: var(--color-text-subtle, #b9b4aa);
+  min-width: 420px;
+}
+
+.pf2e-action-forge .window-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pf2e-action-forge .af-shell {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-cool-5, #202326) 92%, transparent), color-mix(in srgb, var(--color-cool-4, #30343a) 86%, transparent));
+}
+
+.pf2e-action-forge .af-header,
+.pf2e-action-forge .af-actor-row,
+.pf2e-action-forge .af-section-heading,
+.pf2e-action-forge .af-footer {
+  display: flex;
+  align-items: center;
+}
+
+.pf2e-action-forge .af-header {
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--af-border);
+}
+
+.pf2e-action-forge .af-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf2e-action-forge .af-brand-icon,
+.pf2e-action-forge .af-action-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--af-border);
+  border-radius: 8px;
+  background: var(--af-panel-strong);
+  color: var(--af-accent);
+}
+
+.pf2e-action-forge .af-brand-icon {
+  width: 42px;
+  height: 42px;
+  font-size: 1.25rem;
+}
+
+.pf2e-action-forge .af-brand h1,
+.pf2e-action-forge .af-section-heading h2 {
+  margin: 0;
+}
+
+.pf2e-action-forge .af-brand h1 {
+  font-size: 1.2rem;
+}
+
+.pf2e-action-forge .af-brand p,
+.pf2e-action-forge .af-section-heading p,
+.pf2e-action-forge .af-actor-summary span,
+.pf2e-action-forge .af-action-copy small,
+.pf2e-action-forge .af-empty-state span,
+.pf2e-action-forge .af-footer {
+  color: var(--af-muted);
+}
+
+.pf2e-action-forge .af-brand p,
+.pf2e-action-forge .af-section-heading p {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+}
+
+.pf2e-action-forge .af-version,
+.pf2e-action-forge .af-dev-badge {
+  border: 1px solid var(--af-border);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.pf2e-action-forge .af-source-panel,
+.pf2e-action-forge .af-actions {
+  border: 1px solid var(--af-border);
+  border-radius: 10px;
+  background: var(--af-panel);
+  padding: 12px;
+}
+
+.pf2e-action-forge .af-section-heading {
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pf2e-action-forge .af-section-heading h2 {
+  font-size: 0.95rem;
+}
+
+.pf2e-action-forge .af-actor-row {
+  gap: 10px;
+}
+
+.pf2e-action-forge .af-actor-portrait {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border: 1px solid var(--af-border);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pf2e-action-forge .af-actor-summary {
+  display: flex;
+  min-width: 120px;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf2e-action-forge .af-actor-summary span {
+  font-size: 0.75rem;
+}
+
+.pf2e-action-forge select[data-role="source-actor"] {
+  min-width: 190px;
+  max-width: 45%;
+}
+
+.pf2e-action-forge .af-actions {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.pf2e-action-forge .af-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.pf2e-action-forge .af-action-card {
+  position: relative;
+  display: flex;
+  min-height: 74px;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--af-border);
+  border-radius: 9px;
+  background: var(--af-panel-strong);
+  color: inherit;
+  text-align: left;
+}
+
+.pf2e-action-forge .af-action-card:not(:disabled):hover,
+.pf2e-action-forge .af-action-card:not(:disabled):focus-visible {
+  border-color: var(--af-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--af-accent) 36%, transparent);
+}
+
+.pf2e-action-forge .af-action-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pf2e-action-forge .af-action-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.pf2e-action-forge .af-action-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pf2e-action-forge .af-action-copy small {
+  line-height: 1.25;
+}
+
+.pf2e-action-forge .af-dev-badge {
+  align-self: flex-start;
+  color: var(--af-accent);
+}
+
+.pf2e-action-forge .af-empty-state {
+  display: flex;
+  min-height: 70px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed var(--af-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.pf2e-action-forge .af-empty-state--warning {
+  justify-content: flex-start;
+}
+
+.pf2e-action-forge .af-empty-state--warning > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf2e-action-forge .af-empty-state--warning i {
+  color: var(--af-accent);
+}
+
+.pf2e-action-forge .af-footer {
+  justify-content: flex-end;
+  min-height: 20px;
+  font-size: 0.72rem;
+}
+
+.pf2e-action-forge .af-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

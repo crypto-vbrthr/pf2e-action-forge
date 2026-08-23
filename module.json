@@ -1,0 +1,39 @@
+{
+  "id": "pf2e-action-forge",
+  "title": "PF2E Action Forge",
+  "description": "A fast, player-friendly action launcher for Pathfinder 2e in Foundry VTT.",
+  "version": "0.1.0-dev.1.1",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "8.4.0"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/action-forge.js"
+  ],
+  "styles": [
+    "styles/action-forge.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "lang/de.json"
+    }
+  ]
+}

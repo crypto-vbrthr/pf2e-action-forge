@@ -1,0 +1,80 @@
+<section class="af-shell">
+  <header class="af-header">
+    <div class="af-brand">
+      <span class="af-brand-icon" aria-hidden="true"><i class="fa-solid fa-hammer"></i></span>
+      <div>
+        <h1>{{localize "PF2EActionForge.Title"}}</h1>
+        <p>{{localize "PF2EActionForge.Subtitle"}}</p>
+      </div>
+    </div>
+    <span class="af-version">{{moduleVersion}}</span>
+  </header>
+
+  <section class="af-source-panel" aria-labelledby="af-source-heading">
+    <div class="af-section-heading">
+      <div>
+        <h2 id="af-source-heading">{{localize "PF2EActionForge.SourceActor.Label"}}</h2>
+        <p>{{localize "PF2EActionForge.SourceActor.Hint"}}</p>
+      </div>
+    </div>
+
+    {{#if actor}}
+      <div class="af-actor-row">
+        <img class="af-actor-portrait" src="{{actor.img}}" alt="" />
+        <div class="af-actor-summary">
+          <strong>{{actor.name}}</strong>
+          <span>{{actor.sourceText}}</span>
+        </div>
+        <label class="af-visually-hidden" for="af-source-actor">{{localize "PF2EActionForge.SourceActor.Select"}}</label>
+        <select id="af-source-actor" data-role="source-actor">
+          {{#each actors}}
+            <option value="{{uuid}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+          {{/each}}
+        </select>
+      </div>
+    {{else}}
+      <div class="af-empty-state af-empty-state--warning">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <div>
+          <strong>{{localize "PF2EActionForge.SourceActor.NoneTitle"}}</strong>
+          <span>{{localize "PF2EActionForge.SourceActor.NoneHint"}}</span>
+        </div>
+      </div>
+    {{/if}}
+  </section>
+
+  <section class="af-actions" aria-labelledby="af-actions-heading">
+    <div class="af-section-heading">
+      <div>
+        <h2 id="af-actions-heading">{{localize "PF2EActionForge.Actions.Heading"}}</h2>
+        <p>{{localize "PF2EActionForge.Actions.DevHint"}}</p>
+      </div>
+    </div>
+
+    {{#if hasActions}}
+      <div class="af-action-grid">
+        {{#each actions}}
+          <button type="button" class="af-action-card" data-action="runAction" data-action-id="{{id}}" {{#unless ../actor}}disabled{{/unless}}>
+            <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
+            <span class="af-action-copy">
+              <strong>{{labelText}}</strong>
+              {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
+            </span>
+            {{#if developmentOnly}}
+              <span class="af-dev-badge">{{localize "PF2EActionForge.Common.Dev"}}</span>
+            {{/if}}
+          </button>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="af-empty-state">
+        <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+        <span>{{localize "PF2EActionForge.Actions.Empty"}}</span>
+      </div>
+    {{/if}}
+  </section>
+
+  <footer class="af-footer">
+    <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> {{localize "PF2EActionForge.Footer.Foundation"}}</span>
+  </footer>
+</section>
