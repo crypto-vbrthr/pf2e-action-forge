@@ -4,12 +4,16 @@
   --af-panel-strong: color-mix(in srgb, var(--color-cool-5, #25282b) 88%, transparent);
   --af-accent: var(--color-warm-1, #f0b35a);
   --af-muted: var(--color-text-subtle, #b9b4aa);
-  min-width: 420px;
+  min-width: 440px;
 }
 
 .pf2e-action-forge .window-content {
   padding: 0;
   overflow: hidden;
+}
+
+.pf2e-action-forge [hidden] {
+  display: none !important;
 }
 
 .pf2e-action-forge .af-shell {
@@ -25,7 +29,8 @@
 .pf2e-action-forge .af-header,
 .pf2e-action-forge .af-actor-row,
 .pf2e-action-forge .af-section-heading,
-.pf2e-action-forge .af-footer {
+.pf2e-action-forge .af-footer,
+.pf2e-action-forge .af-category-heading {
   display: flex;
   align-items: center;
 }
@@ -61,7 +66,8 @@
 }
 
 .pf2e-action-forge .af-brand h1,
-.pf2e-action-forge .af-section-heading h2 {
+.pf2e-action-forge .af-section-heading h2,
+.pf2e-action-forge .af-category-heading h3 {
   margin: 0;
 }
 
@@ -74,7 +80,8 @@
 .pf2e-action-forge .af-actor-summary span,
 .pf2e-action-forge .af-action-copy small,
 .pf2e-action-forge .af-empty-state span,
-.pf2e-action-forge .af-footer {
+.pf2e-action-forge .af-footer,
+.pf2e-action-forge .af-category-heading span {
   color: var(--af-muted);
 }
 
@@ -145,36 +152,151 @@
   overflow: auto;
 }
 
+.pf2e-action-forge .af-actions-toolbar {
+  position: sticky;
+  z-index: 3;
+  top: -12px;
+  margin: -12px -12px 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--af-border);
+  background: color-mix(in srgb, var(--color-cool-5, #25282b) 94%, transparent);
+  backdrop-filter: blur(5px);
+}
+
+.pf2e-action-forge .af-actions-toolbar .af-section-heading {
+  margin-bottom: 9px;
+}
+
+.pf2e-action-forge .af-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--af-border);
+  border-radius: 8px;
+  padding: 0 9px;
+  background: var(--af-panel-strong);
+}
+
+.pf2e-action-forge .af-search:focus-within {
+  border-color: var(--af-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--af-accent) 30%, transparent);
+}
+
+.pf2e-action-forge .af-search i {
+  flex: 0 0 auto;
+  color: var(--af-muted);
+}
+
+.pf2e-action-forge .af-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-catalog,
+.pf2e-action-forge .af-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pf2e-action-forge .af-catalog {
+  gap: 16px;
+}
+
+.pf2e-action-forge .af-action-group {
+  scroll-margin-top: 92px;
+}
+
+.pf2e-action-forge .af-favorites {
+  margin-bottom: 16px;
+  border: 1px solid color-mix(in srgb, var(--af-accent) 45%, var(--af-border));
+  border-radius: 9px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--af-accent) 5%, var(--af-panel-strong));
+}
+
+.pf2e-action-forge .af-category-heading {
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+}
+
+.pf2e-action-forge .af-category-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+}
+
+.pf2e-action-forge .af-category-heading h3 i {
+  width: 16px;
+  color: var(--af-accent);
+  text-align: center;
+}
+
+.pf2e-action-forge .af-category-heading span {
+  font-size: 0.7rem;
+}
+
 .pf2e-action-forge .af-action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 9px;
 }
 
 .pf2e-action-forge .af-action-card {
   position: relative;
   display: flex;
-  min-height: 74px;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  padding: 10px;
+  min-height: 84px;
+  align-items: stretch;
   border: 1px solid var(--af-border);
   border-radius: 9px;
   background: var(--af-panel-strong);
-  color: inherit;
-  text-align: left;
+  overflow: hidden;
 }
 
-.pf2e-action-forge .af-action-card:not(:disabled):hover,
-.pf2e-action-forge .af-action-card:not(:disabled):focus-visible {
+.pf2e-action-forge .af-action-card:hover,
+.pf2e-action-forge .af-action-card:focus-within {
   border-color: var(--af-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--af-accent) 36%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--af-accent) 32%, transparent);
 }
 
-.pf2e-action-forge .af-action-card:disabled {
+.pf2e-action-forge .af-action-run {
+  display: flex;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 84px;
+  max-height: none;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 11px;
+  margin: 0;
+  padding: 10px 40px 10px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  line-height: normal;
+  text-align: left;
+  white-space: normal;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-action-run:not(:disabled):hover,
+.pf2e-action-forge .af-action-run:not(:disabled):focus-visible {
+  background: color-mix(in srgb, var(--af-accent) 6%, transparent);
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-action-run:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .pf2e-action-forge .af-action-icon {
@@ -190,8 +312,45 @@
   gap: 3px;
 }
 
+.pf2e-action-forge .af-action-copy strong,
 .pf2e-action-forge .af-action-copy small {
+  display: block;
+  overflow: visible;
+  white-space: normal;
+}
+
+.pf2e-action-forge .af-action-copy strong {
   line-height: 1.25;
+}
+
+.pf2e-action-forge .af-action-copy small {
+  line-height: 1.35;
+}
+
+.pf2e-action-forge .af-favorite-toggle {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--af-muted);
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-favorite-toggle:hover,
+.pf2e-action-forge .af-favorite-toggle:focus-visible,
+.pf2e-action-forge .af-favorite-toggle.is-favorite {
+  border-color: color-mix(in srgb, var(--af-accent) 52%, transparent);
+  background: color-mix(in srgb, var(--af-accent) 9%, transparent);
+  color: var(--af-accent);
+  box-shadow: none;
 }
 
 .pf2e-action-forge .af-dev-badge {
@@ -230,6 +389,11 @@
   font-size: 0.72rem;
 }
 
+.pf2e-action-forge .af-footer i {
+  margin-right: 4px;
+  color: var(--af-accent);
+}
+
 .pf2e-action-forge .af-visually-hidden {
   position: absolute !important;
   width: 1px !important;
@@ -240,4 +404,20 @@
   clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
+}
+
+@media (max-width: 560px) {
+  .pf2e-action-forge .af-actor-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pf2e-action-forge select[data-role="source-actor"] {
+    width: 100%;
+    max-width: none;
+  }
+
+  .pf2e-action-forge .af-action-grid {
+    grid-template-columns: 1fr;
+  }
 }

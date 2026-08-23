@@ -47,27 +47,110 @@
   </section>
 
   <section class="af-actions" aria-labelledby="af-actions-heading">
-    <div class="af-section-heading">
-      <div>
-        <h2 id="af-actions-heading">{{localize "PF2EActionForge.Actions.Heading"}}</h2>
-        <p>{{localize "PF2EActionForge.Actions.DevHint"}}</p>
+    <div class="af-actions-toolbar">
+      <div class="af-section-heading">
+        <div>
+          <h2 id="af-actions-heading">{{localize "PF2EActionForge.Actions.Heading"}}</h2>
+          <p>{{localize "PF2EActionForge.Actions.CatalogHint"}}</p>
+        </div>
       </div>
+      <label class="af-search" for="af-action-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <span class="af-visually-hidden">{{localize "PF2EActionForge.Search.Label"}}</span>
+        <input
+          id="af-action-search"
+          type="search"
+          value="{{searchQuery}}"
+          placeholder="{{localize 'PF2EActionForge.Search.Placeholder'}}"
+          autocomplete="off"
+          data-role="action-search"
+        />
+      </label>
     </div>
 
     {{#if hasActions}}
-      <div class="af-action-grid">
-        {{#each actions}}
-          <button type="button" class="af-action-card" data-action="runAction" data-action-id="{{id}}" {{#unless ../actor}}disabled{{/unless}}>
-            <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
-            <span class="af-action-copy">
-              <strong>{{labelText}}</strong>
-              {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
-            </span>
-            {{#if developmentOnly}}
-              <span class="af-dev-badge">{{localize "PF2EActionForge.Common.Dev"}}</span>
-            {{/if}}
-          </button>
+      {{#if hasFavorites}}
+        <section class="af-action-group af-favorites" data-action-group="favorites">
+          <div class="af-category-heading">
+            <h3><i class="fa-solid fa-star" aria-hidden="true"></i> {{localize "PF2EActionForge.Favorites.Heading"}}</h3>
+            <span>{{localize "PF2EActionForge.Favorites.Hint"}}</span>
+          </div>
+          <div class="af-action-grid">
+            {{#each favoriteActions}}
+              <article class="af-action-card" data-action-card data-search-text="{{searchText}}">
+                <button
+                  type="button"
+                  class="af-action-run"
+                  data-action="runAction"
+                  data-action-id="{{id}}"
+                  {{#unless ../actor}}disabled{{/unless}}
+                >
+                  <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
+                  <span class="af-action-copy">
+                    <strong>{{labelText}}</strong>
+                    {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="af-favorite-toggle is-favorite"
+                  data-action="toggleFavorite"
+                  data-action-id="{{id}}"
+                  title="{{favoriteLabel}}"
+                  aria-label="{{favoriteLabel}}"
+                  aria-pressed="true"
+                >
+                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                </button>
+              </article>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
+
+      <div class="af-catalog">
+        {{#each categories}}
+          <section class="af-action-group" data-action-group="{{id}}">
+            <div class="af-category-heading">
+              <h3><i class="{{icon}}" aria-hidden="true"></i> {{label}}</h3>
+            </div>
+            <div class="af-action-grid">
+              {{#each actions}}
+                <article class="af-action-card" data-action-card data-search-text="{{searchText}}">
+                  <button
+                    type="button"
+                    class="af-action-run"
+                    data-action="runAction"
+                    data-action-id="{{id}}"
+                    {{#unless ../../actor}}disabled{{/unless}}
+                  >
+                    <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
+                    <span class="af-action-copy">
+                      <strong>{{labelText}}</strong>
+                      {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    class="af-favorite-toggle {{#if isFavorite}}is-favorite{{/if}}"
+                    data-action="toggleFavorite"
+                    data-action-id="{{id}}"
+                    title="{{favoriteLabel}}"
+                    aria-label="{{favoriteLabel}}"
+                    aria-pressed="{{#if isFavorite}}true{{else}}false{{/if}}"
+                  >
+                    <i class="{{#if isFavorite}}fa-solid{{else}}fa-regular{{/if}} fa-star" aria-hidden="true"></i>
+                  </button>
+                </article>
+              {{/each}}
+            </div>
+          </section>
         {{/each}}
+      </div>
+
+      <div class="af-empty-state" data-role="search-empty" hidden>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <span>{{localize "PF2EActionForge.Search.Empty"}}</span>
       </div>
     {{else}}
       <div class="af-empty-state">
@@ -78,6 +161,6 @@
   </section>
 
   <footer class="af-footer">
-    <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> {{localize "PF2EActionForge.Footer.Foundation"}}</span>
+    <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{localize "PF2EActionForge.Footer.Catalog"}}</span>
   </footer>
 </section>

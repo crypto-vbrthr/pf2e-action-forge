@@ -1,9 +1,9 @@
 /**
  * Internal action-definition registry.
  *
- * dev.1 intentionally keeps the contract tiny. Later development blocks can
- * extend definitions with target, DC, visibility and application metadata
- * without coupling the UI to individual actions.
+ * The catalog metadata introduced in dev.2 is intentionally declarative. Later
+ * blocks can add target, DC, visibility and application metadata without
+ * coupling the application UI to individual actions.
  */
 export class ActionRegistry {
   #actions = new Map();
@@ -17,6 +17,10 @@ export class ActionRegistry {
     return normalized;
   }
 
+  registerMany(definitions) {
+    return [...definitions].map((definition) => this.register(definition));
+  }
+
   get(id) {
     return this.#actions.get(id) ?? null;
   }
@@ -26,7 +30,9 @@ export class ActionRegistry {
   }
 
   list() {
-    return [...this.#actions.values()];
+    return [...this.#actions.values()].sort(
+      (a, b) => a.categoryOrder - b.categoryOrder || a.order - b.order || a.id.localeCompare(b.id)
+    );
   }
 
   clear() {
@@ -41,6 +47,7 @@ export class ActionRegistry {
     const id = String(definition.id ?? "").trim();
     const label = String(definition.label ?? "").trim();
     const category = String(definition.category ?? "general").trim() || "general";
+    const categoryLabel = String(definition.categoryLabel ?? "PF2EActionForge.Categories.General").trim();
 
     if (!id) throw new Error("PF2E Action Forge | Action definition requires an id.");
     if (!label) throw new Error(`PF2E Action Forge | Action '${id}' requires a label key.`);
@@ -49,8 +56,17 @@ export class ActionRegistry {
       id,
       label,
       category,
+      categoryLabel,
+      categoryIcon: String(definition.categoryIcon ?? "fa-solid fa-dice-d20"),
+      categoryOrder: Number.isFinite(definition.categoryOrder) ? definition.categoryOrder : 999,
+      order: Number.isFinite(definition.order) ? definition.order : 999,
       icon: String(definition.icon ?? "fa-solid fa-dice-d20"),
       description: String(definition.description ?? ""),
+      keywords: Object.freeze(
+        Array.isArray(definition.keywords)
+          ? definition.keywords.map((keyword) => String(keyword).trim()).filter(Boolean)
+          : []
+      ),
       developmentOnly: Boolean(definition.developmentOnly)
     };
   }

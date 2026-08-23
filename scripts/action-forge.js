@@ -1,27 +1,25 @@
 import { actionRegistry } from "./core/action-registry.js";
+import { CORE_ACTIONS } from "./data/core-action-catalog.js";
 import { ActionForgeApp } from "./ui/action-forge-app.js";
 import { registerActionForgeSceneControl } from "./ui/scene-controls.js";
 
 const MODULE_ID = "pf2e-action-forge";
 
 Hooks.once("init", () => {
-  actionRegistry.register({
-    id: "foundation-check",
-    label: "PF2EActionForge.Actions.FoundationCheck.Name",
-    description: "PF2EActionForge.Actions.FoundationCheck.Description",
-    category: "general",
-    icon: "fa-solid fa-gears",
-    developmentOnly: true
-  });
+  actionRegistry.registerMany(CORE_ACTIONS);
 
   const module = game.modules.get(MODULE_ID);
   if (module) {
     module.api = Object.freeze({
-      open: () => ActionForgeApp.open()
+      open: () => ActionForgeApp.open(),
+      actions: Object.freeze({
+        get: (id) => actionRegistry.get(id),
+        list: () => actionRegistry.list()
+      })
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.1.3"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.2"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -34,6 +32,6 @@ Hooks.on("controlToken", () => {
 
 Hooks.on("updateUser", (user, changes) => {
   if (user.id !== game.user.id) return;
-  if (!("character" in changes)) return;
+  if (!("character" in changes) && !("flags" in changes)) return;
   ActionForgeApp.refreshIfOpen();
 });

@@ -4,6 +4,31 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.2.1] - 2026-08-23
+
+### Fixed
+
+- Fixed Action Card content being vertically clipped by Foundry v14 button sizing rules.
+- Action buttons now grow with wrapped titles/descriptions and explicitly override inherited fixed button height, line height, white-space, and overflow behavior.
+
+## [0.1.0-dev.2] - 2026-08-23
+
+### Added
+
+- Added the initial eight-action MVP catalog with localized skill/category grouping.
+- Added Action Registry ordering, category metadata, category icons, and search keywords.
+- Added live in-place catalog search across localized action text, categories, and keywords.
+- Added per-user favorites stored as Foundry User flags.
+- Added a Favorites section and star toggles to all Action Cards.
+- Added a small read-only action-list API for future integration work.
+- Added automated coverage for the catalog, favorite persistence, and dev.2 release metadata.
+
+### Changed
+
+- Replaced the Foundation Check dummy action with the real MVP catalog surface.
+- Increased the default Action Forge window size to make grouped actions easier to browse.
+- Updated README/manual testing for catalog and favorites behavior.
+
 ## [0.1.0-dev.1.4] - 2026-08-23
 
 ### Added
