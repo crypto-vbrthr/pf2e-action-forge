@@ -51,7 +51,7 @@
   "PF2EActionForge.Notifications.FavoriteAdded": "{action} wurde zu deinen Favoriten hinzugefügt.",
   "PF2EActionForge.Notifications.FavoriteRemoved": "{action} wurde aus deinen Favoriten entfernt.",
   "PF2EActionForge.Notifications.FavoriteError": "Die Action Forge konnte deine Favoriten nicht speichern.",
-  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.5 · Visibility Profiles",
+  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.6 · Application Engine & GM Broker",
   "PF2EActionForge.Target.SelectedAction": "Ausgewählte Aktion",
   "PF2EActionForge.Target.Close": "Aktionsauswahl schließen",
   "PF2EActionForge.Target.Mode.none": "Kein Ziel",
@@ -152,5 +152,16 @@
   "PF2EActionForge.GMDC.NoActiveGM": "Diese Aktion benötigt einen geheimen SG der SL, aber derzeit ist keine aktive SL verbunden.",
   "PF2EActionForge.GMDC.Rejected": "Die SL hat keinen SG vorgegeben. Die Aktion kann erneut angefordert oder abgebrochen werden.",
   "PF2EActionForge.GMDC.Invalid": "Die Antwort der SL enthielt keinen gültigen SG.",
-  "PF2EActionForge.GMDC.Unavailable": "Die SG-Anfrage an die SL konnte nicht abgeschlossen werden."
+  "PF2EActionForge.GMDC.Unavailable": "Die SG-Anfrage an die SL konnte nicht abgeschlossen werden.",
+  "PF2EActionForge.Application.Target": "Ziel: {target}",
+  "PF2EActionForge.Application.ApplyCondition": "{condition} anwenden",
+  "PF2EActionForge.Application.Applied": "Angewendet",
+  "PF2EActionForge.Application.Success": "Auswirkung der Aktion angewendet.",
+  "PF2EActionForge.Application.NoActiveGM": "Für diese Änderung am Ziel wird eine aktive SL benötigt, aber derzeit ist keine verbunden.",
+  "PF2EActionForge.Application.NotAllowed": "Du kannst nur Ergebnisse einer Aktion anwenden, die mit einem von dir kontrollierbaren Actor ausgeführt wurde.",
+  "PF2EActionForge.Application.InvalidTarget": "Das Ziel ist für diese Aktionsauswirkung nicht mehr gültig.",
+  "PF2EActionForge.Application.Immune": "Das Ziel ist gegen diesen Zustand immun.",
+  "PF2EActionForge.Application.Timeout": "Die Anfrage an die SL zum Anwenden der Auswirkung ist abgelaufen.",
+  "PF2EActionForge.Application.Failed": "Die Auswirkung der Aktion konnte nicht angewendet werden.",
+  "PF2EActionForge.Application.TripCriticalDamageNote": "Bei einem Kritischen Erfolg verursacht die Aktion zusätzlich 1W6 Wuchtschaden; dieser Schaden wird in dev.6 noch manuell angewendet."
 }

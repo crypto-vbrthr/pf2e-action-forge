@@ -1,4 +1,7 @@
 import { actionRegistry } from "../core/action-registry.js";
+import { applicationChat } from "../core/application-chat.js";
+import { applicationEngine } from "../core/application-engine.js";
+import { ActionTransaction } from "../core/action-transaction.js";
 import { actorResolver, CURRENT_TOKEN_SELECTION } from "../core/actor-resolver.js";
 import { dcResolver } from "../core/dc-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
@@ -185,7 +188,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.5.3",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.6",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -691,6 +694,18 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
             hidden: true,
             hiddenText: game.i18n.localize("PF2EActionForge.Roll.HiddenResult")
           };
+
+      const targetEntry = targetState.targets[0] ?? null;
+      if (targetEntry?.actor && applicationEngine.hasApplications(action, outcome)) {
+        const transaction = ActionTransaction.create({
+          definition: action,
+          actor,
+          targetEntry,
+          outcome,
+          rollMessageId: result.message?.id ?? result.messageId ?? null
+        });
+        await applicationChat.create({ definition: action, transaction });
+      }
     }
 
     // The action session ends after the PF2e action returns, including a cancelled

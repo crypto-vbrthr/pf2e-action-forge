@@ -1,4 +1,6 @@
 import { actionRegistry } from "./core/action-registry.js";
+import { applicationBroker } from "./core/application-broker.js";
+import { applicationChat } from "./core/application-chat.js";
 import { CORE_ACTIONS } from "./data/core-action-catalog.js";
 import { ActionForgeApp } from "./ui/action-forge-app.js";
 import { registerActionForgeSceneControl } from "./ui/scene-controls.js";
@@ -19,7 +21,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.5.3"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.6"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -44,3 +46,12 @@ Hooks.on("updateUser", (user, changes) => {
   if (!("character" in changes) && !("flags" in changes)) return;
   ActionForgeApp.refreshIfOpen();
 });
+
+Hooks.once("ready", () => {
+  applicationBroker.initialize();
+  applicationChat.bindGlobalClickHandler();
+});
+
+const decorateApplicationMessage = (message, html) => applicationChat.decorate(message, html);
+Hooks.on("renderChatMessage", decorateApplicationMessage);
+Hooks.on("renderChatMessageHTML", decorateApplicationMessage);

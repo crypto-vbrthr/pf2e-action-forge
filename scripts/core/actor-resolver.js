@@ -1,6 +1,31 @@
 const CREATURE_TYPES = new Set(["character", "npc", "familiar"]);
 export const CURRENT_TOKEN_SELECTION = "__current-token__";
 
+export function canUserActWith(actor, user = game?.user) {
+  if (!actor || !user) return false;
+  if (user.isGM) return true;
+
+  const ownerLevel = CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+  const hasOwner = (candidate) => {
+    if (!candidate) return false;
+    if (typeof candidate.testUserPermission === "function") {
+      try { return candidate.testUserPermission(user, ownerLevel); } catch (_error) { return false; }
+    }
+    return user === game?.user ? Boolean(candidate.isOwner) : false;
+  };
+
+  if (hasOwner(actor)) return true;
+  if (actor.type !== "familiar") return false;
+
+  let master = null;
+  try { master = actor.master ?? null; } catch (_error) { /* fall through */ }
+  if (!master) {
+    const masterId = actor?.system?.master?.id;
+    master = masterId ? game?.actors?.get?.(masterId) ?? null : null;
+  }
+  return hasOwner(master);
+}
+
 /**
  * Resolves the actor that is currently acting in Action Forge.
  *
@@ -148,18 +173,7 @@ export class ActorResolver {
   }
 
   #canActWith(actor) {
-    if (game?.user?.isGM) return true;
-    if (this.#hasOwnerPermission(actor)) return true;
-
-    // PF2e familiars expose their configured character master as actor.master.
-    // Let the master's owner use the familiar even if its own ownership was not
-    // manually raised from PF2e's default LIMITED level.
-    if (actor?.type === "familiar") {
-      const master = this.#getFamiliarMaster(actor);
-      if (master && this.#hasOwnerPermission(master)) return true;
-    }
-
-    return false;
+    return canUserActWith(actor, game?.user);
   }
 
   #hasOwnerPermission(actor) {

@@ -1029,3 +1029,56 @@
   width: 90px;
   text-align: center;
 }
+
+/* dev.6 result application cards */
+.pf2e-action-forge-application-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 2px;
+}
+
+.pf2e-action-forge-application-card header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pf2e-action-forge-application-card header span {
+  font-size: 0.78rem;
+  opacity: 0.72;
+}
+
+.pf2e-action-forge-application-card p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.pf2e-action-forge-application-card .af-application-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pf2e-action-forge-application-card .af-application-button {
+  width: auto;
+  min-height: 30px;
+  padding: 4px 9px;
+}
+
+.pf2e-action-forge-application-card .af-application-button.is-pending {
+  opacity: 0.6;
+}
+
+.pf2e-action-forge-application-card .af-application-button.is-applied {
+  opacity: 0.72;
+}
+
+.pf2e-action-forge-application-card .af-application-note {
+  padding: 6px 8px;
+  border: 1px dashed var(--color-border-light-primary, #8b7d6b);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}

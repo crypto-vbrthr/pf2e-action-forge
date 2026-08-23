@@ -4,6 +4,30 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.6] - 2026-08-23
+
+### Added
+
+- Added the first **Application Engine** with an allow-listed declarative result schema instead of arbitrary client-supplied Actor updates.
+- Added a GM-mediated **Application Broker** over the module socket for applying results to Actors a player does not own.
+- Added Action Transactions with unique IDs and chat-message flags for duplicate-application protection.
+- Added result-application chat cards with permission-aware buttons and applied-state feedback.
+- Enabled real PF2e **Grapple** and **Trip** checks.
+- Grapple can apply **Grabbed** on success and **Restrained** on critical success.
+- Trip can apply **Prone** on success and critical success.
+- Condition items created by Action Forge carry source/transaction flags for later source-aware cleanup and auditing.
+
+### Security / Hardening
+
+- Players never send arbitrary Actor update payloads to the GM broker. The broker re-resolves the action and requested effect from its own Action Registry.
+- The broker validates the requesting user, source Actor permissions, target legitimacy, action/outcome/effect identity, and transaction state before writing to the target.
+- Application requests are idempotent: repeated clicks or duplicate socket delivery cannot apply the same effect twice.
+- One deterministic active GM acts as broker when players lack write permission on the target.
+
+### Notes
+
+- dev.6 intentionally automates the unambiguous condition consequences of Grapple and Trip first. Trip's critical-success 1d6 bludgeoning damage and the choice-driven consequences of Grapple critical failure remain manual until their dedicated damage/choice application support is added.
+
 ## [0.1.0-dev.5.3] - 2026-08-23
 
 ### Added

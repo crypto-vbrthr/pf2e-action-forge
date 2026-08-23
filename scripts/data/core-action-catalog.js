@@ -1,8 +1,8 @@
 /**
  * MVP action catalog.
  *
- * dev.5 adds visibility profiles and secret-check workflows. dev.5.3 adds
- * the GM-DC handoff for secret checks whose DC cannot be resolved automatically.
+ * dev.5 adds visibility profiles and secret-check workflows. dev.6 adds safe
+ * declarative applications for the first target-changing Athletics actions.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -64,8 +64,15 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "fortitude", manualFallback: true },
     systemAction: { slug: "grapple" },
-    execution: { enabled: false, statistic: "athletics" },
-    visibility: { announcement: "public", roll: "public", outcome: "public" }
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" },
+    application: {
+      mode: "confirm",
+      outcomes: {
+        criticalSuccess: [{ id: "restrained", type: "condition-add", condition: "restrained", target: "target" }],
+        success: [{ id: "grabbed", type: "condition-add", condition: "grabbed", target: "target" }]
+      }
+    }
   },
   {
     id: "trip",
@@ -81,8 +88,18 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
     systemAction: { slug: "trip" },
-    execution: { enabled: false, statistic: "athletics" },
-    visibility: { announcement: "public", roll: "public", outcome: "public" }
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" },
+    application: {
+      mode: "confirm",
+      outcomeNotes: {
+        criticalSuccess: "PF2EActionForge.Application.TripCriticalDamageNote"
+      },
+      outcomes: {
+        criticalSuccess: [{ id: "prone", type: "condition-add", condition: "prone", target: "target" }],
+        success: [{ id: "prone", type: "condition-add", condition: "prone", target: "target" }]
+      }
+    }
   },
   {
     id: "climb",

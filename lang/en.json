@@ -51,7 +51,7 @@
   "PF2EActionForge.Notifications.FavoriteAdded": "Added {action} to your favorites.",
   "PF2EActionForge.Notifications.FavoriteRemoved": "Removed {action} from your favorites.",
   "PF2EActionForge.Notifications.FavoriteError": "Action Forge could not save your favorites.",
-  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.5 · Visibility Profiles",
+  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.6 · Application Engine & GM Broker",
   "PF2EActionForge.Target.SelectedAction": "Selected action",
   "PF2EActionForge.Target.Close": "Close action selection",
   "PF2EActionForge.Target.Mode.none": "No target",
@@ -152,5 +152,16 @@
   "PF2EActionForge.GMDC.NoActiveGM": "This action requires a secret GM DC, but no active GM is connected.",
   "PF2EActionForge.GMDC.Rejected": "The GM did not provide a DC. The action remains ready to retry or cancel.",
   "PF2EActionForge.GMDC.Invalid": "The GM response did not contain a valid DC.",
-  "PF2EActionForge.GMDC.Unavailable": "The GM DC request could not be completed."
+  "PF2EActionForge.GMDC.Unavailable": "The GM DC request could not be completed.",
+  "PF2EActionForge.Application.Target": "Target: {target}",
+  "PF2EActionForge.Application.ApplyCondition": "Apply {condition}",
+  "PF2EActionForge.Application.Applied": "Applied",
+  "PF2EActionForge.Application.Success": "Action result applied.",
+  "PF2EActionForge.Application.NoActiveGM": "This result needs a GM to change the target, but no active GM is connected.",
+  "PF2EActionForge.Application.NotAllowed": "You may only apply results from an action performed by an Actor you can control.",
+  "PF2EActionForge.Application.InvalidTarget": "The target is no longer a valid target for this action result.",
+  "PF2EActionForge.Application.Immune": "The target is immune to this condition.",
+  "PF2EActionForge.Application.Timeout": "The GM application request timed out.",
+  "PF2EActionForge.Application.Failed": "The action result could not be applied.",
+  "PF2EActionForge.Application.TripCriticalDamageNote": "Critical Success also deals 1d6 bludgeoning damage; apply that damage manually in dev.6."
 }

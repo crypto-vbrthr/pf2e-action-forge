@@ -72,6 +72,21 @@ export class ActionRegistry {
     const visibilityModes = new Set(["public", "player-gm", "gm", "blind", "self", "none"]);
     const systemActionDefinition =
       definition.systemAction && typeof definition.systemAction === "object" ? definition.systemAction : {};
+    const applicationDefinition =
+      definition.application && typeof definition.application === "object" ? definition.application : {};
+    const applicationOutcomes = {};
+    for (const outcome of ["criticalSuccess", "success", "failure", "criticalFailure"]) {
+      const effects = Array.isArray(applicationDefinition.outcomes?.[outcome])
+        ? applicationDefinition.outcomes[outcome]
+        : [];
+      applicationOutcomes[outcome] = Object.freeze(effects.map((effect) => Object.freeze({
+        id: String(effect?.id ?? "").trim(),
+        type: String(effect?.type ?? "").trim(),
+        target: ["source", "target"].includes(effect?.target) ? effect.target : "target",
+        condition: effect?.condition ? String(effect.condition).trim() : null,
+        label: effect?.label ? String(effect.label).trim() : null
+      })).filter((effect) => effect.id && effect.type));
+    }
 
     return {
       id,
@@ -127,6 +142,15 @@ export class ActionRegistry {
         announcement: visibilityModes.has(visibilityDefinition.announcement) ? visibilityDefinition.announcement : "public",
         roll: visibilityModes.has(visibilityDefinition.roll) ? visibilityDefinition.roll : "public",
         outcome: visibilityModes.has(visibilityDefinition.outcome) ? visibilityDefinition.outcome : "public"
+      }),
+      application: Object.freeze({
+        mode: ["auto", "confirm", "manual"].includes(applicationDefinition.mode) ? applicationDefinition.mode : "manual",
+        outcomeNotes: Object.freeze(Object.fromEntries(
+          Object.entries(applicationDefinition.outcomeNotes ?? {})
+            .filter(([outcome, key]) => ["criticalSuccess", "success", "failure", "criticalFailure"].includes(outcome) && key)
+            .map(([outcome, key]) => [outcome, String(key)])
+        )),
+        outcomes: Object.freeze(applicationOutcomes)
       }),
       developmentOnly: Boolean(definition.developmentOnly)
     };
