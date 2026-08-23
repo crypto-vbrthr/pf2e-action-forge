@@ -84,7 +84,19 @@ export class ActionRegistry {
         type: String(effect?.type ?? "").trim(),
         target: ["source", "target"].includes(effect?.target) ? effect.target : "target",
         condition: effect?.condition ? String(effect.condition).trim() : null,
-        label: effect?.label ? String(effect.label).trim() : null
+        label: effect?.label ? String(effect.label).trim() : null,
+        formula: effect?.formula ? String(effect.formula).trim() : null,
+        formulaByDc: Object.freeze(Object.fromEntries(
+          Object.entries(effect?.formulaByDc ?? {})
+            .filter(([dc, formula]) => Number.isInteger(Number(dc)) && formula)
+            .map(([dc, formula]) => [String(Number(dc)), String(formula).trim()])
+        )),
+        actionId: effect?.actionId ? String(effect.actionId).trim() : null,
+        durationSeconds: Number.isFinite(Number(effect?.durationSeconds)) ? Math.max(0, Number(effect.durationSeconds)) : null,
+        sourceSpecific: Boolean(effect?.sourceSpecific),
+        name: effect?.name ? String(effect.name).trim() : null,
+        description: effect?.description ? String(effect.description).trim() : null,
+        mode: ["auto", "confirm"].includes(effect?.mode) ? effect.mode : null
       })).filter((effect) => effect.id && effect.type));
     }
 
@@ -136,7 +148,10 @@ export class ActionRegistry {
         ),
         includeLore: Boolean(executionDefinition.includeLore),
         requiresStatistic: Boolean(executionDefinition.requiresStatistic),
-        singleTargetOnly: Boolean(executionDefinition.singleTargetOnly)
+        singleTargetOnly: Boolean(executionDefinition.singleTargetOnly),
+        minRank: Number.isInteger(Number(executionDefinition.minRank))
+          ? Math.max(0, Math.min(4, Number(executionDefinition.minRank)))
+          : 0
       }),
       visibility: Object.freeze({
         announcement: visibilityModes.has(visibilityDefinition.announcement) ? visibilityDefinition.announcement : "public",
@@ -145,6 +160,9 @@ export class ActionRegistry {
       }),
       application: Object.freeze({
         mode: ["auto", "confirm", "manual"].includes(applicationDefinition.mode) ? applicationDefinition.mode : "manual",
+        blockIfImmuneActionId: applicationDefinition.blockIfImmuneActionId
+          ? String(applicationDefinition.blockIfImmuneActionId).trim()
+          : null,
         outcomeNotes: Object.freeze(Object.fromEntries(
           Object.entries(applicationDefinition.outcomeNotes ?? {})
             .filter(([outcome, key]) => ["criticalSuccess", "success", "failure", "criticalFailure"].includes(outcome) && key)

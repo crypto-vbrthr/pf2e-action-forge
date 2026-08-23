@@ -3,11 +3,12 @@ import { applicationChat } from "../core/application-chat.js";
 import { applicationEngine } from "../core/application-engine.js";
 import { ActionTransaction } from "../core/action-transaction.js";
 import { actorResolver, CURRENT_TOKEN_SELECTION } from "../core/actor-resolver.js";
-import { dcResolver } from "../core/dc-resolver.js";
+import { dcResolver, statisticRank } from "../core/dc-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
 import { gmDcHandoff } from "../core/gm-dc-handoff.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
 import { targetResolver } from "../core/target-resolver.js";
+import { targetPickerService } from "../core/target-picker-service.js";
 import { visibilityEngine } from "../core/visibility-engine.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -40,6 +41,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       toggleFavorite: ActionForgeApp.#toggleFavorite,
       removeTarget: ActionForgeApp.#removeTarget,
       useCanvasTargets: ActionForgeApp.#useCanvasTargets,
+      pickTarget: ActionForgeApp.#pickTarget,
       closeActionSelection: ActionForgeApp.#closeActionSelection
     }
   };
@@ -109,7 +111,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const targetState = targetResolver.getState(activeDefinition);
       const manualDc = this.manualDcByAction.get(activeDefinition.id) ?? null;
       const selectedStatistic = this.#getSelectedStatistic(activeDefinition, resolution.actor);
-      const dcState = dcResolver.getState(activeDefinition, targetState, { manualDc, statistic: selectedStatistic });
+      const dcState = dcResolver.getState(activeDefinition, targetState, { manualDc, statistic: selectedStatistic, actor: resolution.actor });
       statisticContext = this.#prepareStatisticContext(activeDefinition, resolution.actor, selectedStatistic);
       visibilityContext = this.#prepareVisibilityContext(activeDefinition);
 
@@ -122,6 +124,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         ...targetState,
         modeLabel: game.i18n.localize(`PF2EActionForge.Target.Mode.${targetState.mode}`),
         hint: game.i18n.localize(targetHintKey),
+        canUsePicker: targetPickerService.isAvailable(),
         targets: targetState.targets.map((entry) => ({
           key: entry.key,
           name: entry.name,
@@ -129,6 +132,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           actorUuid: entry.actorUuid,
           tokenUuid: entry.tokenUuid,
           source: entry.source,
+          remote: Boolean(entry.remote),
+          blockedActionId: entry.blockedActionId ?? null,
           sourceText: game.i18n.localize(`PF2EActionForge.Target.Source.${entry.source}`)
         }))
       };
@@ -138,9 +143,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         ? pf2eActionAdapter.isAvailable(activeDefinition)
         : false;
       const statisticValid = !activeDefinition.execution.requiresStatistic || Boolean(selectedStatistic);
+      const proficiencyValid = this.#meetsMinimumRank(activeDefinition, resolution.actor, selectedStatistic);
       const targetCountValid = !activeDefinition.execution.singleTargetOnly || targetState.count <= 1;
       const gmHandoffRequired = Boolean(dcState.requiresGmHandoff && !game.user?.isGM);
       const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
+      const activeImmunity = this.#getBlockingImmunity(activeDefinition, targetState, resolution.actor);
+      const immunityValid = !activeImmunity;
       const canExecute = Boolean(
         resolution.actor &&
         activeDefinition.execution.enabled &&
@@ -148,7 +156,9 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         targetState.valid &&
         dcState.valid &&
         statisticValid &&
+        proficiencyValid &&
         targetCountValid &&
+        immunityValid &&
         gmHandoffAvailable &&
         !waitingForGmDc
       );
@@ -158,7 +168,10 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         systemActionAvailable,
         canExecute,
         statisticValid,
+        proficiencyValid,
         targetCountValid,
+        immunityValid,
+        activeImmunity,
         gmHandoffRequired,
         gmHandoffAvailable,
         waitingForGmDc,
@@ -173,7 +186,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ? game.i18n.localize("PF2EActionForge.Roll.SingleTargetOnly")
           : !statisticValid
             ? game.i18n.localize("PF2EActionForge.Roll.StatisticRequired")
-            : gmHandoffRequired && !gmHandoffAvailable
+            : !proficiencyValid
+              ? game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired")
+              : !immunityValid
+                ? game.i18n.localize("PF2EActionForge.TreatWounds.TargetImmune")
+                : gmHandoffRequired && !gmHandoffAvailable
               ? game.i18n.localize("PF2EActionForge.GMDC.NoActiveGM")
               : waitingForGmDc
                 ? game.i18n.localize("PF2EActionForge.GMDC.Waiting")
@@ -188,7 +205,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.6",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.7.2",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -265,6 +282,14 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (action?.dc?.strategy === "gm-defined" && !game.user?.isGM) return;
       this.manualDcByAction.set(this.activeActionId, event.currentTarget.value ?? "");
       this.#updateExecutionControls();
+    });
+
+    const fixedChoiceDc = this.element.querySelector('[data-role="fixed-choice-dc"]');
+    fixedChoiceDc?.addEventListener("change", (event) => {
+      if (!this.activeActionId || this.pendingGmDcRequest) return;
+      this.manualDcByAction.set(this.activeActionId, event.currentTarget.value ?? "");
+      this.lastRoll = null;
+      this.render({ force: true });
     });
 
     const dropZone = this.element.querySelector('[data-role="target-drop-zone"]');
@@ -359,6 +384,17 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       waitingForGmDc,
       handoffRequired,
       statusClass: waitingForGmDc || handoffRequired ? "is-waiting" : state.valid ? "is-valid" : "is-required",
+      showChoiceSelect: state.strategy === "fixed-choice" && Array.isArray(state.choiceEntries) && state.choiceEntries.length > 0,
+      choiceOptions: (state.choiceEntries ?? []).map((entry) => ({
+        value: entry.value,
+        selected: entry.value === state.manualDc,
+        label: game.i18n.format("PF2EActionForge.DC.FixedChoiceOption", {
+          dc: entry.value,
+          label: entry.label ? game.i18n.localize(entry.label) : ""
+        })
+      })),
+      choiceLabel: game.i18n.localize("PF2EActionForge.DC.FixedChoiceLabel"),
+      choiceHint: game.i18n.localize("PF2EActionForge.DC.FixedChoiceHint"),
       showManualInput:
         state.strategy === "manual" ||
         (state.strategy === "gm-defined" && state.allowsManualDc) ||
@@ -367,6 +403,24 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       manualInputLabel: game.i18n.localize("PF2EActionForge.DC.ManualInput"),
       manualInputHint: game.i18n.localize("PF2EActionForge.DC.ManualInputHint")
     };
+  }
+
+  #meetsMinimumRank(action, actor, selectedStatistic = null) {
+    const minimum = Number(action?.execution?.minRank ?? 0);
+    if (!minimum) return true;
+    const statistic = selectedStatistic ?? action?.execution?.statistic ?? null;
+    const rank = statisticRank(actor, statistic);
+    return rank !== null && rank >= minimum;
+  }
+
+  #getBlockingImmunity(action, targetState, sourceActor) {
+    const actionId = action?.application?.blockIfImmuneActionId;
+    const targetEntry = targetState?.targets?.[0] ?? null;
+    if (!actionId || !targetEntry) return null;
+    if (targetEntry.blockedActionId === actionId) return { remote: true, actionId };
+    const targetActor = targetEntry.actor ?? null;
+    if (!targetActor) return null;
+    return applicationEngine.getActiveImmunity(targetActor, actionId, { sourceActor });
   }
 
   #getSelectedStatistic(action, actor) {
@@ -490,16 +544,18 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const manualDc = this.manualDcByAction.get(action.id) ?? null;
     const actor = actorResolver.resolve();
     const selectedStatistic = this.#getSelectedStatistic(action, actor);
-    const dcState = dcResolver.getState(action, targetState, { manualDc, statistic: selectedStatistic });
+    const dcState = dcResolver.getState(action, targetState, { manualDc, statistic: selectedStatistic, actor });
     const systemActionAvailable = action.execution.enabled ? pf2eActionAdapter.isAvailable(action) : false;
     const statisticValid = !action.execution.requiresStatistic || Boolean(selectedStatistic);
+    const proficiencyValid = this.#meetsMinimumRank(action, actor, selectedStatistic);
     const targetCountValid = !action.execution.singleTargetOnly || targetState.count <= 1;
+    const immunityValid = !this.#getBlockingImmunity(action, targetState, actor);
     const waitingForGmDc = Boolean(this.pendingGmDcRequest);
     const gmHandoffRequired = Boolean(dcState.requiresGmHandoff && !game.user?.isGM);
     const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
     const canExecute = Boolean(
       actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid && statisticValid &&
-      targetCountValid && gmHandoffAvailable && !waitingForGmDc
+      proficiencyValid && targetCountValid && immunityValid && gmHandoffAvailable && !waitingForGmDc
     );
 
     const button = this.element.querySelector('[data-action="executeAction"]');
@@ -610,9 +666,17 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.SingleTargetOnly"));
       return;
     }
+    if (!app.#meetsMinimumRank(action, actor, selectedStatistic)) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired"));
+      return;
+    }
+    if (app.#getBlockingImmunity(action, targetState, actor)) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.TreatWounds.TargetImmune"));
+      return;
+    }
 
     const manualDc = app.manualDcByAction.get(action.id) ?? null;
-    const dcResolution = dcResolver.resolve(action, targetState, { manualDc, statistic: selectedStatistic });
+    const dcResolution = dcResolver.resolve(action, targetState, { manualDc, statistic: selectedStatistic, actor });
     if (!dcResolution.ok) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.DCRequired"));
       return;
@@ -696,12 +760,14 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           };
 
       const targetEntry = targetState.targets[0] ?? null;
-      if (targetEntry?.actor && applicationEngine.hasApplications(action, outcome)) {
+      if (targetEntry?.actorUuid && applicationEngine.hasApplications(action, outcome)) {
         const transaction = ActionTransaction.create({
           definition: action,
           actor,
           targetEntry,
           outcome,
+          difficultyClass: Number.isFinite(Number(difficultyClass)) ? Number(difficultyClass) : null,
+          statistic: selectedStatistic,
           rollMessageId: result.message?.id ?? result.messageId ?? null
         });
         await applicationChat.create({ definition: action, transaction });
@@ -727,6 +793,39 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     await targetResolver.remove(key);
     if (app) app.lastRoll = null;
     app?.render({ force: true });
+  }
+
+  static async #pickTarget(event) {
+    event?.preventDefault?.();
+    const app = ActionForgeApp.instance;
+    if (!app || app.pendingGmDcRequest) return;
+    const action = app.activeActionId ? actionRegistry.get(app.activeActionId) : null;
+    const actor = actorResolver.resolve();
+    if (!action || !actor) return;
+
+    const result = await targetPickerService.choose({ definition: action, sourceActor: actor });
+    if (!result.ok) {
+      if (result.reason === "cancelled") return;
+      const key = {
+        "no-active-gm": "PF2EActionForge.Target.Picker.NoActiveGM",
+        "no-targets": "PF2EActionForge.Target.Picker.NoTargets",
+        "dialog-unavailable": "PF2EActionForge.Target.Picker.Unavailable",
+        "dialog-error": "PF2EActionForge.Target.Picker.Unavailable",
+        timeout: "PF2EActionForge.Target.Picker.Timeout",
+        "gm-directory-error": "PF2EActionForge.Target.Picker.DirectoryError",
+        blocked: "PF2EActionForge.TreatWounds.TargetImmune"
+      }[result.reason] ?? "PF2EActionForge.Target.Picker.Unavailable";
+      ui.notifications.warn(game.i18n.localize(key));
+      return;
+    }
+
+    const added = await targetResolver.addFromPickerEntry(result.entry, action);
+    if (!added.ok) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.TargetDropInvalid"));
+      return;
+    }
+    app.lastRoll = null;
+    app.render({ force: true });
   }
 
   static #useCanvasTargets(event) {

@@ -2,7 +2,8 @@
  * MVP action catalog.
  *
  * dev.5 adds visibility profiles and secret-check workflows. dev.6 adds safe
- * declarative applications for the first target-changing Athletics actions.
+ * declarative applications for Athletics actions, and dev.7 adds the full
+ * Treat Wounds result workflow.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -164,9 +165,52 @@ export const CORE_ACTIONS = Object.freeze([
     icon: "fa-solid fa-kit-medical",
     keywords: ["medicine", "healing", "immunity", "wounded"],
     target: { mode: "single", type: "creature", required: true },
-    dc: { strategy: "fixed-choice", choices: [15, 20, 30, 40] },
+    dc: {
+      strategy: "fixed-choice",
+      choices: [
+        { value: 15, minRank: 1, label: "PF2EActionForge.TreatWounds.Proficiency.Trained" },
+        { value: 20, minRank: 2, label: "PF2EActionForge.TreatWounds.Proficiency.Expert" },
+        { value: 30, minRank: 3, label: "PF2EActionForge.TreatWounds.Proficiency.Master" },
+        { value: 40, minRank: 4, label: "PF2EActionForge.TreatWounds.Proficiency.Legendary" }
+      ]
+    },
     systemAction: { slug: "treat-wounds" },
-    execution: { enabled: false, statistic: "medicine" },
-    visibility: { announcement: "public", roll: "public", outcome: "public" }
+    execution: { enabled: true, statistic: "medicine", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" },
+    application: {
+      mode: "confirm",
+      blockIfImmuneActionId: "treat-wounds",
+      outcomes: {
+        criticalSuccess: [
+          {
+            id: "healing",
+            type: "heal",
+            target: "target",
+            label: "PF2EActionForge.TreatWounds.ApplyHealing",
+            formulaByDc: { 15: "4d8", 20: "4d8+10", 30: "4d8+30", 40: "4d8+50" }
+          },
+          { id: "remove-wounded", type: "condition-remove", condition: "wounded", target: "target", label: "PF2EActionForge.TreatWounds.RemoveWounded" },
+          { id: "treat-wounds-immunity", type: "immunity", mode: "auto", actionId: "treat-wounds", durationSeconds: 3600, target: "target", label: "PF2EActionForge.TreatWounds.ApplyImmunity", name: "PF2EActionForge.TreatWounds.ImmunityName", description: "PF2EActionForge.TreatWounds.ImmunityDescription" }
+        ],
+        success: [
+          {
+            id: "healing",
+            type: "heal",
+            target: "target",
+            label: "PF2EActionForge.TreatWounds.ApplyHealing",
+            formulaByDc: { 15: "2d8", 20: "2d8+10", 30: "2d8+30", 40: "2d8+50" }
+          },
+          { id: "remove-wounded", type: "condition-remove", condition: "wounded", target: "target", label: "PF2EActionForge.TreatWounds.RemoveWounded" },
+          { id: "treat-wounds-immunity", type: "immunity", mode: "auto", actionId: "treat-wounds", durationSeconds: 3600, target: "target", label: "PF2EActionForge.TreatWounds.ApplyImmunity", name: "PF2EActionForge.TreatWounds.ImmunityName", description: "PF2EActionForge.TreatWounds.ImmunityDescription" }
+        ],
+        failure: [
+          { id: "treat-wounds-immunity", type: "immunity", mode: "auto", actionId: "treat-wounds", durationSeconds: 3600, target: "target", label: "PF2EActionForge.TreatWounds.ApplyImmunity", name: "PF2EActionForge.TreatWounds.ImmunityName", description: "PF2EActionForge.TreatWounds.ImmunityDescription" }
+        ],
+        criticalFailure: [
+          { id: "damage", type: "damage", formula: "1d8", target: "target", label: "PF2EActionForge.TreatWounds.ApplyDamage" },
+          { id: "treat-wounds-immunity", type: "immunity", mode: "auto", actionId: "treat-wounds", durationSeconds: 3600, target: "target", label: "PF2EActionForge.TreatWounds.ApplyImmunity", name: "PF2EActionForge.TreatWounds.ImmunityName", description: "PF2EActionForge.TreatWounds.ImmunityDescription" }
+        ]
+      }
+    }
   }
 ]);

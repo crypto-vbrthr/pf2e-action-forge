@@ -1,48 +1,45 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.6 – Application Engine & GM Broker**.
+Development build **0.1.0-dev.7.2 – Out-of-Combat Target Picker**.
 
-This build adds the first safe mechanical-result layer. Players can execute supported PF2e actions against targets they do not own, and an active GM client can apply the approved result without granting the player write permission to the target Actor.
+This hotfix completes the Treat Wounds target workflow outside encounters. Players can now choose eligible party members and other safe Actors as Action Forge targets even when they do not own those Actors and no token is present on the current scene.
 
-## Included in dev.6
+## Included in dev.7.1
 
-- all foundation, catalog, targeting, DC, **Visibility Profiles**, and GM DC Handoff features from dev.1–dev.5;
-- declarative Application Engine with an allow-listed effect schema;
-- GM-mediated application broker using the module socket;
-- unique Action Transaction IDs and duplicate-application protection;
-- application state stored on dedicated Action Forge chat cards;
-- permission-aware Apply buttons;
-- real PF2e **Grapple** and **Trip** execution;
-- **Grabbed**, **Restrained**, and **Prone** application through PF2e condition items;
-- application works for a player's own target as well as an Actor owned by another player or the GM;
-- condition applications store Action Forge source/transaction flags for later lifecycle handling;
+- all foundation, catalog, targeting, DC, Visibility Profiles, GM DC Handoff, Application Engine, and Treat Wounds features from dev.1–dev.7;
+- a new **Choose Target…** button in the active action target panel;
+- a GM-built, sanitized out-of-combat target directory;
+- grouped choices for **your characters & companions**, **party**, **player characters**, **current scene**, and **other visible Actors**;
+- active PF2e Party members can be selected without ownership permission;
+- characters assigned to other players can be selected without ownership permission;
+- picker targets work even when the player's client cannot resolve the underlying Actor document locally;
+- hidden/unrelated GM Actors are not disclosed;
+- picker-selected Actors are revalidated by the GM Broker before any privileged application is written;
+- Treat Wounds immunity is checked while building the target list so an immune target cannot bypass the normal 60-minute lockout by using the picker;
+- token targeting and sidebar drag-and-drop remain available unchanged;
 - German and English localization;
 - release metadata, `CHANGELOG.md`, and MIT `LICENSE`.
 
-## Application security model
+## Out-of-combat target security model
 
-The player never sends an arbitrary Actor update to the GM. A chat transaction records the action, source, target, and outcome. When Apply is clicked, the broker independently resolves the registered action and the exact allow-listed effect for that outcome, validates the source Actor permission and target, and only then performs the PF2e document change. Repeated requests for the same transaction/effect are ignored.
+The player does not receive a copy of another Actor's statistics. The GM sends only safe display metadata: Actor UUID, name, image, type, target category, and whether the Actor is currently unavailable for the selected action. HP, defenses, conditions, notes, hidden fields, and other document data stay on the GM side.
 
-## Current automated outcomes
-
-- **Grapple**: Success → Grabbed; Critical Success → Restrained.
-- **Trip**: Success/Critical Success → Prone.
-
-The additional 1d6 bludgeoning damage from a critical-success Trip and the choice-driven critical-failure consequence of Grapple remain manual in dev.6. Those require the later damage/choice executors rather than a deliberately lossy shortcut.
+When an application is later requested, the GM Broker resolves the Actor by UUID and independently checks that the player was legitimately allowed to select that Actor through party membership, player-character assignment, ownership, a visible scene token, or ordinary Foundry visibility. This keeps out-of-combat selection useful without turning Action Forge into an Actor-directory information leak.
 
 ## Manual test
 
-1. Enable the module in a PF2e world with one GM and one player connected.
-2. As a player, select an owned character, target a creature the player does **not** own, and execute **Grapple**.
-3. On Success, confirm the Action Forge chat card offers **Apply Grabbed**. On Critical Success it should offer **Apply Restrained**.
-4. Click the Apply button as the player. Confirm the target receives the PF2e condition even though the player has no write permission to the target.
-5. Confirm the Apply button changes to **Applied** and a second click cannot create a duplicate condition.
-6. Repeat with **Trip** and confirm Success/Critical Success offers **Apply Prone**.
-7. Repeat against an Actor dragged from the sidebar and confirm the same broker path works.
-8. Repeat as GM and confirm the application succeeds directly without requiring a second client.
-9. Connect a second GM and confirm the result is still applied only once.
-10. Confirm a player cannot use an application card created by another user's unrelated action source.
-11. Confirm existing Tumble Through, Climb, Lie, Recall Knowledge, GM DC Handoff, favorites, targeting, and source-Actor locking still work.
+1. Enable the module in a PF2e world with one GM and at least two player characters connected or configured.
+2. Ensure Player A does **not** have ownership of Player B's character. The character may have no token on the active scene.
+3. As Player A, select **Treat Wounds**.
+4. Click **Choose Target…** and confirm Player B's character appears under Party or Player Characters.
+5. Select that character and confirm it appears as the Action Forge target even though Player A cannot normally drag it from the Actor sidebar.
+6. Roll Treat Wounds and apply healing / Remove Wounded. Confirm the GM Broker modifies Player B's Actor successfully.
+7. Confirm the 60-minute Treat Wounds immunity is automatically applied.
+8. Start Treat Wounds again, reopen **Choose Target…**, and confirm the immune Actor is unavailable.
+9. Confirm unrelated hidden NPC Actors do not appear in the target picker.
+10. Repeat with an owned companion, a Party Actor member, and a visible scene NPC.
+11. Confirm native token targeting and sidebar drag-and-drop still work.
+12. Confirm Grapple, Trip, Tumble Through, Climb, Lie, Recall Knowledge, GM DC Handoff, favorites, and source-Actor locking still work.
 
 ## Automated checks
 
@@ -51,4 +48,8 @@ npm test
 npm run check
 ```
 
-The next planned block is **0.1.0-dev.7 – Treat Wounds Workflow**.
+The next planned block is **0.1.0-dev.8 – Demoralize & Timed Results**.
+
+
+### Out-of-combat target picker reliability
+The target picker resolves safe party, assigned-character, owned, and visible-scene targets locally first. A GM-side sanitized directory is now only a fallback for unusual permission setups.

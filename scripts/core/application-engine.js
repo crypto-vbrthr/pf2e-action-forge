@@ -1,0 +1,285 @@
+import { MODULE_ID } from "./action-transaction.js";
+import { getActiveActionImmunity } from "./action-immunity.js";
+
+export const APPLICATION_TYPES = new Set([
+  "condition-add",
+  "condition-remove",
+  "heal",
+  "damage",
+  "effect-add",
+  "immunity"
+]);
+
+function cloneEffect(effect) {
+  return effect ? { ...effect } : null;
+}
+
+function numeric(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function resolveFormula(effect, transaction) {
+  const dc = Number(transaction?.difficultyClass);
+  if (effect?.formulaByDc && Number.isFinite(dc)) {
+    const formula = effect.formulaByDc[String(dc)] ?? effect.formulaByDc[dc];
+    if (formula) return String(formula);
+  }
+  return effect?.formula ? String(effect.formula) : null;
+}
+
+async function evaluateFormula(formula) {
+  if (!formula || typeof globalThis.Roll !== "function") return null;
+  const roll = await new Roll(formula).evaluate();
+  const total = Number(roll?.total);
+  return Number.isFinite(total) ? { roll, total } : null;
+}
+
+function findTargetToken(targetActor, explicitToken = null) {
+  if (explicitToken) return explicitToken.document ?? explicitToken;
+  try {
+    return targetActor?.getActiveTokens?.(true, true)?.at?.(0)?.document ?? null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+export class ApplicationEngine {
+  getEffects(definition, outcome) {
+    const effects = definition?.application?.outcomes?.[outcome] ?? [];
+    return effects
+      .filter((effect) => effect?.id && APPLICATION_TYPES.has(effect?.type))
+      .map(cloneEffect);
+  }
+
+  getEffect(definition, outcome, effectId) {
+    return this.getEffects(definition, outcome).find((effect) => effect.id === effectId) ?? null;
+  }
+
+  hasApplications(definition, outcome) {
+    return this.getEffects(definition, outcome).length > 0;
+  }
+
+  getActiveImmunity(targetActor, actionId, options = {}) {
+    return getActiveActionImmunity(targetActor, actionId, options);
+  }
+
+  async apply({ effect, targetActor, sourceActor = null, targetToken = null, transactionId = null, transaction = null } = {}) {
+    if (!effect || !APPLICATION_TYPES.has(effect.type)) {
+      return { ok: false, reason: "unsupported-effect" };
+    }
+    if (!targetActor) return { ok: false, reason: "missing-target" };
+
+    switch (effect.type) {
+      case "condition-add":
+        return this.#addCondition({ effect, targetActor, sourceActor, transactionId });
+      case "condition-remove":
+        return this.#removeCondition({ effect, targetActor });
+      case "heal":
+        return this.#applyHitPoints({ effect, targetActor, targetToken, transaction, healing: true });
+      case "damage":
+        return this.#applyHitPoints({ effect, targetActor, targetToken, transaction, healing: false });
+      case "immunity":
+        return this.#addImmunity({ effect, targetActor, sourceActor, transactionId });
+      default:
+        return { ok: false, reason: "not-implemented" };
+    }
+  }
+
+  async #addCondition({ effect, targetActor, sourceActor, transactionId }) {
+    const slug = String(effect.condition ?? "").trim();
+    if (!slug) return { ok: false, reason: "invalid-condition" };
+
+    try {
+      if (targetActor.conditions?.hasType?.(slug)) {
+        return { ok: true, reason: "already-present", changed: false, condition: slug };
+      }
+
+      const template = globalThis.game?.pf2e?.ConditionManager?.getCondition?.(slug);
+      if (!template) return { ok: false, reason: "missing-condition-template" };
+
+      if (typeof targetActor.isImmuneTo === "function") {
+        try {
+          if (targetActor.isImmuneTo(template)) return { ok: false, reason: "immune" };
+        } catch (_error) {
+          // Immunity checking is best-effort; PF2e still validates the created item.
+        }
+      }
+
+      const source = template.toObject?.() ?? null;
+      if (!source) return { ok: false, reason: "invalid-condition-template" };
+      delete source._id;
+      source.flags = source.flags ?? {};
+      source.flags[MODULE_ID] = {
+        transactionId,
+        sourceActorUuid: sourceActor?.uuid ?? null,
+        applicationId: effect.id
+      };
+
+      const created = await targetActor.createEmbeddedDocuments?.("Item", [source]);
+      if (!created) return { ok: false, reason: "create-failed" };
+      return { ok: true, changed: true, condition: slug, createdIds: created.map((item) => item.id) };
+    } catch (error) {
+      console.error("PF2E Action Forge | Failed to apply condition", error);
+      return { ok: false, reason: "apply-error", error };
+    }
+  }
+
+  async #removeCondition({ effect, targetActor }) {
+    const slug = String(effect.condition ?? "").trim();
+    if (!slug) return { ok: false, reason: "invalid-condition" };
+    const stored = targetActor.conditions?.bySlug?.(slug, { active: true, temporary: false }) ?? [];
+    const ids = stored.map((condition) => condition.id).filter(Boolean);
+    if (ids.length === 0) return { ok: true, reason: "not-present", changed: false, condition: slug };
+    try {
+      await targetActor.deleteEmbeddedDocuments?.("Item", ids);
+      return { ok: true, changed: true, condition: slug, deletedIds: ids };
+    } catch (error) {
+      console.error("PF2E Action Forge | Failed to remove condition", error);
+      return { ok: false, reason: "apply-error", error };
+    }
+  }
+
+  async #applyHitPoints({ effect, targetActor, targetToken, transaction, healing }) {
+    const formula = resolveFormula(effect, transaction);
+    const evaluated = await evaluateFormula(formula);
+    if (!evaluated) return { ok: false, reason: "invalid-formula" };
+
+    const amount = Math.max(0, Math.trunc(evaluated.total));
+    const token = findTargetToken(targetActor, targetToken);
+
+    try {
+      // PF2e's Actor.applyDamage handles temporary HP, stamina, death automation,
+      // and healing-received adjustments. Use it whenever a concrete token exists.
+      if (token && typeof targetActor.applyDamage === "function") {
+        await targetActor.applyDamage({
+          damage: healing ? -amount : amount,
+          token,
+          final: true
+        });
+        return { ok: true, changed: amount > 0, value: amount, formula, healing };
+      }
+
+      // Sidebar-only Actors have no token for applyDamage. Use a conservative
+      // document update fallback that still caps healing and consumes temp HP first.
+      const hp = targetActor.system?.attributes?.hp ?? targetActor.hitPoints ?? null;
+      if (!hp || !Number.isFinite(Number(hp.value)) || !Number.isFinite(Number(hp.max))) {
+        return { ok: false, reason: "missing-hit-points" };
+      }
+
+      const updates = {};
+      const hpValue = numeric(hp.value);
+      const hpMax = numeric(hp.max);
+      if (healing) {
+        updates["system.attributes.hp.value"] = Math.min(hpMax, hpValue + amount);
+      } else {
+        let remaining = amount;
+        const temp = numeric(hp.temp);
+        if (temp > 0) {
+          const absorbed = Math.min(temp, remaining);
+          updates["system.attributes.hp.temp"] = temp - absorbed;
+          remaining -= absorbed;
+        }
+
+        const sp = targetActor.system?.attributes?.hp?.sp ?? targetActor.attributes?.hp?.sp ?? null;
+        const staminaEnabled = Boolean(globalThis.game?.pf2e?.settings?.variants?.stamina);
+        if (staminaEnabled && sp && Number.isFinite(Number(sp.value)) && remaining > 0) {
+          const stamina = numeric(sp.value);
+          const absorbed = Math.min(stamina, remaining);
+          updates["system.attributes.hp.sp.value"] = stamina - absorbed;
+          remaining -= absorbed;
+        }
+        updates["system.attributes.hp.value"] = Math.max(0, hpValue - remaining);
+      }
+
+      await targetActor.update?.(updates, { damageTaken: healing ? -amount : amount });
+      const next = Number(updates["system.attributes.hp.value"] ?? hpValue);
+      const changed = next !== hpValue || "system.attributes.hp.temp" in updates || "system.attributes.hp.sp.value" in updates;
+      return { ok: true, changed, value: amount, formula, healing };
+    } catch (error) {
+      console.error("PF2E Action Forge | Failed to apply healing/damage", error);
+      return { ok: false, reason: "apply-error", error };
+    }
+  }
+
+  async #addImmunity({ effect, targetActor, sourceActor, transactionId }) {
+    const actionId = String(effect.actionId ?? "").trim();
+    const durationSeconds = Math.max(1, Math.trunc(numeric(effect.durationSeconds, 0)));
+    if (!actionId || !durationSeconds) return { ok: false, reason: "invalid-immunity" };
+
+    const existing = getActiveActionImmunity(targetActor, actionId, { sourceActor });
+    if (existing) {
+      return {
+        ok: true,
+        reason: "already-present",
+        changed: false,
+        immunityActionId: actionId,
+        expiresAtWorldTime: existing.expiresAtWorldTime
+      };
+    }
+
+    const now = numeric(globalThis.game?.time?.worldTime, 0);
+    const expiresAtWorldTime = now + durationSeconds;
+    const durationMinutes = durationSeconds / 60;
+    const name = effect.name
+      ? (globalThis.game?.i18n?.localize?.(effect.name) ?? effect.name)
+      : actionId;
+    const description = effect.description
+      ? (globalThis.game?.i18n?.localize?.(effect.description) ?? effect.description)
+      : "";
+
+    const source = {
+      name,
+      type: "effect",
+      img: "systems/pf2e/icons/default-icons/effect.svg",
+      system: {
+        description: { value: description },
+        duration: {
+          expiry: null,
+          sustained: false,
+          unit: Number.isInteger(durationMinutes) ? "minutes" : "seconds",
+          value: Number.isInteger(durationMinutes) ? durationMinutes : durationSeconds
+        },
+        fromSpell: false,
+        level: { value: 1 },
+        rules: [],
+        start: { initiative: null, value: now },
+        tokenIcon: { show: true },
+        traits: { value: [] }
+      },
+      flags: {
+        [MODULE_ID]: {
+          transactionId,
+          sourceActorUuid: sourceActor?.uuid ?? null,
+          applicationId: effect.id,
+          immunity: {
+            actionId,
+            sourceSpecific: Boolean(effect.sourceSpecific),
+            sourceActorUuid: sourceActor?.uuid ?? null,
+            durationSeconds,
+            expiresAtWorldTime
+          }
+        }
+      }
+    };
+
+    try {
+      const created = await targetActor.createEmbeddedDocuments?.("Item", [source]);
+      if (!created) return { ok: false, reason: "create-failed" };
+      return {
+        ok: true,
+        changed: true,
+        immunityActionId: actionId,
+        durationSeconds,
+        expiresAtWorldTime,
+        createdIds: created.map((item) => item.id)
+      };
+    } catch (error) {
+      console.error("PF2E Action Forge | Failed to apply action immunity", error);
+      return { ok: false, reason: "apply-error", error };
+    }
+  }
+}
+
+export { resolveFormula };
+export const applicationEngine = new ApplicationEngine();

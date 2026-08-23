@@ -96,6 +96,21 @@ export class TargetResolver {
     return { ok: true, entry };
   }
 
+
+  async addFromPickerEntry(descriptor, action) {
+    const mode = this.#mode(action);
+    if (mode === "none") return { ok: false, reason: "not-allowed" };
+    if (!descriptor?.actorUuid || !descriptor?.name) return { ok: false, reason: "invalid-data" };
+
+    const entry = this.#pickerEntry(descriptor);
+    if (mode === "single" || mode === "optional") {
+      await this.#releaseCanvasTargets();
+      this.#manualTargets.clear();
+    }
+    this.#manualTargets.set(entry.key, entry);
+    return { ok: true, entry };
+  }
+
   async remove(key) {
     if (this.#manualTargets.delete(key)) return true;
 
@@ -187,6 +202,27 @@ export class TargetResolver {
       tokenUuid: null,
       name: actor.name,
       img: actor.img
+    };
+  }
+
+
+  #pickerEntry(descriptor) {
+    let actor = null;
+    if (typeof globalThis.fromUuidSync === "function") {
+      try { actor = fromUuidSync(descriptor.actorUuid); } catch (_error) { actor = null; }
+    }
+    return {
+      key: `picker:${descriptor.actorUuid}`,
+      source: "picker",
+      actor: actor && this.#isCreatureActor(actor) ? actor : null,
+      token: null,
+      actorUuid: descriptor.actorUuid,
+      tokenUuid: null,
+      name: descriptor.name,
+      img: descriptor.img ?? actor?.img ?? "icons/svg/mystery-man.svg",
+      category: descriptor.category ?? null,
+      blockedActionId: descriptor.blockedActionId ?? null,
+      remote: !actor
     };
   }
 

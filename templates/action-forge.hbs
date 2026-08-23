@@ -84,6 +84,12 @@
             <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
             {{localize "PF2EActionForge.Target.UseCanvas"}}
           </button>
+          {{#if targetContext.canUsePicker}}
+            <button type="button" class="af-secondary-button" data-action="pickTarget" {{#if interactionLocked}}disabled{{/if}}>
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              {{localize "PF2EActionForge.Target.Picker.Button"}}
+            </button>
+          {{/if}}
           <span class="af-canvas-target-count">
             {{localize "PF2EActionForge.Target.CanvasTargets"}}: {{targetContext.canvasCount}}
           </span>
@@ -174,6 +180,20 @@
             <option value="" {{#unless statisticContext.selected}}selected{{/unless}}>{{localize "PF2EActionForge.Roll.StatisticPlaceholder"}}</option>
             {{#each statisticContext.options}}
               <option value="{{slug}}" {{#if selected}}selected{{/if}}>{{displayLabel}}</option>
+            {{/each}}
+          </select>
+        </label>
+      {{/if}}
+
+      {{#if dcContext.showChoiceSelect}}
+        <label class="af-dc-input af-dc-choice">
+          <span>
+            <strong>{{dcContext.choiceLabel}}</strong>
+            <small>{{dcContext.choiceHint}}</small>
+          </span>
+          <select data-role="fixed-choice-dc" {{#if interactionLocked}}disabled{{/if}}>
+            {{#each dcContext.choiceOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
             {{/each}}
           </select>
         </label>

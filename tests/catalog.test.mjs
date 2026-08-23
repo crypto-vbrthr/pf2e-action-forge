@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.6 Application Engine build and release URLs", async () => {
+test("manifest identifies the dev.7 Treat Wounds build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.6");
+  assert.equal(manifest.version, "0.1.0-dev.7.2");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.6/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.7.2/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -103,13 +103,15 @@ test("catalog template includes search, category groups, and favorite controls",
   assert.doesNotMatch(template, /Foundation Check/);
 });
 
-test("repository history records dev.6 and preserves earlier development history", async () => {
+test("repository history records dev.7 and preserves earlier development history", async () => {
   const changelog = await readFile(new URL("CHANGELOG.md", root), "utf8");
   const readme = await readFile(new URL("README.md", root), "utf8");
   const license = await readFile(new URL("LICENSE", root), "utf8");
+  assert.match(changelog, /0\.1\.0-dev\.7/);
   assert.match(changelog, /0\.1\.0-dev\.5\.3/);
   assert.match(changelog, /0\.1\.0-dev\.5\.2/);
-  assert.match(readme, /GM DC Handoff/);
+  assert.match(readme, /Treat Wounds|Out-of-Combat Target Picker/);
+  assert.match(readme, /GM DC Handoff/i);
   assert.match(readme, /Visibility profiles/i);
   assert.match(license, /MIT License/);
 });
@@ -243,7 +245,7 @@ test("target workspace is present in the application template", async () => {
   assert.match(template, /targetContext\.canvasOverflow/);
 });
 
-test("dev.6 catalog declares DC, visibility, and six enabled roll workflows", async () => {
+test("dev.7 catalog declares DC, visibility, and seven enabled roll workflows", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
 
@@ -264,7 +266,8 @@ test("dev.6 catalog declares DC, visibility, and six enabled roll workflows", as
   assert.equal(byId.get("trip").dc.defense, "reflex");
   assert.equal(byId.get("lie").dc.defense, "perception");
   assert.equal(byId.get("demoralize").dc.defense, "will");
-  assert.deepEqual(byId.get("treat-wounds").dc.choices, [15, 20, 30, 40]);
+  assert.deepEqual(byId.get("treat-wounds").dc.choices.map((choice) => choice.value), [15, 20, 30, 40]);
+  assert.deepEqual(byId.get("treat-wounds").dc.choices.map((choice) => choice.minRank), [1, 2, 3, 4]);
 
   assert.equal(byId.get("recall-knowledge").dc.systemTargetFallback, true);
   assert.equal(byId.get("recall-knowledge").dc.systemTargetRequiresStatisticMatch, true);
@@ -276,7 +279,7 @@ test("dev.6 catalog declares DC, visibility, and six enabled roll workflows", as
   assert.deepEqual(byId.get("lie").visibility, { announcement: "none", roll: "blind", outcome: "gm" });
 
   const enabled = CORE_ACTIONS.filter((action) => action.execution.enabled).map((action) => action.id).sort();
-  assert.deepEqual(enabled, ["climb", "grapple", "lie", "recall-knowledge", "trip", "tumble-through"]);
+  assert.deepEqual(enabled, ["climb", "grapple", "lie", "recall-knowledge", "treat-wounds", "trip", "tumble-through"]);
 });
 
 test("dev.5 template exposes DC, skill selection, visibility, and real roll controls", async () => {

@@ -4,6 +4,7 @@ import { applicationChat } from "./core/application-chat.js";
 import { CORE_ACTIONS } from "./data/core-action-catalog.js";
 import { ActionForgeApp } from "./ui/action-forge-app.js";
 import { registerActionForgeSceneControl } from "./ui/scene-controls.js";
+import { targetPickerService } from "./core/target-picker-service.js";
 
 const MODULE_ID = "pf2e-action-forge";
 
@@ -21,7 +22,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.6"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.7.2"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -49,6 +50,7 @@ Hooks.on("updateUser", (user, changes) => {
 
 Hooks.once("ready", () => {
   applicationBroker.initialize();
+  targetPickerService.initialize();
   applicationChat.bindGlobalClickHandler();
 });
 

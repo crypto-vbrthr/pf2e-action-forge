@@ -7,6 +7,32 @@ function normalizeManualDc(value) {
   return Number.isInteger(number) && number >= 0 && number <= 60 ? number : null;
 }
 
+function statisticRank(actor, statistic) {
+  if (!actor || !statistic) return null;
+  const candidates = [
+    actor.skills?.[statistic]?.rank,
+    actor.getStatistic?.(statistic)?.rank,
+    actor.getStatistic?.(statistic)?.proficiency?.rank
+  ];
+  for (const candidate of candidates) {
+    const rank = Number(candidate);
+    if (Number.isInteger(rank) && rank >= 0 && rank <= 4) return rank;
+  }
+  return null;
+}
+
+function normalizeChoice(choice) {
+  if (typeof choice === "number") {
+    const value = normalizeManualDc(choice);
+    return value === null ? null : { value, minRank: 0, label: null };
+  }
+  if (!choice || typeof choice !== "object") return null;
+  const value = normalizeManualDc(choice.value);
+  if (value === null) return null;
+  const minRank = Number.isInteger(Number(choice.minRank)) ? Math.max(0, Math.min(4, Number(choice.minRank))) : 0;
+  return { value, minRank, label: choice.label ?? null };
+}
+
 /**
  * Resolve a prepared PF2e defense DC directly from an Actor.
  *
@@ -54,7 +80,7 @@ function resolveActorDefenseDc(actor, defense) {
 }
 
 export class DCResolver {
-  getState(action, targetState, { manualDc = null, statistic = null, user = globalThis.game?.user ?? null } = {}) {
+  getState(action, targetState, { manualDc = null, statistic = null, actor = null, user = globalThis.game?.user ?? null } = {}) {
     const dc = action?.dc ?? { strategy: "none" };
     const strategy = DC_STRATEGIES.has(dc.strategy) ? dc.strategy : "none";
     const parsedManualDc = normalizeManualDc(manualDc);
@@ -159,9 +185,14 @@ export class DCResolver {
       }
 
       case "fixed-choice": {
-        const choices = Array.isArray(dc.choices)
-          ? dc.choices.map(normalizeManualDc).filter((value) => value !== null)
+        const allEntries = Array.isArray(dc.choices)
+          ? dc.choices.map(normalizeChoice).filter(Boolean)
           : [];
+        const rank = statisticRank(actor, statistic ?? action?.execution?.statistic);
+        const choiceEntries = rank === null
+          ? allEntries
+          : allEntries.filter((entry) => entry.minRank <= rank);
+        const choices = choiceEntries.map((entry) => entry.value);
         const selected = choices.includes(parsedManualDc) ? parsedManualDc : choices[0] ?? null;
         return {
           strategy,
@@ -171,6 +202,8 @@ export class DCResolver {
           target,
           manualDc: selected,
           choices,
+          choiceEntries,
+          statisticRank: rank,
           needsManualDc: false,
           allowsManualDc: false,
           labelKey: "PF2EActionForge.DC.FixedChoice"
@@ -280,5 +313,5 @@ export class DCResolver {
   }
 }
 
-export { normalizeManualDc, resolveActorDefenseDc };
+export { normalizeManualDc, resolveActorDefenseDc, statisticRank };
 export const dcResolver = new DCResolver();

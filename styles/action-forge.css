@@ -1082,3 +1082,50 @@
   font-size: 0.78rem;
   opacity: 0.85;
 }
+
+/* dev.7 Treat Wounds fixed-choice DC selector */
+.pf2e-action-forge .af-dc-choice select {
+  min-width: 180px;
+  max-width: 240px;
+}
+
+@media (max-width: 620px) {
+  .pf2e-action-forge .af-dc-choice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pf2e-action-forge .af-dc-choice select {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* dev.7.1 out-of-combat target picker */
+.pf2e-action-forge .af-target-tools {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.pf2e-action-forge .af-canvas-target-count {
+  margin-left: auto;
+}
+
+.af-target-picker-dialog {
+  display: grid;
+  gap: 10px;
+}
+
+.af-target-picker-dialog p {
+  margin: 0;
+}
+
+.af-target-picker-dialog label {
+  display: grid;
+  gap: 5px;
+}
+
+.af-target-picker-dialog select {
+  width: 100%;
+  min-height: 34px;
+}

@@ -1,8 +1,65 @@
 # Changelog
 
+
+## [0.1.0-dev.7.2] - 2026-08-23
+
+### Fixed
+- The out-of-combat target picker now builds its safe target directory locally first, so normal party healing no longer waits for a GM socket round-trip.
+- Assigned player characters, PF2e party members, and visible scene actors are included even when they are not present in the local `game.actors` collection.
+- GM directory fallback requests now return explicit failures instead of silently timing out when target enumeration throws.
+- Read-only target directory fallback may be answered by any active GM; the first valid response wins.
+
 All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
+
+## [0.1.0-dev.7.1] - 2026-08-23
+
+### Added
+
+- Added an **out-of-combat target picker** for actions that need an Actor target without relying on combat targeting or Actor ownership.
+- Added a **Choose Target…** control alongside native token targeting and sidebar drag-and-drop.
+- The GM builds a sanitized target directory containing only UUID, name, image, type, category, and action-availability metadata.
+- Party members from the active PF2e Party Actor and characters assigned to non-GM users can be selected even when the acting player has no ownership permission on them.
+- Owned characters/companions, non-hidden Actors on the player's viewed scene, and other Actors with at least Limited visibility are also offered in grouped target choices.
+- Picker-selected targets can remain valid even when the requesting client cannot resolve the Actor document locally; privileged applications continue through the GM Broker by UUID.
+
+### Security / Hardening
+
+- Unrelated hidden GM Actors are never included in the player's target directory.
+- Picker targets are revalidated by the GM Broker at application time using the same party/assigned/owned/scene/visibility rules; a player cannot forge an arbitrary hidden Actor UUID into an application request.
+- Action-specific blocking immunity is checked by the GM while building the safe target list. Treat Wounds targets with active Action Forge immunity are shown as unavailable rather than becoming a bypass around the 60-minute lockout.
+- The picker transfers no target defenses, HP values, conditions, notes, or other hidden Actor data to the player.
+
+### Changed
+
+- Result application cards can now be created for UUID-only picker targets, enabling the complete Treat Wounds workflow against another player's character outside combat.
+- Target hints and source labels now describe token targeting, Action Forge target selection, and sidebar drag-and-drop as parallel input methods.
+
+## [0.1.0-dev.7] - 2026-08-23
+
+### Added
+
+- Added the complete first **Treat Wounds** workflow using the PF2e system action and Medicine statistic.
+- Added proficiency-aware treatment DC choices: DC 15 (Trained), DC 20 (Expert), DC 30 (Master), and DC 40 (Legendary).
+- Added DC-dependent healing formulas: 2d8/4d8 plus the +10/+30/+50 higher-DC bonuses.
+- Added application support for healing, damage, condition removal, and timed Action Forge immunities.
+- Treat Wounds success and critical success can remove **Wounded**; critical failure can apply 1d8 damage.
+- Added a real PF2e Effect for the standard **60-minute Treat Wounds immunity**, tracked against Foundry world time.
+- The Treat Wounds immunity is applied automatically after the completed check; its chat button remains as a fallback if the privileged write cannot complete.
+- Added active-immunity detection so a target cannot be treated again through Action Forge while the standard immunity is still active.
+- Healing, damage, Wounded removal, and immunity can be applied to Actors the acting player does not own through the existing validated GM Broker.
+
+### Hardening
+
+- Treat Wounds outcome formulas are re-resolved from the GM-side Action Registry and the recorded transaction DC; players cannot submit arbitrary healing or damage formulas.
+- Higher treatment DCs are filtered by the acting Actor's actual Medicine proficiency rank.
+- Timed immunity records carry action, source, transaction, duration, and world-time expiry metadata for later feat-aware duration handling.
+- Added per-effect application modes so intrinsically automatic consequences can coexist with confirmable result buttons.
+
+### Notes
+
+- dev.7 implements the standard 10-minute Treat Wounds activity and its normal 1-hour immunity. Talent-specific modifications such as **Continual Recovery / Anhaltende Genesung**, Ward Medic, Natural Medicine, and 1-hour extended treatment are reserved for later feat/variant blocks.
 
 ## [0.1.0-dev.6] - 2026-08-23
 
