@@ -1,3 +1,5 @@
+import { visibilityEngine } from "./visibility-engine.js";
+
 const FALLBACK_SYSTEM_SLUGS = Object.freeze({
   "recall-knowledge": "recall-knowledge",
   "tumble-through": "tumble-through",
@@ -50,7 +52,7 @@ export class PF2eActionAdapter {
     return Boolean(definition?.execution?.enabled && this.getSystemAction(definition));
   }
 
-  async execute({ definition, actor, target = null, difficultyClass, event = null }) {
+  async execute({ definition, actor, target = null, difficultyClass, statistic = null, event = null }) {
     if (!definition?.execution?.enabled) {
       return { ok: false, reason: "not-enabled", results: [] };
     }
@@ -67,7 +69,11 @@ export class PF2eActionAdapter {
       };
       if (target) options.target = target;
       if (difficultyClass !== undefined) options.difficultyClass = difficultyClass;
-      if (definition.execution?.statistic) options.statistic = definition.execution.statistic;
+      const selectedStatistic = statistic || definition.execution?.statistic;
+      if (selectedStatistic) options.statistic = selectedStatistic;
+
+      const visibilityTraits = visibilityEngine.getRollTraits(definition, action);
+      if (visibilityTraits.length > 0) options.traits = visibilityTraits;
 
       const results = await action.use(options);
       return {

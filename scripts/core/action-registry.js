@@ -67,6 +67,9 @@ export class ActionRegistry {
 
     const executionDefinition =
       definition.execution && typeof definition.execution === "object" ? definition.execution : {};
+    const visibilityDefinition =
+      definition.visibility && typeof definition.visibility === "object" ? definition.visibility : {};
+    const visibilityModes = new Set(["public", "player-gm", "gm", "blind", "self", "none"]);
     const systemActionDefinition =
       definition.systemAction && typeof definition.systemAction === "object" ? definition.systemAction : {};
 
@@ -95,14 +98,35 @@ export class ActionRegistry {
         defense: dcDefinition.defense ? String(dcDefinition.defense) : null,
         manualFallback: Boolean(dcDefinition.manualFallback),
         value: Number.isFinite(dcDefinition.value) ? dcDefinition.value : null,
-        choices: Object.freeze(Array.isArray(dcDefinition.choices) ? [...dcDefinition.choices] : [])
+        choices: Object.freeze(Array.isArray(dcDefinition.choices) ? [...dcDefinition.choices] : []),
+        systemTargetFallback: Boolean(dcDefinition.systemTargetFallback),
+        systemTargetRequiresStatisticMatch: Boolean(dcDefinition.systemTargetRequiresStatisticMatch),
+        allowUnknown: Boolean(dcDefinition.allowUnknown),
+        systemTargetStatistics: Object.freeze(
+          Array.isArray(dcDefinition.systemTargetStatistics)
+            ? dcDefinition.systemTargetStatistics.map((slug) => String(slug)).filter(Boolean)
+            : []
+        )
       }),
       systemAction: Object.freeze({
         slug: String(systemActionDefinition.slug ?? id).trim() || id
       }),
       execution: Object.freeze({
         enabled: Boolean(executionDefinition.enabled),
-        statistic: executionDefinition.statistic ? String(executionDefinition.statistic) : null
+        statistic: executionDefinition.statistic ? String(executionDefinition.statistic) : null,
+        statistics: Object.freeze(
+          Array.isArray(executionDefinition.statistics)
+            ? executionDefinition.statistics.map((slug) => String(slug)).filter(Boolean)
+            : []
+        ),
+        includeLore: Boolean(executionDefinition.includeLore),
+        requiresStatistic: Boolean(executionDefinition.requiresStatistic),
+        singleTargetOnly: Boolean(executionDefinition.singleTargetOnly)
+      }),
+      visibility: Object.freeze({
+        announcement: visibilityModes.has(visibilityDefinition.announcement) ? visibilityDefinition.announcement : "public",
+        roll: visibilityModes.has(visibilityDefinition.roll) ? visibilityDefinition.roll : "public",
+        outcome: visibilityModes.has(visibilityDefinition.outcome) ? visibilityDefinition.outcome : "public"
       }),
       developmentOnly: Boolean(definition.developmentOnly)
     };

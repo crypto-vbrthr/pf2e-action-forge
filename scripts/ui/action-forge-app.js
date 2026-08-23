@@ -4,6 +4,7 @@ import { dcResolver } from "../core/dc-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
 import { targetResolver } from "../core/target-resolver.js";
+import { visibilityEngine } from "../core/visibility-engine.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -13,6 +14,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   searchQuery = "";
   activeActionId = null;
   manualDcByAction = new Map();
+  statisticByAction = new Map();
   lastRoll = null;
 
   static DEFAULT_OPTIONS = {
@@ -57,6 +59,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#instance.searchQuery = "";
       this.#instance.activeActionId = null;
       this.#instance.manualDcByAction.clear();
+      this.#instance.statisticByAction.clear();
       this.#instance.lastRoll = null;
     }
 
@@ -91,12 +94,17 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     let targetContext = null;
     let dcContext = null;
     let executionContext = null;
+    let statisticContext = null;
+    let visibilityContext = null;
 
     if (activeDefinition) {
       targetResolver.activate(activeDefinition);
       const targetState = targetResolver.getState(activeDefinition);
       const manualDc = this.manualDcByAction.get(activeDefinition.id) ?? null;
-      const dcState = dcResolver.getState(activeDefinition, targetState, { manualDc });
+      const selectedStatistic = this.#getSelectedStatistic(activeDefinition, resolution.actor);
+      const dcState = dcResolver.getState(activeDefinition, targetState, { manualDc, statistic: selectedStatistic });
+      statisticContext = this.#prepareStatisticContext(activeDefinition, resolution.actor, selectedStatistic);
+      visibilityContext = this.#prepareVisibilityContext(activeDefinition);
 
       const targetHintKey =
         targetState.mode === "single" && !targetState.required
@@ -122,18 +130,29 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const systemActionAvailable = activeDefinition.execution.enabled
         ? pf2eActionAdapter.isAvailable(activeDefinition)
         : false;
+      const statisticValid = !activeDefinition.execution.requiresStatistic || Boolean(selectedStatistic);
+      const targetCountValid = !activeDefinition.execution.singleTargetOnly || targetState.count <= 1;
       const canExecute = Boolean(
         resolution.actor &&
         activeDefinition.execution.enabled &&
         systemActionAvailable &&
         targetState.valid &&
-        dcState.valid
+        dcState.valid &&
+        statisticValid &&
+        targetCountValid
       );
 
       executionContext = {
         enabled: activeDefinition.execution.enabled,
         systemActionAvailable,
         canExecute,
+        statisticValid,
+        targetCountValid,
+        constraintText: !targetCountValid
+          ? game.i18n.localize("PF2EActionForge.Roll.SingleTargetOnly")
+          : !statisticValid
+            ? game.i18n.localize("PF2EActionForge.Roll.StatisticRequired")
+            : "",
         unavailableText: !activeDefinition.execution.enabled
           ? game.i18n.localize("PF2EActionForge.Roll.LaterBlock")
           : !systemActionAvailable
@@ -144,7 +163,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.4.2",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.5.2",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -172,6 +191,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       activeAction,
       targetContext,
       dcContext,
+      statisticContext,
+      visibilityContext,
       executionContext,
       lastRoll: this.lastRoll
     };
@@ -193,9 +214,21 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#applySearchFilter();
     });
 
+    const statisticSelect = this.element.querySelector('[data-role="execution-statistic"]');
+    statisticSelect?.addEventListener("change", (event) => {
+      if (!this.activeActionId) return;
+      const value = event.currentTarget.value || null;
+      if (value) this.statisticByAction.set(this.activeActionId, value);
+      else this.statisticByAction.delete(this.activeActionId);
+      this.lastRoll = null;
+      this.render({ force: true });
+    });
+
     const manualDcInput = this.element.querySelector('[data-role="manual-dc"]');
     manualDcInput?.addEventListener("input", (event) => {
       if (!this.activeActionId) return;
+      const action = actionRegistry.get(this.activeActionId);
+      if (action?.dc?.strategy === "gm-defined" && !game.user?.isGM) return;
       this.manualDcByAction.set(this.activeActionId, event.currentTarget.value ?? "");
       this.#updateExecutionControls();
     });
@@ -261,6 +294,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           target: state.target?.name ?? ""
         });
       }
+      if (state.source === "system-target") {
+        return game.i18n.format("PF2EActionForge.DC.SystemTargetValue", { target: state.target?.name ?? "" });
+      }
+      if (state.source === "gm") {
+        return game.i18n.localize("PF2EActionForge.DC.GMSecret");
+      }
       if (state.source === "manual" && state.manualDc !== null) {
         return game.i18n.format("PF2EActionForge.DC.ManualValue", { dc: state.manualDc });
       }
@@ -278,11 +317,86 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ),
       showManualInput:
         state.strategy === "manual" ||
-        state.strategy === "gm-defined" ||
+        (state.strategy === "gm-defined" && state.allowsManualDc) ||
         (state.strategy === "target-defense" && !state.target && state.allowsManualDc),
       manualInputValue: this.manualDcByAction.get(action.id) ?? "",
       manualInputLabel: game.i18n.localize("PF2EActionForge.DC.ManualInput"),
       manualInputHint: game.i18n.localize("PF2EActionForge.DC.ManualInputHint")
+    };
+  }
+
+  #getSelectedStatistic(action, actor) {
+    if (action?.execution?.statistic) return action.execution.statistic;
+    if (!action?.execution?.requiresStatistic) return null;
+    const selected = this.statisticByAction.get(action.id) ?? null;
+    if (!selected) return null;
+    return this.#getStatisticOptions(action, actor).some((entry) => entry.slug === selected) ? selected : null;
+  }
+
+  #getStatisticOptions(action, actor) {
+    if (!actor) return [];
+    const options = new Map();
+    const localizeLabel = (slug, statistic = null) => {
+      const label = statistic?.label ?? actor.getStatistic?.(slug)?.label ?? globalThis.CONFIG?.PF2E?.skills?.[slug]?.label;
+      return label ? game.i18n.localize(label) : slug;
+    };
+    const modifierFor = (slug, statistic = null) => {
+      const candidate = statistic?.mod ?? statistic?.check?.mod ?? actor.getStatistic?.(slug)?.mod;
+      return Number.isFinite(candidate) ? Number(candidate) : null;
+    };
+
+    for (const slug of action.execution.statistics ?? []) {
+      const statistic = actor.skills?.[slug] ?? actor.getStatistic?.(slug) ?? null;
+      options.set(slug, { slug, label: localizeLabel(slug, statistic), modifier: modifierFor(slug, statistic), lore: false });
+    }
+
+    if (action.execution.includeLore) {
+      for (const [slug, statistic] of Object.entries(actor.skills ?? {})) {
+        if (!statistic?.lore) continue;
+        options.set(slug, { slug, label: localizeLabel(slug, statistic), modifier: modifierFor(slug, statistic), lore: true });
+      }
+    }
+
+    return [...options.values()]
+      .map((entry) => ({
+        ...entry,
+        displayLabel: entry.modifier === null
+          ? entry.label
+          : `${entry.label} (${entry.modifier >= 0 ? "+" : ""}${entry.modifier})`
+      }))
+      .sort((a, b) => Number(a.lore) - Number(b.lore) || a.label.localeCompare(b.label, game.i18n.lang));
+  }
+
+  #prepareStatisticContext(action, actor, selectedStatistic) {
+    if (!action?.execution?.requiresStatistic) return null;
+    const options = this.#getStatisticOptions(action, actor).map((entry) => ({
+      ...entry,
+      selected: entry.slug === selectedStatistic
+    }));
+    return {
+      required: true,
+      selected: selectedStatistic,
+      options,
+      hasOptions: options.length > 0,
+      label: game.i18n.localize("PF2EActionForge.Roll.Statistic"),
+      hint: game.i18n.localize("PF2EActionForge.Roll.StatisticHint")
+    };
+  }
+
+  #prepareVisibilityContext(action) {
+    const profile = action.visibility;
+    const row = (key, mode) => ({
+      label: game.i18n.localize(`PF2EActionForge.Visibility.${key}`),
+      value: game.i18n.localize(`PF2EActionForge.Visibility.Mode.${mode}`),
+      mode
+    });
+    return {
+      rows: [
+        row("Announcement", profile.announcement),
+        row("Roll", profile.roll),
+        row("Outcome", profile.outcome)
+      ],
+      secret: [profile.roll, profile.outcome].some((mode) => ["blind", "gm"].includes(mode))
     };
   }
 
@@ -330,10 +444,15 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const targetState = targetResolver.getState(action);
     const manualDc = this.manualDcByAction.get(action.id) ?? null;
-    const dcState = dcResolver.getState(action, targetState, { manualDc });
     const actor = actorResolver.resolve();
+    const selectedStatistic = this.#getSelectedStatistic(action, actor);
+    const dcState = dcResolver.getState(action, targetState, { manualDc, statistic: selectedStatistic });
     const systemActionAvailable = action.execution.enabled ? pf2eActionAdapter.isAvailable(action) : false;
-    const canExecute = Boolean(actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid);
+    const statisticValid = !action.execution.requiresStatistic || Boolean(selectedStatistic);
+    const targetCountValid = !action.execution.singleTargetOnly || targetState.count <= 1;
+    const canExecute = Boolean(
+      actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid && statisticValid && targetCountValid
+    );
 
     const button = this.element.querySelector('[data-action="executeAction"]');
     if (button) button.disabled = !canExecute;
@@ -423,8 +542,18 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
 
+    const selectedStatistic = app.#getSelectedStatistic(action, actor);
+    if (action.execution.requiresStatistic && !selectedStatistic) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.StatisticRequired"));
+      return;
+    }
+    if (action.execution.singleTargetOnly && targetState.count > 1) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.SingleTargetOnly"));
+      return;
+    }
+
     const manualDc = app.manualDcByAction.get(action.id) ?? null;
-    const dcResolution = dcResolver.resolve(action, targetState, { manualDc });
+    const dcResolution = dcResolver.resolve(action, targetState, { manualDc, statistic: selectedStatistic });
     if (!dcResolution.ok) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.DCRequired"));
       return;
@@ -435,6 +564,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       actor,
       target: dcResolution.target,
       difficultyClass: dcResolution.difficultyClass,
+      statistic: selectedStatistic,
       event
     });
 
@@ -450,15 +580,26 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const result = execution.results.at(-1) ?? null;
     if (result) {
+      await visibilityEngine.createAnnouncement({ definition: action, actor });
+      const canReveal = visibilityEngine.shouldRevealLocalResult(action, game.user);
       const outcome = result.outcome ?? "unknown";
-      app.lastRoll = {
-        actionId: action.id,
-        actionName: game.i18n.localize(action.label),
-        total: Number.isFinite(result.roll?.total) ? result.roll.total : "–",
-        outcome,
-        outcomeText: game.i18n.localize(`PF2EActionForge.Roll.Outcome.${outcome}`),
-        actorName: actor.name
-      };
+      app.lastRoll = canReveal
+        ? {
+            actionId: action.id,
+            actionName: game.i18n.localize(action.label),
+            total: Number.isFinite(result.roll?.total) ? result.roll.total : "–",
+            outcome,
+            outcomeText: game.i18n.localize(`PF2EActionForge.Roll.Outcome.${outcome}`),
+            actorName: actor.name,
+            hidden: false
+          }
+        : {
+            actionId: action.id,
+            actionName: game.i18n.localize(action.label),
+            actorName: actor.name,
+            hidden: true,
+            hiddenText: game.i18n.localize("PF2EActionForge.Roll.HiddenResult")
+          };
     }
 
     // The action session ends after the PF2e action returns, including a cancelled

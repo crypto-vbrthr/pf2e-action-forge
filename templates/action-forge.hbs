@@ -163,6 +163,21 @@
         <span class="af-dc-source"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> {{dcContext.sourceText}}</span>
       </div>
 
+      {{#if statisticContext}}
+        <label class="af-statistic-input">
+          <span>
+            <strong>{{statisticContext.label}}</strong>
+            <small>{{statisticContext.hint}}</small>
+          </span>
+          <select data-role="execution-statistic">
+            <option value="" {{#unless statisticContext.selected}}selected{{/unless}}>{{localize "PF2EActionForge.Roll.StatisticPlaceholder"}}</option>
+            {{#each statisticContext.options}}
+              <option value="{{slug}}" {{#if selected}}selected{{/if}}>{{displayLabel}}</option>
+            {{/each}}
+          </select>
+        </label>
+      {{/if}}
+
       {{#if dcContext.showManualInput}}
         <label class="af-dc-input">
           <span>
@@ -185,6 +200,27 @@
         <i class="fa-solid {{#if dcContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}" aria-hidden="true"></i>
         <span>{{dcContext.statusText}}</span>
       </div>
+
+      {{#if visibilityContext}}
+        <div class="af-visibility-panel {{#if visibilityContext.secret}}is-secret{{/if}}">
+          <div class="af-visibility-heading">
+            <i class="fa-solid {{#if visibilityContext.secret}}fa-user-secret{{else}}fa-eye{{/if}}" aria-hidden="true"></i>
+            <strong>{{localize "PF2EActionForge.Visibility.Heading"}}</strong>
+          </div>
+          <div class="af-visibility-grid">
+            {{#each visibilityContext.rows}}
+              <span>{{label}}</span><strong>{{value}}</strong>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if executionContext.constraintText}}
+        <div class="af-inline-warning">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <span>{{executionContext.constraintText}}</span>
+        </div>
+      {{/if}}
 
       <div class="af-roll-actions">
         {{#if executionContext.enabled}}
@@ -216,11 +252,16 @@
   {{/if}}
 
   {{#if lastRoll}}
-    <section class="af-roll-result af-roll-result--summary" role="status">
-      <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
-      <span>{{localize "PF2EActionForge.Roll.LastResult"}} · {{lastRoll.actionName}} · {{lastRoll.actorName}}:</span>
-      <strong>{{lastRoll.total}}</strong>
-      <span>· {{lastRoll.outcomeText}}</span>
+    <section class="af-roll-result af-roll-result--summary {{#if lastRoll.hidden}}is-hidden-result{{/if}}" role="status">
+      <i class="fa-solid {{#if lastRoll.hidden}}fa-user-secret{{else}}fa-dice-d20{{/if}}" aria-hidden="true"></i>
+      {{#if lastRoll.hidden}}
+        <span>{{localize "PF2EActionForge.Roll.LastResult"}} · {{lastRoll.actionName}} · {{lastRoll.actorName}}:</span>
+        <strong>{{lastRoll.hiddenText}}</strong>
+      {{else}}
+        <span>{{localize "PF2EActionForge.Roll.LastResult"}} · {{lastRoll.actionName}} · {{lastRoll.actorName}}:</span>
+        <strong>{{lastRoll.total}}</strong>
+        <span>· {{lastRoll.outcomeText}}</span>
+      {{/if}}
     </section>
   {{/if}}
 

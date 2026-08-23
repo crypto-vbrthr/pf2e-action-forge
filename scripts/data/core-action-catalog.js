@@ -1,9 +1,8 @@
 /**
  * MVP action catalog.
  *
- * dev.4 adds DC metadata for the full MVP surface and enables real PF2e checks
- * for Tumble Through and Climb. Remaining actions stay catalog/target previews
- * until their dedicated workflow blocks arrive.
+ * dev.5 adds visibility profiles and enables the secret-check workflows for
+ * Recall Knowledge and Lie alongside the existing Tumble Through and Climb checks.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -18,9 +17,21 @@ export const CORE_ACTIONS = Object.freeze([
     icon: "fa-solid fa-brain",
     keywords: ["knowledge", "recall", "secret"],
     target: { mode: "optional", type: "creature", required: false },
-    dc: { strategy: "gm-defined" },
+    dc: {
+      strategy: "gm-defined",
+      systemTargetFallback: true,
+      systemTargetRequiresStatisticMatch: true,
+      allowUnknown: true,
+      systemTargetStatistics: ["arcana", "crafting", "medicine", "nature", "occultism", "religion", "society"]
+    },
     systemAction: { slug: "recall-knowledge" },
-    execution: { enabled: false }
+    execution: {
+      enabled: true,
+      statistics: ["arcana", "crafting", "medicine", "nature", "occultism", "religion", "society"],
+      includeLore: true,
+      requiresStatistic: true
+    },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
   {
     id: "tumble-through",
@@ -36,7 +47,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
     systemAction: { slug: "tumble-through" },
-    execution: { enabled: true, statistic: "acrobatics" }
+    execution: { enabled: true, statistic: "acrobatics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "grapple",
@@ -52,7 +64,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "fortitude", manualFallback: true },
     systemAction: { slug: "grapple" },
-    execution: { enabled: false, statistic: "athletics" }
+    execution: { enabled: false, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "trip",
@@ -68,7 +81,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
     systemAction: { slug: "trip" },
-    execution: { enabled: false, statistic: "athletics" }
+    execution: { enabled: false, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "climb",
@@ -84,7 +98,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "manual" },
     systemAction: { slug: "climb" },
-    execution: { enabled: true, statistic: "athletics" }
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "lie",
@@ -100,7 +115,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
     systemAction: { slug: "lie" },
-    execution: { enabled: false, statistic: "deception" }
+    execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
+    visibility: { announcement: "none", roll: "blind", outcome: "gm" }
   },
   {
     id: "demoralize",
@@ -116,7 +132,8 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "will", manualFallback: true },
     systemAction: { slug: "demoralize" },
-    execution: { enabled: false, statistic: "intimidation" }
+    execution: { enabled: false, statistic: "intimidation" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "treat-wounds",
@@ -132,6 +149,7 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "fixed-choice", choices: [15, 20, 30, 40] },
     systemAction: { slug: "treat-wounds" },
-    execution: { enabled: false, statistic: "medicine" }
+    execution: { enabled: false, statistic: "medicine" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   }
 ]);

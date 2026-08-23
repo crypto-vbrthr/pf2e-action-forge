@@ -8,10 +8,10 @@ const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), 
 test("manifest identifies the development build and Foundry/PF2e compatibility", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.4.2");
+  assert.equal(manifest.version, "0.1.0-dev.5.2");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4.2/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.5.2/pf2e-action-forge.zip");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
@@ -43,7 +43,7 @@ test("manifest files referenced by the build exist", async () => {
 test("repository release files are present", async () => {
   const changelog = await readFile(new URL("CHANGELOG.md", root), "utf8");
   const license = await readFile(new URL("LICENSE", root), "utf8");
-  assert.match(changelog, /0\.1\.0-dev\.4/);
+  assert.match(changelog, /0\.1\.0-dev\.5/);
   assert.match(license, /MIT License/);
 });
 

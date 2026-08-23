@@ -8,6 +8,7 @@
 }
 
 .pf2e-action-forge .window-content {
+  min-height: 0;
   padding: 0;
   overflow: hidden;
 }
@@ -18,12 +19,40 @@
 
 .pf2e-action-forge .af-shell {
   display: flex;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   flex-direction: column;
   gap: 14px;
   padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--af-accent) 58%, var(--af-border)) transparent;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--color-cool-5, #202326) 92%, transparent), color-mix(in srgb, var(--color-cool-4, #30343a) 86%, transparent));
+}
+
+.pf2e-action-forge .af-shell::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pf2e-action-forge .af-shell::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pf2e-action-forge .af-shell::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--af-accent) 58%, var(--af-border));
+  background-clip: padding-box;
+}
+
+.pf2e-action-forge .af-shell::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--af-accent) 78%, var(--af-border));
+  background-clip: padding-box;
 }
 
 .pf2e-action-forge .af-header,
@@ -148,8 +177,8 @@
 }
 
 .pf2e-action-forge .af-actions {
-  flex: 1 1 auto;
-  overflow: auto;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .pf2e-action-forge .af-actions-toolbar {
@@ -869,4 +898,72 @@
 .pf2e-action-forge .af-roll-result--summary {
   flex: 0 0 auto;
   margin: 0;
+}
+
+/* dev.5 visibility / variable-statistic workflow */
+.pf2e-action-forge .af-statistic-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.75fr);
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border-light-primary, #8b7d6b) 55%, transparent);
+  border-radius: 8px;
+}
+
+.pf2e-action-forge .af-statistic-input > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pf2e-action-forge .af-statistic-input small {
+  opacity: 0.75;
+  line-height: 1.25;
+}
+
+.pf2e-action-forge .af-statistic-input select {
+  width: 100%;
+}
+
+.pf2e-action-forge .af-visibility-panel {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border-light-primary, #8b7d6b) 52%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-bg-option, #201d22) 82%, transparent);
+}
+
+.pf2e-action-forge .af-visibility-panel.is-secret {
+  border-style: dashed;
+}
+
+.pf2e-action-forge .af-visibility-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.pf2e-action-forge .af-visibility-grid {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1fr);
+  gap: 4px 12px;
+  font-size: 0.86rem;
+}
+
+.pf2e-action-forge .af-visibility-grid > span {
+  opacity: 0.72;
+}
+
+.pf2e-action-forge .af-roll-result.is-hidden-result strong {
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .pf2e-action-forge .af-statistic-input {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,78 +1,84 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.4.2 – Source Actor Lock Hotfix**.
+Development build **0.1.0-dev.5.2 – Secret DC Permission Hotfix**.
 
-This block connects the Action Forge target layer to the first real PF2e checks. The module now resolves an action's DC strategy, hands the check to the PF2e system action implementation, and keeps Action Forge responsible for orchestration rather than rebuilding PF2e roll logic.
+This hotfix keeps the dev.5 visibility workflows and workspace scrolling intact while preventing players from editing GM-defined or secret DCs.
 
-## Included in dev.4.2
+## Included in dev.5.2
 
 - Foundry VTT v14 / PF2e 8.4.0+ module foundation;
 - German and English localization;
 - Token SceneControl launcher for GM and players;
 - `ApplicationV2` + Handlebars application;
-- acting-Actor resolver with **Current token (automatic)**, manual pinning, and an action-session source lock;
-- player access to owned characters/companions plus PF2e familiars whose master is owned;
+- acting-Actor resolver with **Current token (automatic)**, manual pinning, companions/familiars, and an action-session source lock;
 - eight-action MVP catalog, search, and per-user favorites;
 - canvas-token and sidebar-Actor target resolution;
-- declarative DC strategies: `none`, `manual`, `target-defense`, `fixed`, `fixed-choice`, and `gm-defined`;
-- manual-DC validation and manual fallback for actions that normally use a target defense;
-- PF2e Action Adapter for delegating checks to the installed PF2e action implementation;
-- real **Tumble Through** and **Climb** checks;
-- compact DC readiness/status UI and last-check display;
+- declarative DC Resolver and PF2e Action Adapter;
+- real **Tumble Through** and **Climb** checks from dev.4;
+- declarative output profiles with separate **announcement / roll / outcome** visibility;
+- real secret **Lie** and **Recall Knowledge** checks;
+- Recall Knowledge skill selector including the Actor's Lore skills;
+- hidden PF2e target-DC delegation for eligible Recall Knowledge checks;
+- local secret-result redaction for players;
+- visibility-aware player/GM announcement recipients;
+- a full-window vertical workspace scrollbar with stable scrollbar space;
+- GM-only manual entry for GM-defined/secret DCs, enforced by the resolver as well as the UI;
 - release metadata, `CHANGELOG.md`, and MIT `LICENSE`.
 
+## Visibility profiles
 
-### Frozen acting Actor during an action
+Each action now defines three independent channels:
 
-As soon as an action is selected, Action Forge snapshots and locks the currently resolved acting Actor. Changing token control while targeting creatures on the canvas no longer changes who performs the in-progress action. The source selector is disabled and shows a lock badge for the duration of the action session.
+- **Announcement**: who is told that the action was attempted;
+- **Roll**: who can see the actual PF2e check;
+- **Outcome**: who can see the degree of success/result.
 
-When the PF2e action finishes, its roll dialog is cancelled, or the Action Forge action workspace is closed, the source lock is released. **Current token (automatic)** then follows the currently controlled token again; a deliberately pinned Actor remains pinned.
+The current profile vocabulary is `public`, `player-gm`, `gm`, `blind`, `self`, and `none`. The active action workspace shows the action's defaults so the user knows before rolling where information will go.
 
-### Sidebar target precedence
+Public PF2e roll cards already announce their action, so Action Forge does not create a duplicate public announcement. Restricted announcements can be emitted separately when the action profile requires them.
 
-For single/optional target actions, dropping an Actor into the Action Forge target field is now an explicit authoritative target choice. Any stale native canvas targets are released. When the dropped Actor has no token, Action Forge resolves the prepared defense DC directly from that Actor and still passes the Actor to PF2e as the roll target. This keeps the DC correct for sidebar-only targets and prevents a different targeted token from leaking into the check.
+## Lie
 
-## First real checks
+**Lie** is now executable through the PF2e system action. Its default profile is:
 
-### Tumble Through
+- Announcement: none;
+- Roll: blind to the GM;
+- Outcome: GM only.
 
-With one creature selected as target, Action Forge passes that target and the Reflex defense to the PF2e system action. The numeric defense value does not need to be exposed in the Action Forge UI.
+The check uses Deception against the selected target's Perception DC, or a manual DC when no Actor target is available. The target model still supports multiple Lie targets, but dev.5 deliberately executes only one at a time. Full shared-roll/multi-DC resolution is reserved for the later multi-target block rather than approximating the rule incorrectly.
 
-With no target selected, Tumble Through remains usable and offers a manual DC field. This supports Theater-of-the-Mind play and situations where the relevant creature is not represented by an accessible Actor.
+## Recall Knowledge
 
-### Climb
+**Recall Knowledge** now asks the acting user which skill is being used. Action Forge offers the standard PF2e knowledge skills supported by the system action plus every Lore skill prepared on the Actor.
 
-Climb does not use an Actor target. Action Forge therefore requires a manual environmental DC before the Roll button becomes available.
+With an NPC target and an eligible standard identification skill, Action Forge leaves the DC to PF2e so the system can use its hidden identification DC without exposing the number to the player. If the selected skill is a Lore skill, the target is not an NPC, or the selected standard skill is not one PF2e identifies as appropriate for that creature, Action Forge leaves the numeric DC undefined for secret GM adjudication. Only the GM can optionally enter a manual DC; players never receive or control that field. This avoids guessing whether a particular Lore should use an easy, very easy, or other adjusted DC while still letting players initiate the secret check.
 
-Both checks are delegated to PF2e rather than reconstructing the actor's statistic or situational modifiers in the module.
+Its default profile is:
 
-## DC metadata prepared for the MVP
+- Announcement: player and GM;
+- Roll: blind to the GM;
+- Outcome: GM only.
 
-The remaining six MVP actions already carry their intended DC metadata, but their complete roll workflows remain disabled until their dedicated blocks:
-
-- **Recall Knowledge**: GM/manual DC;
-- **Grapple**: target Fortitude DC, manual fallback;
-- **Trip**: target Reflex DC, manual fallback;
-- **Lie**: target Perception DC, manual fallback;
-- **Demoralize**: target Will DC, manual fallback;
-- **Treat Wounds**: selectable rules DCs 15/20/30/40.
+After a player completes the check, Action Forge only reports that the secret check was sent to the GM. It does **not** show the die total or degree of success in the local summary. A GM can still see the detailed local result.
 
 ## Manual test
 
 1. Enable the module in a PF2e world and open Action Forge from the Token Controls hammer button.
-2. In **Current token (automatic)** mode, control Actor A and select **Tumble Through**. Confirm the source selector becomes disabled and shows the lock state.
-3. Change token control to Actor B while selecting/changing the target. Confirm Actor A remains the acting Actor and supplies the check.
-4. Close the action workspace with its X button. Confirm the lock releases and the acting Actor now follows Actor B.
-5. Repeat with a deliberately pinned source Actor. Cancel the action and confirm the explicit pin remains selected.
-6. Select **Tumble Through** and target a creature token on the canvas. Confirm the DC panel reports that target's Reflex DC source without requiring manual input.
-7. Click **Roll**. Confirm the normal PF2e check workflow/chat output appears, the action workspace closes, and the last-result summary remains visible in Action Forge.
-8. Remove all targets, select Tumble Through again, and confirm a manual DC field appears. The Roll button must remain disabled until a valid integer DC is entered.
-9. Enter a manual DC and roll Tumble Through again. Confirm the check works without an Actor target.
-10. Drag a visible Actor from the sidebar into Tumble Through. Confirm the target-defense mode is restored and the manual field disappears.
-11. Select **Climb**. Confirm no Actor target is requested and a manual DC is required.
-12. Enter a DC and roll. Confirm PF2e uses the acting Actor's Athletics check and normal PF2e modifiers/options remain available.
-13. Select Grapple, Trip, Lie, Demoralize, Recall Knowledge, and Treat Wounds. Confirm their DC source is previewed, while their Roll workflow clearly states that it belongs to a later development block.
-14. Confirm source-Actor selection, target drag-and-drop, search, and favorites from earlier builds still work.
+2. Select an action with target and DC controls (for example Tumble Through) and confirm a vertical scrollbar appears when the workspace exceeds the window height; scroll down to the Roll button and action catalog.
+3. Resize the Action Forge smaller and larger and confirm all workspace sections remain reachable.
+4. Confirm Tumble Through and Climb still work as in dev.4.
+5. As a player, select **Lie**, choose one target, and roll. Confirm the PF2e result is blind and Action Forge shows only **Secret check sent to the GM**, without total or degree of success.
+6. Repeat Lie as GM and confirm the GM can see the result.
+7. Select multiple Lie targets. Confirm the Roll button is disabled with a clear MVP single-target notice.
+8. Select **Recall Knowledge**. Confirm a skill selector appears and contains Arcana/Crafting/Medicine/Nature/Occultism/Religion/Society plus any Lore skills on the acting Actor.
+9. With no skill selected, confirm Roll remains disabled.
+10. Select an NPC target and a suitable standard skill such as Nature. Confirm the DC panel states that PF2e will determine the target DC and does not reveal a numeric DC.
+11. Roll as a player. Confirm the restricted action announcement is visible only to that player and active GMs, while the check/result remains blind to the GM.
+12. Select a Lore skill. Confirm Action Forge reports that the DC is determined secretly by the GM rather than guessing a Lore adjustment, while leaving the Roll button available.
+13. As a player, confirm no manual DC field is available for Recall Knowledge, even when PF2e cannot derive an identification DC.
+14. As GM, confirm the manual DC field is available for the same GM-defined case and can be used normally.
+15. Confirm Climb and no-target Tumble Through still allow their explicitly manual/fallback DC entry for players.
+16. Confirm source-Actor lock, target drag-and-drop, search, favorites, and current-token automatic mode still work.
 
 ## Automated checks
 
@@ -81,4 +87,4 @@ npm test
 npm run check
 ```
 
-The next planned block is **0.1.0-dev.5 – Visibility Profiles**.
+The next planned block is **0.1.0-dev.6 – Application Engine & GM Broker**.

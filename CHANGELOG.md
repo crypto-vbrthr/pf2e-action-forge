@@ -4,6 +4,51 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.5.2] - 2026-08-23
+
+### Fixed
+
+- Players can no longer enter or override **GM-defined / secret DCs** such as Recall Knowledge adjudication.
+- Manual DC input for `gm-defined` checks is now available only to the GM and the resolver ignores player-supplied values even if injected outside the normal UI.
+- Automatic PF2e target DC resolution remains available to players without revealing the numeric DC.
+- Player-editable manual DCs remain available only where the action itself explicitly requires a manual/environmental DC or a no-target fallback.
+
+### Security / Information Hardening
+
+- Secret DC ownership is enforced in the DC Resolver rather than being only a template-level restriction, preventing a modified player client from changing the hidden DC through Action Forge state.
+
+## [0.1.0-dev.5.1] - 2026-08-23
+
+### Fixed
+
+- Added a dedicated vertical scrollbar for the complete Action Forge workspace whenever the selected action makes the window content taller than the current window.
+- Reworked the catalog container to use the single outer workspace scroll area, avoiding clipped target/DC/visibility/roll controls and nested scrolling.
+- Reserved scrollbar space to reduce layout shifts when the scrollbar appears.
+
+## [0.1.0-dev.5] - 2026-08-23
+
+### Added
+
+- Added declarative visibility profiles with separate `announcement`, `roll`, and `outcome` channels.
+- Added localized visibility-profile display to the active action workspace.
+- Added **Lie** as a real PF2e secret check against a target's Perception DC, with manual-DC fallback.
+- Added **Recall Knowledge** as a real PF2e secret check with selectable Arcana, Crafting, Medicine, Nature, Occultism, Religion, Society, and Actor Lore skills.
+- Added PF2e target-DC delegation for Recall Knowledge when a standard identification skill and NPC target allow the PF2e system to determine the hidden DC.
+- Added optional manual GM/DC entry for Recall Knowledge while allowing blind checks with a GM-adjudicated hidden DC when PF2e cannot safely determine one, including Lore-based checks.
+- Added restricted player+GM action announcements for Recall Knowledge while keeping the mechanical roll blind.
+- Added a Visibility Engine for secret-roll traits, local-result redaction, and visibility-aware recipient resolution.
+- Added regression coverage for secret-roll enforcement, hidden local summaries, Recall Knowledge DC fallback, and visibility metadata.
+
+### Security / Information Hardening
+
+- Secret Action Forge checks no longer expose their local roll total or degree of success to a non-GM user after the PF2e roll completes.
+- Blind/GM-only roll profiles enforce PF2e's `secret` trait when the underlying system action does not already provide it.
+- Lie and Recall Knowledge keep their outcome restricted to the GM by default.
+
+### Notes
+
+- The current MVP execution of **Lie** resolves one target at a time. Multi-target selection remains available in the target model and will receive full shared-roll/multi-DC handling in the later multi-target block.
+
 ## [0.1.0-dev.4.2] - 2026-08-23
 
 ### Added

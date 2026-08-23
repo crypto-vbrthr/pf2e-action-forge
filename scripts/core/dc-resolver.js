@@ -54,11 +54,12 @@ function resolveActorDefenseDc(actor, defense) {
 }
 
 export class DCResolver {
-  getState(action, targetState, { manualDc = null } = {}) {
+  getState(action, targetState, { manualDc = null, statistic = null, user = globalThis.game?.user ?? null } = {}) {
     const dc = action?.dc ?? { strategy: "none" };
     const strategy = DC_STRATEGIES.has(dc.strategy) ? dc.strategy : "none";
     const parsedManualDc = normalizeManualDc(manualDc);
     const target = targetState?.targets?.[0] ?? null;
+    const canSetGmDefinedDc = Boolean(user?.isGM);
 
     switch (strategy) {
       case "none":
@@ -177,18 +178,75 @@ export class DCResolver {
       }
 
       case "gm-defined":
-      default:
+      default: {
+        const systemTargetStatistics = Array.isArray(dc.systemTargetStatistics) ? dc.systemTargetStatistics : [];
+        const targetStatisticMatches = (() => {
+          if (!dc.systemTargetRequiresStatisticMatch) return true;
+          const skills = target?.actor?.identificationDCs?.skills;
+          return Boolean(skills?.has?.(statistic));
+        })();
+        const canUseSystemTarget = Boolean(
+          dc.systemTargetFallback &&
+          target?.actor?.type === "npc" &&
+          statistic &&
+          systemTargetStatistics.includes(statistic) &&
+          targetStatisticMatches
+        );
+
+        if (canSetGmDefinedDc && parsedManualDc !== null) {
+          return {
+            strategy,
+            valid: true,
+            source: "manual",
+            difficultyClass: parsedManualDc,
+            target,
+            manualDc: parsedManualDc,
+            needsManualDc: false,
+            allowsManualDc: true,
+            labelKey: "PF2EActionForge.DC.GMDefined"
+          };
+        }
+
+        if (canUseSystemTarget) {
+          return {
+            strategy,
+            valid: true,
+            source: "system-target",
+            difficultyClass: undefined,
+            target,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: canSetGmDefinedDc,
+            labelKey: "PF2EActionForge.DC.SystemTarget"
+          };
+        }
+
+        if (dc.allowUnknown) {
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            target,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: canSetGmDefinedDc,
+            labelKey: "PF2EActionForge.DC.GMSecret"
+          };
+        }
+
         return {
           strategy,
-          valid: parsedManualDc !== null,
+          valid: false,
           source: "manual",
-          difficultyClass: parsedManualDc ?? undefined,
+          difficultyClass: undefined,
           target,
-          manualDc: parsedManualDc,
-          needsManualDc: parsedManualDc === null,
-          allowsManualDc: true,
+          manualDc: null,
+          needsManualDc: canSetGmDefinedDc,
+          allowsManualDc: canSetGmDefinedDc,
           labelKey: "PF2EActionForge.DC.GMDefined"
         };
+      }
     }
   }
 
