@@ -1,37 +1,67 @@
 const CREATURE_TYPES = new Set(["character", "npc", "familiar"]);
+export const CURRENT_TOKEN_SELECTION = "__current-token__";
 
 /**
  * Resolves the actor that is currently acting in Action Forge.
  *
- * Priority:
- * 1. Explicit in-window selection (while still permitted)
- * 2. Exactly one controlled token
- * 3. The user's assigned character
- * 4. First permitted actor, preferring characters
+ * Selection modes:
+ * - auto: follow exactly one controlled creature token; if none is available,
+ *   fall back to the user's assigned character and then another permitted actor.
+ * - explicit: pin a specific permitted actor until the user switches back to auto.
  *
- * Players only receive actors they own. A GM may use any creature actor.
+ * Controlled token actors are included even when the token is unlinked and its
+ * synthetic actor therefore does not exist in game.actors.
+ *
+ * Players may use creature actors they own. PF2e familiars are additionally
+ * permitted when their configured master is owned by the player. This mirrors
+ * the familiar/master relationship without exposing unrelated actors.
  */
 export class ActorResolver {
   #selectedActorUuid = null;
 
   setSelectedActor(uuid) {
-    this.#selectedActorUuid = uuid || null;
+    if (!uuid || uuid === CURRENT_TOKEN_SELECTION) {
+      this.followCurrentToken();
+      return;
+    }
+    this.#selectedActorUuid = uuid;
   }
 
-  clearSelectedActor() {
+  followCurrentToken() {
     this.#selectedActorUuid = null;
   }
 
+  clearSelectedActor() {
+    this.followCurrentToken();
+  }
+
+  get followsCurrentToken() {
+    return this.#selectedActorUuid === null;
+  }
+
   getAvailableActors() {
-    const actors = game?.actors?.contents ?? [];
-    return actors
-      .filter((actor) => this.#isCreatureActor(actor))
-      .filter((actor) => this.#canActWith(actor))
-      .sort((a, b) => {
-        const aCharacter = a.type === "character" ? 0 : 1;
-        const bCharacter = b.type === "character" ? 0 : 1;
-        return aCharacter - bCharacter || a.name.localeCompare(b.name, game.i18n.lang);
-      });
+    const actors = [
+      ...this.#getControlledActors(),
+      ...(game?.actors?.contents ?? [])
+    ];
+
+    const uniqueActors = new Map();
+    for (const actor of actors) {
+      if (!this.#isCreatureActor(actor) || !this.#canActWith(actor)) continue;
+      if (!uniqueActors.has(actor.uuid)) uniqueActors.set(actor.uuid, actor);
+    }
+
+    return [...uniqueActors.values()].sort((a, b) => {
+      const aControlled = this.#isControlledActor(a) ? 0 : 1;
+      const bControlled = this.#isControlledActor(b) ? 0 : 1;
+      const aCharacter = a.type === "character" ? 0 : 1;
+      const bCharacter = b.type === "character" ? 0 : 1;
+      return (
+        aControlled - bControlled ||
+        aCharacter - bCharacter ||
+        a.name.localeCompare(b.name, game.i18n.lang)
+      );
+    });
   }
 
   resolve() {
@@ -40,13 +70,13 @@ export class ActorResolver {
     if (this.#selectedActorUuid) {
       const selected = available.find((actor) => actor.uuid === this.#selectedActorUuid);
       if (selected) return selected;
+      // If a pinned actor ceases to be available, safely return to automatic mode.
       this.#selectedActorUuid = null;
     }
 
-    const controlled = (canvas?.tokens?.controlled ?? [])
-      .map((token) => token.actor)
-      .filter(Boolean)
-      .filter((actor) => available.some((candidate) => candidate.uuid === actor.uuid));
+    const controlled = this.#getControlledActors()
+      .filter((actor) => this.#isCreatureActor(actor))
+      .filter((actor) => this.#canActWith(actor));
 
     if (controlled.length === 1) return controlled[0];
 
@@ -63,27 +93,65 @@ export class ActorResolver {
     return {
       actor,
       actors,
-      source: actor ? this.#sourceFor(actor) : "none"
+      source: actor ? this.#sourceFor(actor) : "none",
+      selectionMode: this.followsCurrentToken ? "auto" : "explicit"
     };
   }
 
   #sourceFor(actor) {
     if (this.#selectedActorUuid === actor.uuid) return "selection";
-
-    const controlled = canvas?.tokens?.controlled ?? [];
-    if (controlled.length === 1 && controlled[0]?.actor?.uuid === actor.uuid) return "token";
+    if (this.#isControlledActor(actor)) return "token";
     if (game?.user?.character?.uuid === actor.uuid) return "assigned";
     return "fallback";
   }
 
+  #getControlledActors() {
+    const uniqueActors = new Map();
+    for (const token of canvas?.tokens?.controlled ?? []) {
+      const actor = token?.actor;
+      if (!actor?.uuid || uniqueActors.has(actor.uuid)) continue;
+      uniqueActors.set(actor.uuid, actor);
+    }
+    return [...uniqueActors.values()];
+  }
+
+  #isControlledActor(actor) {
+    return this.#getControlledActors().some((candidate) => candidate.uuid === actor.uuid);
+  }
+
   #canActWith(actor) {
     if (game?.user?.isGM) return true;
+    if (this.#hasOwnerPermission(actor)) return true;
 
+    // PF2e familiars expose their configured character master as actor.master.
+    // Let the master's owner use the familiar even if its own ownership was not
+    // manually raised from PF2e's default LIMITED level.
+    if (actor?.type === "familiar") {
+      const master = this.#getFamiliarMaster(actor);
+      if (master && this.#hasOwnerPermission(master)) return true;
+    }
+
+    return false;
+  }
+
+  #hasOwnerPermission(actor) {
+    if (!actor) return false;
     const ownerLevel = CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
     if (typeof actor.testUserPermission === "function") {
       return actor.testUserPermission(game.user, ownerLevel);
     }
     return Boolean(actor.isOwner);
+  }
+
+  #getFamiliarMaster(actor) {
+    try {
+      if (actor.master) return actor.master;
+    } catch (_error) {
+      // Fall back to the stored PF2e master id below.
+    }
+
+    const masterId = actor?.system?.master?.id;
+    return masterId ? game?.actors?.get?.(masterId) ?? null : null;
   }
 
   #isCreatureActor(actor) {

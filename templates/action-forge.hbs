@@ -27,6 +27,9 @@
         </div>
         <label class="af-visually-hidden" for="af-source-actor">{{localize "PF2EActionForge.SourceActor.Select"}}</label>
         <select id="af-source-actor" data-role="source-actor">
+          <option value="{{currentTokenSelectionValue}}" {{#if followsCurrentToken}}selected{{/if}}>
+            {{localize "PF2EActionForge.SourceActor.CurrentToken"}}
+          </option>
           {{#each actors}}
             <option value="{{uuid}}" {{#if selected}}selected{{/if}}>{{name}}</option>
           {{/each}}

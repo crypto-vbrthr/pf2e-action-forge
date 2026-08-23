@@ -4,10 +4,10 @@
   "PF2EActionForge.Controls.Open": "Open Action Forge",
   "PF2EActionForge.Common.Dev": "DEV",
   "PF2EActionForge.SourceActor.Label": "Acting character",
-  "PF2EActionForge.SourceActor.Hint": "The controlled token takes priority, followed by your assigned character.",
+  "PF2EActionForge.SourceActor.Hint": "Follow the controlled token automatically, or pin a specific actor from the list.",
   "PF2EActionForge.SourceActor.Select": "Select acting character",
   "PF2EActionForge.SourceActor.NoneTitle": "No usable actor found",
-  "PF2EActionForge.SourceActor.NoneHint": "Control one of your creature tokens or assign a character to your user.",
+  "PF2EActionForge.SourceActor.NoneHint": "Control one of your creature tokens or choose an owned character, companion, or familiar.",
   "PF2EActionForge.SourceActor.Source.selection": "Selected in Action Forge",
   "PF2EActionForge.SourceActor.Source.token": "Controlled token",
   "PF2EActionForge.SourceActor.Source.assigned": "Assigned character",
@@ -20,5 +20,6 @@
   "PF2EActionForge.Notifications.UnknownAction": "Action Forge could not resolve this action.",
   "PF2EActionForge.Notifications.NoActor": "Select or control an actor before using an action.",
   "PF2EActionForge.Notifications.FoundationAction": "{actor}: {action} is wired correctly.",
-  "PF2EActionForge.Footer.Foundation": "0.1.0-dev.1 · Foundation & Application Shell"
+  "PF2EActionForge.Footer.Foundation": "0.1.0-dev.1 · Foundation & Application Shell",
+  "PF2EActionForge.SourceActor.CurrentToken": "Current token (automatic)"
 }

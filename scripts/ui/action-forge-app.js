@@ -1,5 +1,5 @@
 import { actionRegistry } from "../core/action-registry.js";
-import { actorResolver } from "../core/actor-resolver.js";
+import { actorResolver, CURRENT_TOKEN_SELECTION } from "../core/actor-resolver.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -35,6 +35,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static open() {
     if (!this.#instance) this.#instance = new this();
+
+    // A newly opened window starts in the least surprising mode: follow the
+    // currently controlled token. Explicit actor pinning remains active while
+    // the already-open window is being used.
+    if (!this.#instance.rendered) actorResolver.followCurrentToken();
+
     this.#instance.render({ force: true });
     return this.#instance;
   }
@@ -56,7 +62,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.1.1",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.1.3",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -67,11 +73,13 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
             sourceText: game.i18n.localize(`PF2EActionForge.SourceActor.Source.${resolution.source}`)
           }
         : null,
+      followsCurrentToken: resolution.selectionMode === "auto",
+      currentTokenSelectionValue: CURRENT_TOKEN_SELECTION,
       actors: resolution.actors.map((actor) => ({
         uuid: actor.uuid,
         name: actor.name,
         img: actor.img,
-        selected: resolution.actor?.uuid === actor.uuid
+        selected: resolution.selectionMode === "explicit" && resolution.actor?.uuid === actor.uuid
       })),
       actions,
       hasActions: actions.length > 0
@@ -83,7 +91,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const actorSelect = this.element.querySelector('[data-role="source-actor"]');
     actorSelect?.addEventListener("change", (event) => {
-      actorResolver.setSelectedActor(event.currentTarget.value || null);
+      actorResolver.setSelectedActor(event.currentTarget.value || CURRENT_TOKEN_SELECTION);
       this.render({ force: true });
     });
   }
