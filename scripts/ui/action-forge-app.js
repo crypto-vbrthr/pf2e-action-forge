@@ -1,6 +1,7 @@
 import { actionRegistry } from "../core/action-registry.js";
 import { actorResolver, CURRENT_TOKEN_SELECTION } from "../core/actor-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
+import { targetResolver } from "../core/target-resolver.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -8,6 +9,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static #instance = null;
 
   searchQuery = "";
+  activeActionId = null;
 
   static DEFAULT_OPTIONS = {
     id: "pf2e-action-forge",
@@ -19,11 +21,14 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     },
     position: {
       width: 700,
-      height: 720
+      height: 760
     },
     actions: {
       runAction: ActionForgeApp.#runAction,
-      toggleFavorite: ActionForgeApp.#toggleFavorite
+      toggleFavorite: ActionForgeApp.#toggleFavorite,
+      removeTarget: ActionForgeApp.#removeTarget,
+      useCanvasTargets: ActionForgeApp.#useCanvasTargets,
+      closeActionSelection: ActionForgeApp.#closeActionSelection
     }
   };
 
@@ -41,11 +46,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!this.#instance) this.#instance = new this();
 
     // A newly opened window starts in the least surprising mode: follow the
-    // currently controlled token. Explicit actor pinning remains active while
-    // the already-open window is being used.
+    // currently controlled token and begin without stale action/target state.
     if (!this.#instance.rendered) {
       actorResolver.followCurrentToken();
+      targetResolver.clear();
       this.#instance.searchQuery = "";
+      this.#instance.activeActionId = null;
     }
 
     this.#instance.render({ force: true });
@@ -58,6 +64,14 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     app.render({ force: true });
   }
 
+  static refreshTargetsIfOpen({ preferCanvas = false } = {}) {
+    const app = this.#instance;
+    if (!app?.rendered || !app.activeActionId) return;
+    const action = actionRegistry.get(app.activeActionId);
+    if (action && preferCanvas) targetResolver.preferCanvas(action);
+    app.render({ force: true });
+  }
+
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const resolution = actorResolver.getContext();
@@ -66,9 +80,32 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const favoriteActions = actions.filter((action) => action.isFavorite);
     const categories = this.#groupByCategory(actions);
 
+    const activeDefinition = this.activeActionId ? actionRegistry.get(this.activeActionId) : null;
+    const activeAction = activeDefinition ? this.#prepareAction(activeDefinition, favoriteIds) : null;
+    let targetContext = null;
+
+    if (activeDefinition) {
+      targetResolver.activate(activeDefinition);
+      const state = targetResolver.getState(activeDefinition);
+      targetContext = {
+        ...state,
+        modeLabel: game.i18n.localize(`PF2EActionForge.Target.Mode.${state.mode}`),
+        hint: game.i18n.localize(`PF2EActionForge.Target.Hint.${state.mode}`),
+        targets: state.targets.map((entry) => ({
+          key: entry.key,
+          name: entry.name,
+          img: entry.img,
+          actorUuid: entry.actorUuid,
+          tokenUuid: entry.tokenUuid,
+          source: entry.source,
+          sourceText: game.i18n.localize(`PF2EActionForge.Target.Source.${entry.source}`)
+        }))
+      };
+    }
+
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.2",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.3",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -91,7 +128,9 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       favoriteActions,
       hasFavorites: favoriteActions.length > 0,
       hasActions: actions.length > 0,
-      searchQuery: this.searchQuery
+      searchQuery: this.searchQuery,
+      activeAction,
+      targetContext
     };
   }
 
@@ -110,6 +149,28 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#applySearchFilter();
     });
 
+    const dropZone = this.element.querySelector('[data-role="target-drop-zone"]');
+    if (dropZone) {
+      dropZone.addEventListener("dragenter", (event) => {
+        event.preventDefault();
+        dropZone.classList.add("is-dragover");
+      });
+      dropZone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+        dropZone.classList.add("is-dragover");
+      });
+      dropZone.addEventListener("dragleave", (event) => {
+        if (event.relatedTarget && dropZone.contains(event.relatedTarget)) return;
+        dropZone.classList.remove("is-dragover");
+      });
+      dropZone.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        dropZone.classList.remove("is-dragover");
+        await this.#handleTargetDrop(event);
+      });
+    }
+
     this.#applySearchFilter();
   }
 
@@ -117,7 +178,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const labelText = game.i18n.localize(action.label);
     const descriptionText = action.description ? game.i18n.localize(action.description) : "";
     const categoryText = game.i18n.localize(action.categoryLabel);
-    const searchText = [labelText, descriptionText, categoryText, ...action.keywords]
+    const targetModeText = game.i18n.localize(`PF2EActionForge.Target.Mode.${action.target.mode}`);
+    const searchText = [labelText, descriptionText, categoryText, targetModeText, ...action.keywords]
       .join(" ")
       .toLocaleLowerCase(game.i18n.lang);
 
@@ -126,8 +188,10 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       labelText,
       descriptionText,
       categoryText,
+      targetModeText,
       searchText,
       isFavorite: favoriteIds.has(action.id),
+      isActive: this.activeActionId === action.id,
       favoriteLabel: game.i18n.localize(
         favoriteIds.has(action.id)
           ? "PF2EActionForge.Favorites.Remove"
@@ -173,6 +237,25 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (emptySearch) emptySearch.hidden = anyVisible || !query;
   }
 
+  async #handleTargetDrop(event) {
+    const action = this.activeActionId ? actionRegistry.get(this.activeActionId) : null;
+    if (!action) return;
+
+    const result = await targetResolver.addFromDropEvent(event, action);
+    if (!result.ok) {
+      const key = {
+        "not-allowed": "PF2EActionForge.Notifications.TargetNotAllowed",
+        "invalid-data": "PF2EActionForge.Notifications.TargetDropInvalid",
+        "invalid-actor": "PF2EActionForge.Notifications.TargetDropInvalidActor",
+        "not-visible": "PF2EActionForge.Notifications.TargetNotVisible"
+      }[result.reason] ?? "PF2EActionForge.Notifications.TargetDropInvalid";
+      ui.notifications.warn(game.i18n.localize(key));
+      return;
+    }
+
+    this.render({ force: true });
+  }
+
   static #runAction(event, target) {
     const actionId = target?.dataset?.actionId;
     const action = actionRegistry.get(actionId);
@@ -188,12 +271,38 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
 
-    ui.notifications.info(
-      game.i18n.format("PF2EActionForge.Notifications.CatalogAction", {
-        action: game.i18n.localize(action.label),
-        actor: actor.name
-      })
-    );
+    const app = ActionForgeApp.instance;
+    if (!app) return;
+    app.activeActionId = action.id;
+    targetResolver.activate(action);
+    app.render({ force: true });
+  }
+
+  static async #removeTarget(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const key = target?.dataset?.targetKey;
+    if (!key) return;
+    await targetResolver.remove(key);
+    ActionForgeApp.instance?.render({ force: true });
+  }
+
+  static #useCanvasTargets(event) {
+    event?.preventDefault?.();
+    const app = ActionForgeApp.instance;
+    const action = app?.activeActionId ? actionRegistry.get(app.activeActionId) : null;
+    if (!action) return;
+    targetResolver.preferCanvas(action);
+    app.render({ force: true });
+  }
+
+  static #closeActionSelection(event) {
+    event?.preventDefault?.();
+    const app = ActionForgeApp.instance;
+    if (!app) return;
+    app.activeActionId = null;
+    targetResolver.clear();
+    app.render({ force: true });
   }
 
   static async #toggleFavorite(event, target) {

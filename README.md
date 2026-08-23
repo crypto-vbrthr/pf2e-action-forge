@@ -1,12 +1,10 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.2.1 – Action Catalog & Favorites UI Hotfix**.
+Development build **0.1.0-dev.3 – Targets & Drag-and-Drop**.
 
-This hotfix keeps the dev.2 catalog feature set and corrects Action Card layout under Foundry v14. Action buttons now expand to the height of wrapped titles and descriptions instead of inheriting Foundry's compact control-button height.
+This block adds the target-resolution layer that later DC, roll, visibility, and application workflows will use. Actions still do **not** perform PF2e checks yet. Selecting an action now opens its target workspace and makes the action's target requirements explicit.
 
-The underlying dev.2 block adds the permanent catalog surface for the first MVP actions. The actions are intentionally **not rolled yet**. Their cards, categories, search metadata, and personal favorite state are now in place so the later target/DC/roll blocks can attach behavior without redesigning the UI.
-
-## Included in dev.2
+## Included in dev.3
 
 - Foundry VTT v14 / PF2e 8.4.0+ module foundation;
 - German and English localization;
@@ -14,54 +12,58 @@ The underlying dev.2 block adds the permanent catalog surface for the first MVP 
 - `ApplicationV2` + Handlebars application;
 - acting-Actor resolver with **Current token (automatic)** and manual pinning;
 - player access to owned characters/companions plus PF2e familiars whose master is owned;
-- declarative Action Registry with ordering, categories, icons, and search keywords;
-- initial eight-action MVP catalog:
-  - Recall Knowledge;
-  - Tumble Through;
-  - Grapple;
-  - Trip;
-  - Climb;
-  - Lie;
-  - Demoralize;
-  - Treat Wounds;
-- localized skill/category grouping;
-- live search across action names, descriptions, categories, and keywords;
-- personal favorites saved on the current Foundry User document;
-- dedicated Favorites section at the top of the catalog;
-- star toggles directly on every Action Card;
+- declarative Action Registry and eight-action MVP catalog;
+- live search and per-user favorites;
+- declarative target modes: `none`, `optional`, `single`, and `multiple`;
+- automatic use of Foundry's current token targets;
+- live refresh when the current user's token targets change;
+- Actor targets by drag-and-drop from the sidebar;
+- support for dropped Token documents when Foundry provides token drag data;
+- target chips with source information and removal controls;
+- single-target replacement behavior and multiple-target combination;
+- canvas-token context retained separately from Actor UUIDs for later range/scene-aware workflows;
+- visibility guards so players cannot use hidden sidebar Actors as target data;
 - release metadata, `CHANGELOG.md`, and MIT `LICENSE`.
 
-## Favorites
+## Target modes
 
-Favorites are stored with a user flag under the module namespace. They are therefore personal to each Foundry user and persist across closing the Action Forge, reloads, and later sessions. Favoriting an action does not require an acting Actor to be selected.
+The MVP actions currently declare these target requirements:
 
-## Search
+- **Recall Knowledge**: optional creature target;
+- **Tumble Through**: one creature target;
+- **Grapple**: one creature target;
+- **Trip**: one creature target;
+- **Climb**: no Actor target;
+- **Lie**: multiple creature targets;
+- **Demoralize**: one creature target;
+- **Treat Wounds**: one creature target.
 
-Search filters the already-rendered catalog in place rather than re-rendering the application on each keystroke. This keeps keyboard focus stable while typing. It searches localized action/category text together with internal action keywords.
+These modes are metadata only at this stage. The next block will attach DC strategies and PF2e checks to the resolved target context.
 
-## Actor resolution
+## Canvas targets
 
-The actor selector has two behaviors:
+When an action accepts targets, Action Forge reads `game.user.targets` rather than maintaining a second competing token-target system. Targeting or untargeting tokens on the canvas updates the open Action Forge workspace.
 
-1. **Current token (automatic)** follows exactly one controlled creature token. If there is no unambiguous controlled token, the user's assigned character and then another permitted actor are used as fallback.
-2. Choosing a named actor pins that actor while the Action Forge window remains open, even if token control changes.
+For single-target and optional-target actions, a dropped sidebar Actor temporarily takes precedence. Targeting a token afterwards switches the action back to the native canvas target. If several tokens remain targeted for a single-target action, the most recently targeted token is used and the UI displays a warning.
 
-Closing and reopening Action Forge resets the selector to **Current token (automatic)**.
+## Sidebar Actor drag-and-drop
 
-Players may select creature actors to which they have **OWNER** permission. PF2e familiars are additionally allowed when their configured master is owned by the player. GMs may select any creature actor.
+A visible creature Actor can be dragged from the Actors sidebar into the target drop zone. This does **not** require ownership of the target Actor. That is intentional: later player actions such as Treat Wounds, Demoralize, Grapple, or Trip must be able to act on Actors the player does not own.
+
+The drop resolver accepts Actor UUID data and falls back to standard Foundry Actor/Token drag payloads. Hidden Actors are rejected for non-GM users.
 
 ## Manual test
 
 1. Enable the module in a PF2e world and open Action Forge from the Token Controls hammer button.
-2. Confirm the eight MVP action cards appear grouped under General Skill Actions, Acrobatics, Athletics, Deception, Intimidation, and Medicine.
-3. Search for an action name, a skill name, and a keyword-like term such as `Reflex`. Confirm irrelevant cards and empty categories disappear without the search field losing focus.
-4. Star two or more actions. Confirm they immediately appear in the Favorites section.
-5. Close and reopen Action Forge. Confirm the favorites remain.
-6. Reload Foundry and confirm the same user's favorites remain.
-7. Log in as a different player and confirm that player's favorites can differ.
-8. Remove a favorite from either its normal category card or Favorites card and confirm both views update.
-9. Confirm the acting-Actor automatic/manual selector behavior from dev.1 remains unchanged.
-10. Clicking an action currently produces only a localized development notification; real PF2e rolls intentionally begin in later blocks.
+2. Select **Tumble Through**. Confirm a target workspace appears and requires exactly one target.
+3. Target a creature token on the canvas. Confirm it appears immediately as a target chip marked **Canvas token**.
+4. Untarget it from Foundry or remove it from the chip. Confirm the target workspace updates.
+5. Drag a visible NPC or PC Actor from the Actors sidebar into the target field. Confirm it appears as **Actor from sidebar**, even if the acting player does not own that Actor.
+6. While the sidebar Actor is selected for a single-target action, target a token on the map. Confirm the native token target takes precedence.
+7. Select **Lie**, target multiple tokens, and optionally drag another Actor from the sidebar. Confirm multiple targets are shown and duplicate Actor targets are not repeated.
+8. Select **Climb**. Confirm the UI states that no Actor target is needed.
+9. Select **Recall Knowledge** with no target. Confirm the optional target state is still valid.
+10. Confirm source-Actor selection, search, and favorites from earlier builds still work.
 
 ## Automated checks
 
@@ -70,4 +72,4 @@ npm test
 npm run check
 ```
 
-The next planned block is **0.1.0-dev.3 – Targets & Drag-and-Drop**.
+The next planned block is **0.1.0-dev.4 – DC Resolver & PF2e Roll Adapter**.

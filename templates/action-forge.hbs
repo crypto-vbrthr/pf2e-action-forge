@@ -46,6 +46,109 @@
     {{/if}}
   </section>
 
+  {{#if activeAction}}
+    <section class="af-target-panel" aria-labelledby="af-target-heading">
+      <div class="af-target-header">
+        <div class="af-selected-action">
+          <span class="af-action-icon" aria-hidden="true"><i class="{{activeAction.icon}}"></i></span>
+          <div>
+            <span class="af-eyebrow">{{localize "PF2EActionForge.Target.SelectedAction"}}</span>
+            <h2 id="af-target-heading">{{activeAction.labelText}}</h2>
+          </div>
+        </div>
+        <div class="af-target-header-actions">
+          <span class="af-target-mode"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> {{targetContext.modeLabel}}</span>
+          <button
+            type="button"
+            class="af-icon-button"
+            data-action="closeActionSelection"
+            title="{{localize 'PF2EActionForge.Target.Close'}}"
+            aria-label="{{localize 'PF2EActionForge.Target.Close'}}"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      {{#if targetContext.allowsTargets}}
+        <p class="af-target-hint">{{targetContext.hint}}</p>
+
+        <div class="af-target-tools">
+          <button type="button" class="af-secondary-button" data-action="useCanvasTargets">
+            <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
+            {{localize "PF2EActionForge.Target.UseCanvas"}}
+          </button>
+          <span class="af-canvas-target-count">
+            {{localize "PF2EActionForge.Target.CanvasTargets"}}: {{targetContext.canvasCount}}
+          </span>
+        </div>
+
+        <div class="af-target-drop-zone" data-role="target-drop-zone">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          <div>
+            <strong>{{localize "PF2EActionForge.Target.DropTitle"}}</strong>
+            <span>{{localize "PF2EActionForge.Target.DropHint"}}</span>
+          </div>
+        </div>
+
+        {{#if targetContext.count}}
+          <div class="af-target-list" aria-label="{{localize 'PF2EActionForge.Target.Current'}}">
+            {{#each targetContext.targets}}
+              <div class="af-target-chip">
+                <img src="{{img}}" alt="" />
+                <span class="af-target-chip-copy">
+                  <strong>{{name}}</strong>
+                  <small>{{sourceText}}</small>
+                </span>
+                <button
+                  type="button"
+                  class="af-target-remove"
+                  data-action="removeTarget"
+                  data-target-key="{{key}}"
+                  title="{{localize 'PF2EActionForge.Target.Remove'}}"
+                  aria-label="{{localize 'PF2EActionForge.Target.Remove'}}"
+                >
+                  <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="af-target-empty">
+            <i class="fa-regular fa-circle-dot" aria-hidden="true"></i>
+            <span>{{localize "PF2EActionForge.Target.NoneSelected"}}</span>
+          </div>
+        {{/if}}
+
+        {{#if targetContext.canvasOverflow}}
+          <div class="af-inline-warning">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{localize "PF2EActionForge.Target.SingleOverflow"}}</span>
+          </div>
+        {{/if}}
+
+        <div class="af-target-status {{#if targetContext.valid}}is-valid{{else}}is-required{{/if}}">
+          <i class="fa-solid {{#if targetContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}" aria-hidden="true"></i>
+          <span>
+            {{#if targetContext.valid}}
+              {{localize "PF2EActionForge.Target.Ready"}}
+            {{else}}
+              {{localize "PF2EActionForge.Target.Required"}}
+            {{/if}}
+          </span>
+        </div>
+      {{else}}
+        <div class="af-target-none">
+          <i class="fa-solid fa-mountain" aria-hidden="true"></i>
+          <div>
+            <strong>{{localize "PF2EActionForge.Target.NoTargetTitle"}}</strong>
+            <span>{{targetContext.hint}}</span>
+          </div>
+        </div>
+      {{/if}}
+    </section>
+  {{/if}}
+
   <section class="af-actions" aria-labelledby="af-actions-heading">
     <div class="af-actions-toolbar">
       <div class="af-section-heading">
@@ -77,7 +180,7 @@
           </div>
           <div class="af-action-grid">
             {{#each favoriteActions}}
-              <article class="af-action-card" data-action-card data-search-text="{{searchText}}">
+              <article class="af-action-card {{#if isActive}}is-active{{/if}}" data-action-card data-search-text="{{searchText}}">
                 <button
                   type="button"
                   class="af-action-run"
@@ -89,6 +192,7 @@
                   <span class="af-action-copy">
                     <strong>{{labelText}}</strong>
                     {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
+                    <span class="af-action-meta"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> {{targetModeText}}</span>
                   </span>
                 </button>
                 <button
@@ -116,7 +220,7 @@
             </div>
             <div class="af-action-grid">
               {{#each actions}}
-                <article class="af-action-card" data-action-card data-search-text="{{searchText}}">
+                <article class="af-action-card {{#if isActive}}is-active{{/if}}" data-action-card data-search-text="{{searchText}}">
                   <button
                     type="button"
                     class="af-action-run"
@@ -128,6 +232,7 @@
                     <span class="af-action-copy">
                       <strong>{{labelText}}</strong>
                       {{#if descriptionText}}<small>{{descriptionText}}</small>{{/if}}
+                      <span class="af-action-meta"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> {{targetModeText}}</span>
                     </span>
                   </button>
                   <button
@@ -161,6 +266,6 @@
   </section>
 
   <footer class="af-footer">
-    <span><i class="fa-solid fa-star" aria-hidden="true"></i> {{localize "PF2EActionForge.Footer.Catalog"}}</span>
+    <span><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> {{localize "PF2EActionForge.Footer.Catalog"}}</span>
   </footer>
 </section>

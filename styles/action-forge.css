@@ -421,3 +421,273 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* dev.3 target workflow */
+.pf2e-action-forge .af-target-panel {
+  border: 1px solid color-mix(in srgb, var(--af-accent) 38%, var(--af-border));
+  border-radius: 10px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--af-accent) 4%, var(--af-panel));
+}
+
+.pf2e-action-forge .af-target-header,
+.pf2e-action-forge .af-selected-action,
+.pf2e-action-forge .af-target-header-actions,
+.pf2e-action-forge .af-target-tools,
+.pf2e-action-forge .af-target-status,
+.pf2e-action-forge .af-inline-warning,
+.pf2e-action-forge .af-target-none,
+.pf2e-action-forge .af-target-empty {
+  display: flex;
+  align-items: center;
+}
+
+.pf2e-action-forge .af-target-header {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pf2e-action-forge .af-selected-action {
+  min-width: 0;
+  gap: 10px;
+}
+
+.pf2e-action-forge .af-selected-action h2 {
+  margin: 1px 0 0;
+  font-size: 1rem;
+}
+
+.pf2e-action-forge .af-eyebrow {
+  display: block;
+  color: var(--af-muted);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pf2e-action-forge .af-target-header-actions {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.pf2e-action-forge .af-target-mode,
+.pf2e-action-forge .af-action-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--af-muted);
+  font-size: 0.68rem;
+}
+
+.pf2e-action-forge .af-target-mode {
+  border: 1px solid var(--af-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--af-panel-strong);
+  white-space: nowrap;
+}
+
+.pf2e-action-forge .af-icon-button,
+.pf2e-action-forge .af-target-remove {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--af-border);
+  border-radius: 7px;
+  background: var(--af-panel-strong);
+  color: inherit;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-target-hint {
+  margin: 8px 0 10px;
+  color: var(--af-muted);
+  font-size: 0.78rem;
+}
+
+.pf2e-action-forge .af-target-tools {
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pf2e-action-forge .af-secondary-button {
+  width: auto;
+  height: auto;
+  min-height: 30px;
+  margin: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--af-border);
+  border-radius: 7px;
+  background: var(--af-panel-strong);
+  color: inherit;
+  line-height: 1.2;
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-secondary-button:hover,
+.pf2e-action-forge .af-secondary-button:focus-visible,
+.pf2e-action-forge .af-icon-button:hover,
+.pf2e-action-forge .af-target-remove:hover {
+  border-color: var(--af-accent);
+  box-shadow: none;
+}
+
+.pf2e-action-forge .af-canvas-target-count {
+  color: var(--af-muted);
+  font-size: 0.7rem;
+}
+
+.pf2e-action-forge .af-target-drop-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  border: 1px dashed color-mix(in srgb, var(--af-accent) 50%, var(--af-border));
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--af-accent) 3%, var(--af-panel-strong));
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.pf2e-action-forge .af-target-drop-zone > i {
+  width: 24px;
+  color: var(--af-accent);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.pf2e-action-forge .af-target-drop-zone div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf2e-action-forge .af-target-drop-zone span,
+.pf2e-action-forge .af-target-empty,
+.pf2e-action-forge .af-target-none span,
+.pf2e-action-forge .af-target-chip small {
+  color: var(--af-muted);
+  font-size: 0.7rem;
+}
+
+.pf2e-action-forge .af-target-drop-zone.is-dragover {
+  border-color: var(--af-accent);
+  background: color-mix(in srgb, var(--af-accent) 10%, var(--af-panel-strong));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--af-accent) 25%, transparent);
+}
+
+.pf2e-action-forge .af-target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.pf2e-action-forge .af-target-chip {
+  display: flex;
+  min-width: 160px;
+  max-width: 250px;
+  flex: 1 1 180px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--af-border);
+  border-radius: 8px;
+  padding: 5px;
+  background: var(--af-panel-strong);
+}
+
+.pf2e-action-forge .af-target-chip img {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.pf2e-action-forge .af-target-chip-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.pf2e-action-forge .af-target-chip-copy strong,
+.pf2e-action-forge .af-target-chip-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf2e-action-forge .af-target-empty,
+.pf2e-action-forge .af-target-none {
+  gap: 8px;
+  margin-top: 9px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--af-panel-strong) 84%, transparent);
+}
+
+.pf2e-action-forge .af-target-none > i,
+.pf2e-action-forge .af-target-empty > i {
+  color: var(--af-accent);
+}
+
+.pf2e-action-forge .af-target-none div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pf2e-action-forge .af-inline-warning,
+.pf2e-action-forge .af-target-status {
+  gap: 7px;
+  margin-top: 8px;
+  border-radius: 7px;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+}
+
+.pf2e-action-forge .af-inline-warning {
+  border: 1px solid color-mix(in srgb, #e0a11b 48%, var(--af-border));
+  background: color-mix(in srgb, #e0a11b 8%, transparent);
+}
+
+.pf2e-action-forge .af-target-status.is-valid {
+  border: 1px solid color-mix(in srgb, #5ca96b 44%, var(--af-border));
+  background: color-mix(in srgb, #5ca96b 7%, transparent);
+}
+
+.pf2e-action-forge .af-target-status.is-required {
+  border: 1px solid color-mix(in srgb, #c96a57 42%, var(--af-border));
+  background: color-mix(in srgb, #c96a57 7%, transparent);
+}
+
+.pf2e-action-forge .af-action-card.is-active {
+  border-color: var(--af-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--af-accent) 28%, transparent);
+}
+
+.pf2e-action-forge .af-action-meta {
+  margin-top: 2px;
+}
+
+@media (max-width: 560px) {
+  .pf2e-action-forge .af-target-header,
+  .pf2e-action-forge .af-target-tools {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pf2e-action-forge .af-target-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

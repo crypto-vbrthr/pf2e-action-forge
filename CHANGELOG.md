@@ -4,6 +4,26 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.3] - 2026-08-23
+
+### Added
+
+- Added declarative `none`, `optional`, `single`, and `multiple` target modes to Action Registry definitions.
+- Added target metadata for all eight MVP actions.
+- Added a dedicated Target Resolver for Foundry canvas targets and sidebar Actor drag-and-drop.
+- Added live target refresh through the current user's `targetToken` events.
+- Added target chips with source labels and removal controls.
+- Added sidebar Actor drop handling with creature/visibility validation.
+- Added combination and deduplication of canvas and sidebar targets for multi-target actions.
+- Added selected-action target workspace and target requirement/status UI.
+- Added tests for target metadata, target resolution, target deduplication, and release metadata.
+
+### Changed
+
+- Clicking an action now selects it and opens its target workflow instead of showing the earlier development notification.
+- Action Cards now display their target mode.
+- Increased the default Action Forge height slightly to accommodate the target workspace.
+
 ## [0.1.0-dev.2.1] - 2026-08-23
 
 ### Fixed

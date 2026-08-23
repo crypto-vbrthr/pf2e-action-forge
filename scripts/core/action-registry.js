@@ -52,6 +52,11 @@ export class ActionRegistry {
     if (!id) throw new Error("PF2E Action Forge | Action definition requires an id.");
     if (!label) throw new Error(`PF2E Action Forge | Action '${id}' requires a label key.`);
 
+    const targetDefinition = definition.target && typeof definition.target === "object" ? definition.target : {};
+    const targetMode = ["none", "optional", "single", "multiple"].includes(targetDefinition.mode)
+      ? targetDefinition.mode
+      : "none";
+
     return {
       id,
       label,
@@ -67,6 +72,10 @@ export class ActionRegistry {
           ? definition.keywords.map((keyword) => String(keyword).trim()).filter(Boolean)
           : []
       ),
+      target: Object.freeze({
+        mode: targetMode,
+        type: String(targetDefinition.type ?? "creature")
+      }),
       developmentOnly: Boolean(definition.developmentOnly)
     };
   }

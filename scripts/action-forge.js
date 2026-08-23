@@ -19,7 +19,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.2"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.3"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -28,6 +28,15 @@ Hooks.on("getSceneControlButtons", (controls) => {
 
 Hooks.on("controlToken", () => {
   ActionForgeApp.refreshIfOpen();
+});
+
+Hooks.on("targetToken", (user, _token, targeted) => {
+  if (user?.id !== game.user.id) return;
+  ActionForgeApp.refreshTargetsIfOpen({ preferCanvas: Boolean(targeted) });
+});
+
+Hooks.on("canvasReady", () => {
+  ActionForgeApp.refreshTargetsIfOpen();
 });
 
 Hooks.on("updateUser", (user, changes) => {

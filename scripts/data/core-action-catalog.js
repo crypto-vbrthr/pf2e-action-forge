@@ -16,7 +16,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 0,
     order: 10,
     icon: "fa-solid fa-brain",
-    keywords: ["knowledge", "recall", "secret"]
+    keywords: ["knowledge", "recall", "secret"],
+    target: { mode: "optional", type: "creature" }
   },
   {
     id: "tumble-through",
@@ -28,7 +29,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 10,
     order: 10,
     icon: "fa-solid fa-person-running",
-    keywords: ["acrobatics", "reflex", "movement"]
+    keywords: ["acrobatics", "reflex", "movement"],
+    target: { mode: "single", type: "creature" }
   },
   {
     id: "grapple",
@@ -40,7 +42,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 20,
     order: 10,
     icon: "fa-solid fa-hand-fist",
-    keywords: ["athletics", "fortitude", "grabbed"]
+    keywords: ["athletics", "fortitude", "grabbed"],
+    target: { mode: "single", type: "creature" }
   },
   {
     id: "trip",
@@ -52,7 +55,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 20,
     order: 20,
     icon: "fa-solid fa-person-falling",
-    keywords: ["athletics", "reflex", "prone"]
+    keywords: ["athletics", "reflex", "prone"],
+    target: { mode: "single", type: "creature" }
   },
   {
     id: "climb",
@@ -64,7 +68,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 20,
     order: 30,
     icon: "fa-solid fa-mountain",
-    keywords: ["athletics", "manual", "dc", "movement"]
+    keywords: ["athletics", "manual", "dc", "movement"],
+    target: { mode: "none", type: "creature" }
   },
   {
     id: "lie",
@@ -76,7 +81,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 30,
     order: 10,
     icon: "fa-solid fa-masks-theater",
-    keywords: ["deception", "perception", "secret", "social"]
+    keywords: ["deception", "perception", "secret", "social"],
+    target: { mode: "multiple", type: "creature" }
   },
   {
     id: "demoralize",
@@ -88,7 +94,8 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 40,
     order: 10,
     icon: "fa-solid fa-face-angry",
-    keywords: ["intimidation", "will", "frightened"]
+    keywords: ["intimidation", "will", "frightened"],
+    target: { mode: "single", type: "creature" }
   },
   {
     id: "treat-wounds",
@@ -100,6 +107,7 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 50,
     order: 10,
     icon: "fa-solid fa-kit-medical",
-    keywords: ["medicine", "healing", "immunity", "wounded"]
+    keywords: ["medicine", "healing", "immunity", "wounded"],
+    target: { mode: "single", type: "creature" }
   }
 ]);
