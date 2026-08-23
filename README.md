@@ -1,12 +1,13 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.7.6 – Foundry Query Broker Hotfix**.
+Development build **0.1.0-dev.7.7 – Treat Wounds Public Summary**.
 
 This hotfix replaces the player-to-GM application request transport with Foundry v14's native `User.query` mechanism. Healing, Wounded removal, immunity, damage, and other privileged result applications now use a direct request/response query to the active GM instead of waiting on a hand-built socket response.
 
 ## Included through dev.7.4
 
 - all foundation, catalog, targeting, DC, Visibility Profiles, GM DC Handoff, Application Engine, and Treat Wounds features from dev.1–dev.7;
+- successful Treat Wounds healing now posts a public summary naming healer and target, actual HP restored, success/critical-success degree, and temporary immunity duration;
 - a new **Choose Target…** button in the active action target panel;
 - a GM-built, sanitized out-of-combat target directory;
 - grouped choices for **your characters & companions**, **party**, **player characters**, **current scene**, and **other visible Actors**;

@@ -147,6 +147,9 @@ export class ApplicationEngine {
 
     const amount = Math.max(0, Math.trunc(evaluated.total));
     const token = findTargetToken(targetActor, targetToken);
+    const startingHp = targetActor.system?.attributes?.hp ?? targetActor.hitPoints ?? null;
+    const startingHpValue = Number.isFinite(Number(startingHp?.value)) ? numeric(startingHp.value) : null;
+    const startingHpMax = Number.isFinite(Number(startingHp?.max)) ? numeric(startingHp.max) : null;
 
     try {
       // PF2e's Actor.applyDamage handles temporary HP, stamina, death automation,
@@ -157,7 +160,22 @@ export class ApplicationEngine {
           token,
           final: true
         });
-        return { ok: true, changed: amount > 0, value: amount, formula, healing };
+
+        let appliedValue = amount;
+        if (healing && startingHpValue !== null) {
+          const currentHp = targetActor.system?.attributes?.hp ?? targetActor.hitPoints ?? null;
+          const currentValue = Number(currentHp?.value);
+          if (Number.isFinite(currentValue) && currentValue !== startingHpValue) {
+            appliedValue = Math.max(0, Math.trunc(currentValue - startingHpValue));
+          } else if (startingHpMax !== null) {
+            // Some synthetic/token Actor views do not immediately refresh their HP data
+            // after applyDamage. In that case the maximum possible actual healing is still
+            // known from the pre-application HP snapshot.
+            appliedValue = Math.min(amount, Math.max(0, startingHpMax - startingHpValue));
+          }
+        }
+
+        return { ok: true, changed: appliedValue > 0, value: amount, appliedValue, formula, healing };
       }
 
       // Sidebar-only Actors have no token for applyDamage. Use a conservative
@@ -195,7 +213,8 @@ export class ApplicationEngine {
       await targetActor.update?.(updates, { damageTaken: healing ? -amount : amount });
       const next = Number(updates["system.attributes.hp.value"] ?? hpValue);
       const changed = next !== hpValue || "system.attributes.hp.temp" in updates || "system.attributes.hp.sp.value" in updates;
-      return { ok: true, changed, value: amount, formula, healing };
+      const appliedValue = healing ? Math.max(0, Math.trunc(next - hpValue)) : amount;
+      return { ok: true, changed, value: amount, appliedValue, formula, healing };
     } catch (error) {
       console.error("PF2E Action Forge | Failed to apply healing/damage", error);
       return { ok: false, reason: "apply-error", error };

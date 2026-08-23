@@ -203,5 +203,14 @@
   "PF2EActionForge.Target.Picker.Timeout": "The target picker did not receive a response from an active GM.",
   "PF2EActionForge.Target.Picker.DirectoryError": "The GM could not determine the eligible targets.",
   "PF2EActionForge.Application.TransactionNotReady": "The result application is not fully synchronized yet. Please try again.",
-  "PF2EActionForge.Application.BrokerError": "The GM could not apply the effect because of an internal error."
+  "PF2EActionForge.Application.BrokerError": "The GM could not apply the effect because of an internal error.",
+  "PF2EActionForge.TreatWounds.PublicSummary.Title": "Treat Wounds",
+  "PF2EActionForge.TreatWounds.PublicSummary.Healed": "{source} healed {target} for {amount} HP.",
+  "PF2EActionForge.TreatWounds.PublicSummary.Immunity": "{target} is now immune to Treat Wounds for {duration}.",
+  "PF2EActionForge.TreatWounds.Duration.Hour": "{value} hour",
+  "PF2EActionForge.TreatWounds.Duration.Hours": "{value} hours",
+  "PF2EActionForge.TreatWounds.Duration.Minute": "{value} minute",
+  "PF2EActionForge.TreatWounds.Duration.Minutes": "{value} minutes",
+  "PF2EActionForge.TreatWounds.Duration.Second": "{value} second",
+  "PF2EActionForge.TreatWounds.Duration.Seconds": "{value} seconds"
 }

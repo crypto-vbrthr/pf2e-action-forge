@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-dev.7.7 - Treat Wounds Public Summary
+
+- Added a public chat summary after successful Treat Wounds healing is applied and the standard immunity is active.
+- The summary names the healer and target, shows Success or Critical Success, reports the actual HP restored, and states the Treat Wounds immunity duration.
+- Healing application now records both the rolled healing amount and the actual HP restored, so overhealing is reported accurately.
+- Immunity duration text is derived from the configured effect duration instead of hard-coding one hour, preparing the summary for later feat-aware duration changes such as Continual Recovery.
+- Added duplicate-summary protection tied to the Action Transaction.
+
 ## 0.1.0-dev.7.6 - Foundry Query Broker Hotfix
 
 - Replaced the primary player-to-GM application transport with Foundry v14 `User.query` / `CONFIG.queries`.

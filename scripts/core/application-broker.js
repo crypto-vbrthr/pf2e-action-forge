@@ -16,6 +16,47 @@ function getApplicationFlag(message) {
   return message?.flags?.[MODULE_ID]?.application ?? null;
 }
 
+function escapeHtml(value) {
+  const escape = globalThis.foundry?.utils?.escapeHTML;
+  if (typeof escape === "function") return escape(String(value ?? ""));
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function localize(key, fallback = key) {
+  return globalThis.game?.i18n?.localize?.(key) ?? fallback;
+}
+
+function format(key, data, fallback) {
+  return globalThis.game?.i18n?.format?.(key, data) ?? fallback;
+}
+
+function formatDuration(seconds) {
+  const total = Math.max(0, Math.trunc(Number(seconds) || 0));
+  if (total > 0 && total % 3600 === 0) {
+    const hours = total / 3600;
+    const key = hours === 1
+      ? "PF2EActionForge.TreatWounds.Duration.Hour"
+      : "PF2EActionForge.TreatWounds.Duration.Hours";
+    return format(key, { value: hours }, `${hours} hour${hours === 1 ? "" : "s"}`);
+  }
+  if (total > 0 && total % 60 === 0) {
+    const minutes = total / 60;
+    const key = minutes === 1
+      ? "PF2EActionForge.TreatWounds.Duration.Minute"
+      : "PF2EActionForge.TreatWounds.Duration.Minutes";
+    return format(key, { value: minutes }, `${minutes} minute${minutes === 1 ? "" : "s"}`);
+  }
+  const key = total === 1
+    ? "PF2EActionForge.TreatWounds.Duration.Second"
+    : "PF2EActionForge.TreatWounds.Duration.Seconds";
+  return format(key, { value: total }, `${total} second${total === 1 ? "" : "s"}`);
+}
+
 export class ApplicationBroker {
   #pending = new Map();
   #processed = new Set();
@@ -211,6 +252,7 @@ export class ApplicationBroker {
         changed: result.changed !== false,
         reason: result.reason ?? null,
         value: Number.isFinite(Number(result.value)) ? Number(result.value) : null,
+        appliedValue: Number.isFinite(Number(result.appliedValue)) ? Number(result.appliedValue) : null,
         formula: result.formula ?? null,
         expiresAtWorldTime: Number.isFinite(Number(result.expiresAtWorldTime)) ? Number(result.expiresAtWorldTime) : null
       }
@@ -221,7 +263,106 @@ export class ApplicationBroker {
       console.warn("PF2E Action Forge | Application succeeded but chat flag update failed", error);
     }
 
+    await this.#maybePostTreatWoundsSummary({
+      message,
+      transaction: flag.transaction,
+      definition,
+      sourceActor,
+      targetActor
+    });
+
     return { ok: true, effectId, application: result };
+  }
+
+  async #maybePostTreatWoundsSummary({ message, transaction, definition, sourceActor, targetActor }) {
+    if (transaction?.actionId !== "treat-wounds") return;
+    if (!["success", "criticalSuccess"].includes(transaction?.outcome)) return;
+    if (!globalThis.ChatMessage?.create) return;
+
+    const summaryKey = `${transaction.id}:treat-wounds-public-summary`;
+    const currentFlag = getApplicationFlag(resolveMessage(message?.id) ?? message);
+    if (currentFlag?.summary?.messageId || this.#processed.has(summaryKey)) return;
+
+    // The immunity is intrinsic to Treat Wounds and is applied automatically.
+    // Wait briefly for that automatic broker request if healing was clicked very
+    // quickly after the result card appeared. This keeps the public summary truthful.
+    let latestFlag = currentFlag;
+    let immunity = null;
+    for (const delay of [0, 100, 250]) {
+      if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+      latestFlag = getApplicationFlag(resolveMessage(message?.id) ?? message) ?? latestFlag;
+      immunity = applicationEngine.getActiveImmunity(targetActor, "treat-wounds", { sourceActor });
+      if (latestFlag?.applied?.healing && immunity) break;
+    }
+
+    const healing = latestFlag?.applied?.healing;
+    if (!healing || !immunity) return;
+    if (latestFlag?.summary?.messageId || this.#processed.has(summaryKey)) return;
+
+    const amount = Number.isFinite(Number(healing.appliedValue))
+      ? Number(healing.appliedValue)
+      : Number.isFinite(Number(healing.value)) ? Number(healing.value) : 0;
+    const immunityEffect = applicationEngine.getEffect(definition, transaction.outcome, "treat-wounds-immunity");
+    const durationSeconds = Number(immunityEffect?.durationSeconds)
+      || Number(immunity.remainingSeconds)
+      || 3600;
+    const duration = formatDuration(durationSeconds);
+    const outcomeText = localize(`PF2EActionForge.Roll.Outcome.${transaction.outcome}`, transaction.outcome);
+    const title = localize("PF2EActionForge.TreatWounds.PublicSummary.Title", "Treat Wounds");
+    const healedText = format(
+      "PF2EActionForge.TreatWounds.PublicSummary.Healed",
+      { source: transaction.sourceActorName, target: transaction.targetActorName, amount },
+      `${transaction.sourceActorName} healed ${transaction.targetActorName} for ${amount} HP.`
+    );
+    const immunityText = format(
+      "PF2EActionForge.TreatWounds.PublicSummary.Immunity",
+      { target: transaction.targetActorName, duration },
+      `${transaction.targetActorName} is now immune to Treat Wounds for ${duration}.`
+    );
+
+    const content = `
+      <div class="pf2e-action-forge-application-card af-treat-wounds-summary">
+        <header>
+          <strong><i class="fa-solid fa-kit-medical" aria-hidden="true"></i> ${escapeHtml(title)}</strong>
+          <span>${escapeHtml(outcomeText)}</span>
+        </header>
+        <p>${escapeHtml(healedText)}</p>
+        <p class="af-application-note"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> ${escapeHtml(immunityText)}</p>
+      </div>`;
+
+    this.#processed.add(summaryKey);
+    try {
+      const speaker = globalThis.ChatMessage.getSpeaker?.({ alias: transaction.sourceActorName })
+        ?? { alias: transaction.sourceActorName };
+      const summaryMessage = await globalThis.ChatMessage.create({
+        speaker,
+        content,
+        flags: {
+          [MODULE_ID]: {
+            treatWoundsSummary: {
+              transactionId: transaction.id,
+              sourceActorUuid: transaction.sourceActorUuid,
+              targetActorUuid: transaction.targetActorUuid,
+              outcome: transaction.outcome,
+              amount,
+              durationSeconds
+            }
+          }
+        }
+      });
+
+      if (summaryMessage?.id) {
+        await message?.update?.({
+          [`flags.${MODULE_ID}.application.summary`]: {
+            messageId: summaryMessage.id,
+            at: Date.now()
+          }
+        });
+      }
+    } catch (error) {
+      this.#processed.delete(summaryKey);
+      console.warn("PF2E Action Forge | Failed to create Treat Wounds public summary", error);
+    }
   }
 
   async #resolveActor(uuid) {

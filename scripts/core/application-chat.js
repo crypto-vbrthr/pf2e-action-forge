@@ -24,7 +24,9 @@ function labelForEffect(effect) {
 
 function appliedLabel(application) {
   const base = globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.Applied") ?? "Applied";
-  const value = Number(application?.value);
+  const actual = Number(application?.appliedValue);
+  const rolled = Number(application?.value);
+  const value = Number.isFinite(actual) ? actual : rolled;
   return Number.isFinite(value) && value > 0 ? `${base} (${value})` : base;
 }
 

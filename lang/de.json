@@ -203,5 +203,14 @@
   "PF2EActionForge.Target.Picker.Timeout": "Die Zielauswahl hat keine Antwort von einer aktiven Spielleitung erhalten.",
   "PF2EActionForge.Target.Picker.DirectoryError": "Die Spielleitung konnte die zulässigen Ziele nicht ermitteln.",
   "PF2EActionForge.Application.TransactionNotReady": "Die Ergebnisanwendung ist noch nicht vollständig synchronisiert. Bitte erneut versuchen.",
-  "PF2EActionForge.Application.BrokerError": "Die SL konnte die Auswirkung wegen eines internen Fehlers nicht anwenden."
+  "PF2EActionForge.Application.BrokerError": "Die SL konnte die Auswirkung wegen eines internen Fehlers nicht anwenden.",
+  "PF2EActionForge.TreatWounds.PublicSummary.Title": "Wunden versorgen",
+  "PF2EActionForge.TreatWounds.PublicSummary.Healed": "{source} hat {target} um {amount} TP geheilt.",
+  "PF2EActionForge.TreatWounds.PublicSummary.Immunity": "{target} ist nun {duration} lang gegen Wunden versorgen immun.",
+  "PF2EActionForge.TreatWounds.Duration.Hour": "{value} Stunde",
+  "PF2EActionForge.TreatWounds.Duration.Hours": "{value} Stunden",
+  "PF2EActionForge.TreatWounds.Duration.Minute": "{value} Minute",
+  "PF2EActionForge.TreatWounds.Duration.Minutes": "{value} Minuten",
+  "PF2EActionForge.TreatWounds.Duration.Second": "{value} Sekunde",
+  "PF2EActionForge.TreatWounds.Duration.Seconds": "{value} Sekunden"
 }
