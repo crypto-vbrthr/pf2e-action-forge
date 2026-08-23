@@ -8,10 +8,10 @@ const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), 
 test("manifest identifies the development build and Foundry/PF2e compatibility", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.4");
+  assert.equal(manifest.version, "0.1.0-dev.4.2");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4.2/pf2e-action-forge.zip");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
@@ -247,6 +247,82 @@ test("players can select owned companions and familiars belonging to an owned ma
     assert.ok(available.includes(companion));
     assert.ok(available.includes(familiar));
     assert.ok(!available.includes(unrelated));
+  } finally {
+    globalThis.game = oldGame;
+    globalThis.canvas = oldCanvas;
+    globalThis.CONST = oldConst;
+  }
+});
+
+
+test("actor resolver freezes the acting Actor for an action and resumes automatic token following after unlock", async () => {
+  const oldGame = globalThis.game;
+  const oldCanvas = globalThis.canvas;
+  const oldConst = globalThis.CONST;
+
+  const actorA = {
+    uuid: "Scene.scene.Token.a.Actor.synthetic",
+    name: "Actor A",
+    type: "npc",
+    isOfType: (type) => type === "creature"
+  };
+  const actorB = {
+    uuid: "Scene.scene.Token.b.Actor.synthetic",
+    name: "Actor B",
+    type: "npc",
+    isOfType: (type) => type === "creature"
+  };
+
+  try {
+    globalThis.game = {
+      actors: { contents: [] },
+      user: { isGM: true, character: null },
+      i18n: { lang: "en" }
+    };
+    globalThis.canvas = { tokens: { controlled: [{ actor: actorA }] } };
+    globalThis.CONST = { DOCUMENT_OWNERSHIP_LEVELS: { OWNER: 3 } };
+
+    const { ActorResolver } = await import(`../scripts/core/actor-resolver.js?action-lock=${Date.now()}`);
+    const resolver = new ActorResolver();
+
+    assert.equal(resolver.resolve(), actorA);
+    assert.equal(resolver.lockActionActor(), actorA);
+    assert.equal(resolver.isActionLocked, true);
+
+    globalThis.canvas.tokens.controlled = [{ actor: actorB }];
+    assert.equal(resolver.resolve(), actorA, "target/control changes must not replace the acting Actor mid-action");
+    assert.equal(resolver.getContext().actionLocked, true);
+
+    resolver.unlockActionActor();
+    assert.equal(resolver.isActionLocked, false);
+    assert.equal(resolver.resolve(), actorB, "automatic mode should resume the currently controlled token after the action ends");
+  } finally {
+    globalThis.game = oldGame;
+    globalThis.canvas = oldCanvas;
+    globalThis.CONST = oldConst;
+  }
+});
+
+test("action lock does not erase an explicitly pinned Actor selection", async () => {
+  const oldGame = globalThis.game;
+  const oldCanvas = globalThis.canvas;
+  const oldConst = globalThis.CONST;
+
+  const pinned = { uuid: "Actor.pinned", name: "Pinned", type: "character", isOfType: (t) => t === "creature" };
+  const tokenActor = { uuid: "Actor.token", name: "Token", type: "character", isOfType: (t) => t === "creature" };
+
+  try {
+    globalThis.game = { actors: { contents: [pinned, tokenActor] }, user: { isGM: true, character: null }, i18n: { lang: "en" } };
+    globalThis.canvas = { tokens: { controlled: [{ actor: tokenActor }] } };
+    globalThis.CONST = { DOCUMENT_OWNERSHIP_LEVELS: { OWNER: 3 } };
+
+    const { ActorResolver } = await import(`../scripts/core/actor-resolver.js?action-pin=${Date.now()}`);
+    const resolver = new ActorResolver();
+    resolver.setSelectedActor(pinned.uuid);
+    assert.equal(resolver.resolve(), pinned);
+    resolver.lockActionActor();
+    resolver.unlockActionActor();
+    assert.equal(resolver.resolve(), pinned, "explicit source selection should survive an action session");
   } finally {
     globalThis.game = oldGame;
     globalThis.canvas = oldCanvas;

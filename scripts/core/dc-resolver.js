@@ -7,6 +7,52 @@ function normalizeManualDc(value) {
   return Number.isInteger(number) && number >= 0 && number <= 60 ? number : null;
 }
 
+/**
+ * Resolve a prepared PF2e defense DC directly from an Actor.
+ *
+ * PF2e's action API can resolve a defense slug from an explicit Actor target in
+ * current versions. We still resolve a numeric DC for Actor-only/sidebar
+ * targets as a compatibility hardening measure: older action implementations
+ * can otherwise fall back to game.user.targets and accidentally use a stale
+ * canvas token (or no DC at all when no token is targeted).
+ */
+function resolveActorDefenseDc(actor, defense) {
+  if (!actor || !DEFENSES.has(defense)) return null;
+
+  try {
+    const statistic = actor.getStatistic?.(defense);
+    const value = statistic?.dc?.value;
+    if (Number.isFinite(value)) return Number(value);
+  } catch (_error) {
+    // Continue through stable prepared-data fallbacks below.
+  }
+
+  const candidates = (() => {
+    switch (defense) {
+      case "perception":
+        return [actor.perception?.dc?.value, actor.system?.perception?.dc, actor.system?.attributes?.perception?.dc];
+      case "fortitude":
+      case "reflex":
+      case "will":
+        return [
+          actor.saves?.[defense]?.dc?.value,
+          actor.system?.saves?.[defense]?.dc,
+          actor.system?.saves?.[defense]?.value
+        ];
+      case "ac":
+        return [actor.armorClass?.value, actor.system?.attributes?.ac?.value, actor.system?.attributes?.ac?.dc];
+      default:
+        return [];
+    }
+  })();
+
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
 export class DCResolver {
   getState(action, targetState, { manualDc = null } = {}) {
     const dc = action?.dc ?? { strategy: "none" };
@@ -58,12 +104,19 @@ export class DCResolver {
         }
 
         if (target) {
+          // Token targets retain the defense slug so PF2e can build the full
+          // origin/target context itself. Actor-only targets (sidebar drops)
+          // get a concrete prepared DC to avoid any fallback to a different
+          // token in game.user.targets.
+          const actorOnlyTarget = !target.token && target.actor;
+          const resolvedDefenseDc = actorOnlyTarget ? resolveActorDefenseDc(target.actor, defense) : null;
           return {
             strategy,
             valid: true,
             source: "target",
-            difficultyClass: defense,
+            difficultyClass: resolvedDefenseDc ?? defense,
             defense,
+            defenseValue: resolvedDefenseDc,
             target,
             manualDc: parsedManualDc,
             needsManualDc: false,
@@ -153,5 +206,5 @@ export class DCResolver {
   }
 }
 
-export { normalizeManualDc };
+export { normalizeManualDc, resolveActorDefenseDc };
 export const dcResolver = new DCResolver();

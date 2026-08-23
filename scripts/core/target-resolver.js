@@ -85,7 +85,13 @@ export class TargetResolver {
     }
 
     const entry = this.#manualEntry(actor);
-    if (mode === "single" || mode === "optional") this.#manualTargets.clear();
+    if (mode === "single" || mode === "optional") {
+      // A sidebar drop is an explicit target choice. Release native canvas
+      // targets so PF2e system actions cannot silently keep using a stale
+      // token target instead of the Actor the user just dropped here.
+      await this.#releaseCanvasTargets();
+      this.#manualTargets.clear();
+    }
     this.#manualTargets.set(entry.key, entry);
     return { ok: true, entry };
   }
@@ -106,6 +112,19 @@ export class TargetResolver {
       console.warn("PF2E Action Forge | Failed to release canvas target", error);
     }
     return false;
+  }
+
+
+  async #releaseCanvasTargets() {
+    for (const entry of this.#getCanvasTargets()) {
+      const token = entry.token;
+      if (!token || typeof token.setTarget !== "function") continue;
+      try {
+        await token.setTarget(false, { user: game.user, releaseOthers: false });
+      } catch (error) {
+        console.warn("PF2E Action Forge | Failed to release stale canvas target", error);
+      }
+    }
   }
 
   #mode(action) {

@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.4 release and release URLs", async () => {
+test("manifest identifies the dev.4.2 release and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.4");
+  assert.equal(manifest.version, "0.1.0-dev.4.2");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4.2/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -103,12 +103,12 @@ test("catalog template includes search, category groups, and favorite controls",
   assert.doesNotMatch(template, /Foundation Check/);
 });
 
-test("repository history records dev.4", async () => {
+test("repository history records dev.4.2", async () => {
   const changelog = await readFile(new URL("CHANGELOG.md", root), "utf8");
   const readme = await readFile(new URL("README.md", root), "utf8");
   const license = await readFile(new URL("LICENSE", root), "utf8");
-  assert.match(changelog, /0\.1\.0-dev\.4/);
-  assert.match(readme, /DC Resolver & PF2e Roll Adapter/);
+  assert.match(changelog, /0\.1\.0-dev\.4\.2/);
+  assert.match(readme, /Source Actor Lock Hotfix/);
   assert.match(license, /MIT License/);
 });
 
@@ -167,13 +167,20 @@ test("target resolver handles canvas, sidebar, single-target precedence, and mul
   const actor1 = creature("one", "One");
   const actor2 = creature("two", "Two");
   const actor3 = creature("three", "Three");
-  const makeToken = (id, actor) => ({
-    uuid: `Scene.scene.Token.${id}`,
-    name: `${actor.name} Token`,
-    actor,
-    document: { uuid: `Scene.scene.Token.${id}`, texture: { src: `${id}-token.webp` } },
-    setTarget: () => {}
-  });
+  const makeToken = (id, actor) => {
+    const token = {
+      uuid: `Scene.scene.Token.${id}`,
+      name: `${actor.name} Token`,
+      actor,
+      document: { uuid: `Scene.scene.Token.${id}`, texture: { src: `${id}-token.webp` } },
+      setTarget: (targeted) => {
+        if (!globalThis.game?.user?.targets) return;
+        if (targeted) globalThis.game.user.targets.add(token);
+        else globalThis.game.user.targets.delete(token);
+      }
+    };
+    return token;
+  };
   const token1 = makeToken("one", actor1);
   const token2 = makeToken("two", actor2);
 
@@ -204,10 +211,11 @@ test("target resolver handles canvas, sidebar, single-target precedence, and mul
     assert.equal(state.targets[0].actor, actor3, "a dropped Actor should take temporary precedence");
     assert.equal(state.targets[0].source, "sidebar");
     assert.equal(state.canvasOverflow, false);
+    assert.equal(globalThis.game.user.targets.size, 0, "an explicit sidebar target should release stale canvas targets");
 
-    resolver.preferCanvas(single);
-    state = resolver.getState(single);
-    assert.equal(state.targets[0].actor, actor2, "native canvas targeting should be restorable");
+    // Re-target canvas tokens before testing multiple-target combination.
+    globalThis.game.user.targets.add(token1);
+    globalThis.game.user.targets.add(token2);
 
     const multiple = { id: "multiple", target: { mode: "multiple" } };
     resolver.activate(multiple);
@@ -267,4 +275,15 @@ test("dev.4 template exposes manual DC entry and real roll controls", async () =
   assert.match(template, /data-action="executeAction"/);
   assert.match(template, /executionContext\.systemActionAvailable/);
   assert.match(template, /lastRoll/);
+});
+
+
+test("action workspace exposes a frozen source-Actor state", async () => {
+  const template = await readFile(new URL("templates/action-forge.hbs", root), "utf8");
+  const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
+  assert.match(template, /sourceActorLocked/);
+  assert.match(template, /data-role="source-actor" \{\{#if sourceActorLocked\}\}disabled/);
+  assert.match(template, /PF2EActionForge\.SourceActor\.Locked/);
+  assert.match(app, /actorResolver\.lockActionActor\(actor\)/);
+  assert.match(app, /actorResolver\.unlockActionActor\(\)/);
 });

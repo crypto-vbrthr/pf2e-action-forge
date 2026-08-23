@@ -4,7 +4,7 @@
   "PF2EActionForge.Controls.Open": "Action Forge öffnen",
   "PF2EActionForge.Common.Dev": "DEV",
   "PF2EActionForge.SourceActor.Label": "Handelnder Charakter",
-  "PF2EActionForge.SourceActor.Hint": "Dem kontrollierten Token automatisch folgen oder einen bestimmten Actor aus der Liste fest auswählen.",
+  "PF2EActionForge.SourceActor.Hint": "Dem kontrollierten Token automatisch folgen oder einen bestimmten Actor aus der Liste fest auswählen. Während eine Aktion läuft, bleibt der handelnde Charakter eingefroren.",
   "PF2EActionForge.SourceActor.Select": "Handelnden Charakter auswählen",
   "PF2EActionForge.SourceActor.NoneTitle": "Kein verwendbarer Actor gefunden",
   "PF2EActionForge.SourceActor.NoneHint": "Kontrolliere einen eigenen Kreaturen-Token oder wähle einen eigenen Charakter, Gefährten oder Vertrauten.",
@@ -51,7 +51,7 @@
   "PF2EActionForge.Notifications.FavoriteAdded": "{action} wurde zu deinen Favoriten hinzugefügt.",
   "PF2EActionForge.Notifications.FavoriteRemoved": "{action} wurde aus deinen Favoriten entfernt.",
   "PF2EActionForge.Notifications.FavoriteError": "Die Action Forge konnte deine Favoriten nicht speichern.",
-  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.4 · DC Resolver & PF2e Roll Adapter",
+  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.4.2 · Source Actor Lock Hotfix",
   "PF2EActionForge.Target.SelectedAction": "Ausgewählte Aktion",
   "PF2EActionForge.Target.Close": "Aktionsauswahl schließen",
   "PF2EActionForge.Target.Mode.none": "Kein Ziel",
@@ -113,5 +113,7 @@
   "PF2EActionForge.Notifications.TargetRequired": "Für diese Aktion muss noch ein gültiges Ziel ausgewählt werden.",
   "PF2EActionForge.Notifications.DCRequired": "Gib zuerst einen gültigen SG für diese Aktion an.",
   "PF2EActionForge.Notifications.SystemActionMissing": "Die zugehörige PF2e-Systemaktion ist in dieser Installation nicht verfügbar.",
-  "PF2EActionForge.Notifications.RollFailed": "Der PF2e-Wurf konnte nicht ausgeführt werden. Details stehen in der Browser-Konsole."
+  "PF2EActionForge.Notifications.RollFailed": "Der PF2e-Wurf konnte nicht ausgeführt werden. Details stehen in der Browser-Konsole.",
+  "PF2EActionForge.SourceActor.Locked": "Für Aktion gesperrt",
+  "PF2EActionForge.SourceActor.LockedHint": "Der handelnde Charakter bleibt bis zum Abschluss oder Abbruch dieser Aktion unverändert."
 }

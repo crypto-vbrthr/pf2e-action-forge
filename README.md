@@ -1,16 +1,16 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.4 – DC Resolver & PF2e Roll Adapter**.
+Development build **0.1.0-dev.4.2 – Source Actor Lock Hotfix**.
 
 This block connects the Action Forge target layer to the first real PF2e checks. The module now resolves an action's DC strategy, hands the check to the PF2e system action implementation, and keeps Action Forge responsible for orchestration rather than rebuilding PF2e roll logic.
 
-## Included in dev.4
+## Included in dev.4.2
 
 - Foundry VTT v14 / PF2e 8.4.0+ module foundation;
 - German and English localization;
 - Token SceneControl launcher for GM and players;
 - `ApplicationV2` + Handlebars application;
-- acting-Actor resolver with **Current token (automatic)** and manual pinning;
+- acting-Actor resolver with **Current token (automatic)**, manual pinning, and an action-session source lock;
 - player access to owned characters/companions plus PF2e familiars whose master is owned;
 - eight-action MVP catalog, search, and per-user favorites;
 - canvas-token and sidebar-Actor target resolution;
@@ -20,6 +20,17 @@ This block connects the Action Forge target layer to the first real PF2e checks.
 - real **Tumble Through** and **Climb** checks;
 - compact DC readiness/status UI and last-check display;
 - release metadata, `CHANGELOG.md`, and MIT `LICENSE`.
+
+
+### Frozen acting Actor during an action
+
+As soon as an action is selected, Action Forge snapshots and locks the currently resolved acting Actor. Changing token control while targeting creatures on the canvas no longer changes who performs the in-progress action. The source selector is disabled and shows a lock badge for the duration of the action session.
+
+When the PF2e action finishes, its roll dialog is cancelled, or the Action Forge action workspace is closed, the source lock is released. **Current token (automatic)** then follows the currently controlled token again; a deliberately pinned Actor remains pinned.
+
+### Sidebar target precedence
+
+For single/optional target actions, dropping an Actor into the Action Forge target field is now an explicit authoritative target choice. Any stale native canvas targets are released. When the dropped Actor has no token, Action Forge resolves the prepared defense DC directly from that Actor and still passes the Actor to PF2e as the roll target. This keeps the DC correct for sidebar-only targets and prevents a different targeted token from leaking into the check.
 
 ## First real checks
 
@@ -49,15 +60,19 @@ The remaining six MVP actions already carry their intended DC metadata, but thei
 ## Manual test
 
 1. Enable the module in a PF2e world and open Action Forge from the Token Controls hammer button.
-2. Select **Tumble Through** and target a creature token on the canvas. Confirm the DC panel reports that target's Reflex DC source without requiring manual input.
-3. Click **Roll**. Confirm the normal PF2e check workflow/chat output appears and the Action Forge shows the returned total/outcome.
-4. Remove the target. Confirm a manual DC field appears and the Roll button remains disabled until a valid integer DC is entered.
-5. Enter a manual DC and roll Tumble Through again. Confirm the check works without an Actor target.
-6. Drag a visible Actor from the sidebar into Tumble Through. Confirm the target-defense mode is restored and the manual field disappears.
-7. Select **Climb**. Confirm no Actor target is requested and a manual DC is required.
-8. Enter a DC and roll. Confirm PF2e uses the acting Actor's Athletics check and normal PF2e modifiers/options remain available.
-9. Select Grapple, Trip, Lie, Demoralize, Recall Knowledge, and Treat Wounds. Confirm their DC source is previewed, while their Roll workflow clearly states that it belongs to a later development block.
-10. Confirm source-Actor selection, target drag-and-drop, search, and favorites from earlier builds still work.
+2. In **Current token (automatic)** mode, control Actor A and select **Tumble Through**. Confirm the source selector becomes disabled and shows the lock state.
+3. Change token control to Actor B while selecting/changing the target. Confirm Actor A remains the acting Actor and supplies the check.
+4. Close the action workspace with its X button. Confirm the lock releases and the acting Actor now follows Actor B.
+5. Repeat with a deliberately pinned source Actor. Cancel the action and confirm the explicit pin remains selected.
+6. Select **Tumble Through** and target a creature token on the canvas. Confirm the DC panel reports that target's Reflex DC source without requiring manual input.
+7. Click **Roll**. Confirm the normal PF2e check workflow/chat output appears, the action workspace closes, and the last-result summary remains visible in Action Forge.
+8. Remove all targets, select Tumble Through again, and confirm a manual DC field appears. The Roll button must remain disabled until a valid integer DC is entered.
+9. Enter a manual DC and roll Tumble Through again. Confirm the check works without an Actor target.
+10. Drag a visible Actor from the sidebar into Tumble Through. Confirm the target-defense mode is restored and the manual field disappears.
+11. Select **Climb**. Confirm no Actor target is requested and a manual DC is required.
+12. Enter a DC and roll. Confirm PF2e uses the acting Actor's Athletics check and normal PF2e modifiers/options remain available.
+13. Select Grapple, Trip, Lie, Demoralize, Recall Knowledge, and Treat Wounds. Confirm their DC source is previewed, while their Roll workflow clearly states that it belongs to a later development block.
+14. Confirm source-Actor selection, target drag-and-drop, search, and favorites from earlier builds still work.
 
 ## Automated checks
 

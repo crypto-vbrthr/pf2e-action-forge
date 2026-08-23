@@ -104,3 +104,43 @@ test("PF2e Action Adapter delegates actor, target, statistic, and DC to the syst
     globalThis.game = oldGame;
   }
 });
+
+test("DC Resolver resolves an Actor-only sidebar defense to a concrete PF2e DC", async () => {
+  const { DCResolver } = await import(`../scripts/core/dc-resolver.js?sidebar-defense=${Date.now()}`);
+  const resolver = new DCResolver();
+  const actor = {
+    uuid: "Actor.sidebar",
+    name: "Sidebar Target",
+    getStatistic: (slug) => slug === "reflex" ? { dc: { value: 29 } } : null
+  };
+  const action = { dc: { strategy: "target-defense", defense: "reflex", manualFallback: true } };
+  const targetState = {
+    targets: [{ source: "sidebar", actor, token: null, name: actor.name }]
+  };
+
+  const state = resolver.getState(action, targetState);
+  assert.equal(state.valid, true);
+  assert.equal(state.source, "target");
+  assert.equal(state.difficultyClass, 29);
+  assert.equal(state.defenseValue, 29);
+
+  const resolved = resolver.resolve(action, targetState);
+  assert.equal(resolved.ok, true);
+  assert.equal(resolved.difficultyClass, 29);
+  assert.equal(resolved.target, actor);
+});
+
+test("canvas-token defense targets keep the PF2e defense slug for full target context", async () => {
+  const { DCResolver } = await import(`../scripts/core/dc-resolver.js?canvas-defense=${Date.now()}`);
+  const resolver = new DCResolver();
+  const actor = {
+    uuid: "Actor.canvas",
+    getStatistic: () => ({ dc: { value: 31 } })
+  };
+  const token = { actor };
+  const action = { dc: { strategy: "target-defense", defense: "reflex", manualFallback: true } };
+  const state = resolver.getState(action, { targets: [{ source: "canvas", actor, token }] });
+
+  assert.equal(state.difficultyClass, "reflex");
+  assert.equal(state.defenseValue, null);
+});

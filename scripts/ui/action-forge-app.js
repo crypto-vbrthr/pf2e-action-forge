@@ -51,6 +51,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!this.#instance) this.#instance = new this();
 
     if (!this.#instance.rendered) {
+      actorResolver.unlockActionActor();
       actorResolver.followCurrentToken();
       targetResolver.clear();
       this.#instance.searchQuery = "";
@@ -143,7 +144,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.4",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.4.2",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -155,6 +156,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           }
         : null,
       followsCurrentToken: resolution.selectionMode === "auto",
+      sourceActorLocked: resolution.actionLocked,
       currentTokenSelectionValue: CURRENT_TOKEN_SELECTION,
       actors: resolution.actors.map((actor) => ({
         uuid: actor.uuid,
@@ -171,10 +173,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       targetContext,
       dcContext,
       executionContext,
-      lastRoll:
-        this.lastRoll && this.lastRoll.actionId === activeDefinition?.id
-          ? this.lastRoll
-          : null
+      lastRoll: this.lastRoll
     };
   }
 
@@ -392,6 +391,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const app = ActionForgeApp.instance;
     if (!app) return;
+    actorResolver.lockActionActor(actor);
     app.activeActionId = action.id;
     app.lastRoll = null;
     targetResolver.activate(action);
@@ -453,13 +453,21 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const outcome = result.outcome ?? "unknown";
       app.lastRoll = {
         actionId: action.id,
+        actionName: game.i18n.localize(action.label),
         total: Number.isFinite(result.roll?.total) ? result.roll.total : "–",
         outcome,
         outcomeText: game.i18n.localize(`PF2EActionForge.Roll.Outcome.${outcome}`),
         actorName: actor.name
       };
-      app.render({ force: true });
     }
+
+    // The action session ends after the PF2e action returns, including a cancelled
+    // system roll dialog (which yields no result). Release the frozen source actor
+    // so automatic mode can once again follow the currently controlled token.
+    actorResolver.unlockActionActor();
+    app.activeActionId = null;
+    targetResolver.clear();
+    app.render({ force: true });
   }
 
   static async #removeTarget(event, target) {
@@ -490,6 +498,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     app.activeActionId = null;
     app.lastRoll = null;
     targetResolver.clear();
+    actorResolver.unlockActionActor();
     app.render({ force: true });
   }
 

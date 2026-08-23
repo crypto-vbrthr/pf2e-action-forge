@@ -26,7 +26,7 @@
           <span>{{actor.sourceText}}</span>
         </div>
         <label class="af-visually-hidden" for="af-source-actor">{{localize "PF2EActionForge.SourceActor.Select"}}</label>
-        <select id="af-source-actor" data-role="source-actor">
+        <select id="af-source-actor" data-role="source-actor" {{#if sourceActorLocked}}disabled{{/if}}>
           <option value="{{currentTokenSelectionValue}}" {{#if followsCurrentToken}}selected{{/if}}>
             {{localize "PF2EActionForge.SourceActor.CurrentToken"}}
           </option>
@@ -34,6 +34,12 @@
             <option value="{{uuid}}" {{#if selected}}selected{{/if}}>{{name}}</option>
           {{/each}}
         </select>
+        {{#if sourceActorLocked}}
+          <span class="af-source-lock" title="{{localize 'PF2EActionForge.SourceActor.LockedHint'}}">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            {{localize "PF2EActionForge.SourceActor.Locked"}}
+          </span>
+        {{/if}}
       </div>
     {{else}}
       <div class="af-empty-state af-empty-state--warning">
@@ -205,15 +211,16 @@
           </div>
         {{/if}}
 
-        {{#if lastRoll}}
-          <div class="af-roll-result" role="status">
-            <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
-            <span>{{localize "PF2EActionForge.Roll.LastResult"}}:</span>
-            <strong>{{lastRoll.total}}</strong>
-            <span>· {{lastRoll.outcomeText}}</span>
-          </div>
-        {{/if}}
       </div>
+    </section>
+  {{/if}}
+
+  {{#if lastRoll}}
+    <section class="af-roll-result af-roll-result--summary" role="status">
+      <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+      <span>{{localize "PF2EActionForge.Roll.LastResult"}} · {{lastRoll.actionName}} · {{lastRoll.actorName}}:</span>
+      <strong>{{lastRoll.total}}</strong>
+      <span>· {{lastRoll.outcomeText}}</span>
     </section>
   {{/if}}
 

@@ -18,6 +18,8 @@ export const CURRENT_TOKEN_SELECTION = "__current-token__";
  */
 export class ActorResolver {
   #selectedActorUuid = null;
+  #lockedActor = null;
+  #lockedSource = null;
 
   setSelectedActor(uuid) {
     if (!uuid || uuid === CURRENT_TOKEN_SELECTION) {
@@ -39,8 +41,28 @@ export class ActorResolver {
     return this.#selectedActorUuid === null;
   }
 
+  get isActionLocked() {
+    return Boolean(this.#lockedActor);
+  }
+
+  lockActionActor(actor = this.#resolveUnlocked()) {
+    if (!actor) return null;
+    if (!this.#canActWith(actor)) return null;
+    if (!this.#lockedActor) {
+      this.#lockedActor = actor;
+      this.#lockedSource = this.#sourceFor(actor);
+    }
+    return this.#lockedActor;
+  }
+
+  unlockActionActor() {
+    this.#lockedActor = null;
+    this.#lockedSource = null;
+  }
+
   getAvailableActors() {
     const actors = [
+      ...(this.#lockedActor ? [this.#lockedActor] : []),
       ...this.#getControlledActors(),
       ...(game?.actors?.contents ?? [])
     ];
@@ -65,6 +87,11 @@ export class ActorResolver {
   }
 
   resolve() {
+    if (this.#lockedActor) return this.#lockedActor;
+    return this.#resolveUnlocked();
+  }
+
+  #resolveUnlocked() {
     const available = this.getAvailableActors();
 
     if (this.#selectedActorUuid) {
@@ -93,8 +120,9 @@ export class ActorResolver {
     return {
       actor,
       actors,
-      source: actor ? this.#sourceFor(actor) : "none",
-      selectionMode: this.followsCurrentToken ? "auto" : "explicit"
+      source: actor ? (this.#lockedActor ? this.#lockedSource : this.#sourceFor(actor)) : "none",
+      selectionMode: this.followsCurrentToken ? "auto" : "explicit",
+      actionLocked: this.isActionLocked
     };
   }
 

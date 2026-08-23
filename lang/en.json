@@ -4,7 +4,7 @@
   "PF2EActionForge.Controls.Open": "Open Action Forge",
   "PF2EActionForge.Common.Dev": "DEV",
   "PF2EActionForge.SourceActor.Label": "Acting character",
-  "PF2EActionForge.SourceActor.Hint": "Follow the controlled token automatically, or pin a specific actor from the list.",
+  "PF2EActionForge.SourceActor.Hint": "Follow the controlled token automatically, or pin a specific actor from the list. While an action is in progress, the acting character is frozen.",
   "PF2EActionForge.SourceActor.Select": "Select acting character",
   "PF2EActionForge.SourceActor.NoneTitle": "No usable actor found",
   "PF2EActionForge.SourceActor.NoneHint": "Control one of your creature tokens or choose an owned character, companion, or familiar.",
@@ -51,7 +51,7 @@
   "PF2EActionForge.Notifications.FavoriteAdded": "Added {action} to your favorites.",
   "PF2EActionForge.Notifications.FavoriteRemoved": "Removed {action} from your favorites.",
   "PF2EActionForge.Notifications.FavoriteError": "Action Forge could not save your favorites.",
-  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.4 · DC Resolver & PF2e Roll Adapter",
+  "PF2EActionForge.Footer.Catalog": "0.1.0-dev.4.2 · Source Actor Lock Hotfix",
   "PF2EActionForge.Target.SelectedAction": "Selected action",
   "PF2EActionForge.Target.Close": "Close action selection",
   "PF2EActionForge.Target.Mode.none": "No target",
@@ -113,5 +113,7 @@
   "PF2EActionForge.Notifications.TargetRequired": "This action still requires a valid target.",
   "PF2EActionForge.Notifications.DCRequired": "Enter a valid DC for this action first.",
   "PF2EActionForge.Notifications.SystemActionMissing": "The corresponding PF2e system action is not available in this installation.",
-  "PF2EActionForge.Notifications.RollFailed": "The PF2e check could not be executed. See the browser console for details."
+  "PF2EActionForge.Notifications.RollFailed": "The PF2e check could not be executed. See the browser console for details.",
+  "PF2EActionForge.SourceActor.Locked": "Locked for action",
+  "PF2EActionForge.SourceActor.LockedHint": "The acting character remains unchanged until this action is completed or cancelled."
 }

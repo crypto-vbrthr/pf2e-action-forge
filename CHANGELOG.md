@@ -4,6 +4,28 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.4.2] - 2026-08-23
+
+### Added
+
+- Added an action-session source-Actor lock: selecting an action freezes the acting Actor until that action is completed or cancelled.
+- Added a visible lock badge and disabled source-Actor selector while an action session is active.
+- Preserved the last PF2e roll summary after the action workspace closes.
+
+### Fixed
+
+- Changing token control while selecting or changing an action target can no longer silently replace the acting Actor mid-action.
+- Automatic current-token mode resumes after the action completes or is cancelled, while an explicitly pinned Actor remains explicitly selected.
+
+## [0.1.0-dev.4.1] - 2026-08-23
+
+### Fixed
+
+- Fixed sidebar Actor targets not being authoritative for target-defense checks when a different token was still targeted on the canvas.
+- Fixed target-defense checks with only a dragged sidebar Actor sometimes failing to resolve any DC.
+- Sidebar drops for single/optional target actions now release stale native canvas targets so PF2e cannot silently reuse the wrong creature.
+- Actor-only target defenses now resolve to the Actor's prepared PF2e DC while retaining the Actor as explicit roll target.
+
 ## [0.1.0-dev.4] - 2026-08-23
 
 ### Added
