@@ -154,6 +154,151 @@ test("Application Broker applies a validated result once and records idempotence
 
 test("module manifest enables module sockets for GM-mediated applications", () => {
   assert.equal(moduleJson.socket, true);
-  assert.equal(moduleJson.version, "0.1.0-dev.7.3");
+  assert.equal(moduleJson.version, "0.1.0-dev.7.6");
   assert.match(moduleJson.download, /v0\.1\.0-dev\.7/);
+});
+
+test("picker-selected party targets validate when PF2e party members is a Set-like collection", async () => {
+  const oldGame = globalThis.game;
+  const oldConst = globalThis.CONST;
+  const oldCanvas = globalThis.canvas;
+  try {
+    globalThis.CONST = { DOCUMENT_OWNERSHIP_LEVELS: { LIMITED: 1, OWNER: 3 } };
+    const player = { id: "p1", isGM: false, active: true };
+    const sourceActor = {
+      uuid: "Actor.source",
+      type: "character",
+      isOfType: (kind) => kind === "creature" || kind === "character",
+      testUserPermission: (user, level) => user.id === "p1" && level >= 3
+    };
+    const targetActor = {
+      uuid: "Actor.target",
+      type: "character",
+      visible: true,
+      isOfType: (kind) => kind === "creature" || kind === "character",
+      testUserPermission: () => false
+    };
+    const members = new Set([sourceActor, targetActor]);
+    const actors = [];
+    actors.party = { members };
+    globalThis.game = {
+      user: player,
+      users: [],
+      actors,
+      scenes: { get: () => null }
+    };
+    globalThis.canvas = { scene: null };
+
+    const { TargetPickerService } = await import(`../scripts/core/target-picker-service.js?set-members=${Date.now()}`);
+    const service = new TargetPickerService();
+    assert.equal(service.isEligibleTarget(targetActor, player), true);
+  } finally {
+    globalThis.game = oldGame;
+    globalThis.CONST = oldConst;
+    globalThis.canvas = oldCanvas;
+  }
+});
+
+test("GM application socket returns broker-error instead of timing out when processing throws", async () => {
+  const oldGame = globalThis.game;
+  try {
+    const gm = { id: "gm", isGM: true, active: true };
+    let listener = null;
+    const emitted = [];
+    const users = [gm];
+    users.get = (id) => users.find((u) => u.id === id);
+    globalThis.game = {
+      user: gm,
+      users,
+      socket: {
+        on: (_channel, fn) => { listener = fn; },
+        emit: (_channel, payload) => emitted.push(payload)
+      },
+      messages: { get: () => { throw new Error("synthetic broker failure"); } }
+    };
+
+    const { ApplicationBroker } = await import(`../scripts/core/application-broker.js?socket-error=${Date.now()}`);
+    const broker = new ApplicationBroker();
+    broker.initialize();
+    assert.equal(typeof listener, "function");
+    const oldError = console.error;
+    console.error = () => {};
+    try {
+      await listener({
+        type: "apply-request",
+        requestId: "req-1",
+        brokerId: "gm",
+        requesterId: "gm",
+        payload: { messageId: "m1", transactionId: "t1", effectId: "e1" }
+      });
+    } finally {
+      console.error = oldError;
+    }
+    const response = emitted.find((payload) => payload.type === "apply-response");
+    assert.ok(response);
+    assert.equal(response.result.ok, false);
+    assert.equal(response.result.reason, "broker-error");
+  } finally {
+    globalThis.game = oldGame;
+  }
+});
+
+
+test("Application Broker registers a Foundry v14 prefixed User query handler", async () => {
+  const oldConfig = globalThis.CONFIG;
+  const oldGame = globalThis.game;
+  try {
+    globalThis.CONFIG = { queries: {} };
+    globalThis.game = { user: { id: "gm", isGM: true, active: true } };
+    const { ApplicationBroker } = await import(`../scripts/core/application-broker.js?query-register=${Date.now()}`);
+    const broker = new ApplicationBroker();
+    broker.registerQueryHandler();
+    assert.equal(typeof globalThis.CONFIG.queries["pf2e-action-forge.applyActionResult"], "function");
+  } finally {
+    globalThis.CONFIG = oldConfig;
+    globalThis.game = oldGame;
+  }
+});
+
+test("player application uses Foundry User.query instead of waiting for raw socket response", async () => {
+  const oldGame = globalThis.game;
+  const oldConst = globalThis.CONST;
+  const oldFromUuid = globalThis.fromUuid;
+  try {
+    globalThis.CONST = { DOCUMENT_OWNERSHIP_LEVELS: { OWNER: 3 } };
+    const player = { id: "p1", isGM: false, active: true };
+    let observed = null;
+    const gm = {
+      id: "gm1",
+      isGM: true,
+      active: true,
+      query: async (name, data, options) => {
+        observed = { name, data, options };
+        return { ok: false, reason: "synthetic-query-response" };
+      }
+    };
+    const users = [player, gm];
+    users.get = (id) => users.find((u) => u.id === id);
+    users.activeGM = gm;
+    globalThis.game = {
+      user: player,
+      users,
+      messages: { get: () => null },
+      socket: { emit: () => { throw new Error("raw socket must not be used when User.query exists"); } }
+    };
+    globalThis.fromUuid = async () => null;
+
+    const { ApplicationBroker } = await import(`../scripts/core/application-broker.js?query-request=${Date.now()}`);
+    const broker = new ApplicationBroker();
+    const result = await broker.request({ messageId: "m1", transactionId: "t1", effectId: "heal" });
+    assert.equal(result.reason, "synthetic-query-response");
+    assert.equal(observed.name, "pf2e-action-forge.applyActionResult");
+    assert.equal(observed.data.requesterId, "p1");
+    assert.equal(observed.data.payload.messageId, "m1");
+    assert.equal(observed.options.timeout, 10000);
+  } finally {
+    globalThis.game = oldGame;
+    globalThis.CONST = oldConst;
+    globalThis.fromUuid = oldFromUuid;
+  }
 });

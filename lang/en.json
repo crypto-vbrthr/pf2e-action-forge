@@ -201,5 +201,7 @@
   "PF2EActionForge.Target.Picker.NoTargets": "No eligible targets were found for this action.",
   "PF2EActionForge.Target.Picker.Unavailable": "The extended target picker could not be opened.",
   "PF2EActionForge.Target.Picker.Timeout": "The target picker did not receive a response from an active GM.",
-  "PF2EActionForge.Target.Picker.DirectoryError": "The GM could not determine the eligible targets."
+  "PF2EActionForge.Target.Picker.DirectoryError": "The GM could not determine the eligible targets.",
+  "PF2EActionForge.Application.TransactionNotReady": "The result application is not fully synchronized yet. Please try again.",
+  "PF2EActionForge.Application.BrokerError": "The GM could not apply the effect because of an internal error."
 }

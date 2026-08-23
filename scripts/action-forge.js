@@ -10,6 +10,7 @@ const MODULE_ID = "pf2e-action-forge";
 
 Hooks.once("init", () => {
   actionRegistry.registerMany(CORE_ACTIONS);
+  applicationBroker.registerQueryHandler();
 
   const module = game.modules.get(MODULE_ID);
   if (module) {
@@ -22,7 +23,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.7.3"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.7.5"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {

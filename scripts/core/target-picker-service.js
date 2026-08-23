@@ -267,7 +267,7 @@ export class TargetPickerService {
     const limitedLevel = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.LIMITED ?? 1;
     if (hasPermission(actor, requester, ownerLevel)) return true;
 
-    const partyMembers = globalThis.game?.actors?.party?.members ?? [];
+    const partyMembers = collectionValues(globalThis.game?.actors?.party?.members);
     if (partyMembers.some((member) => member?.uuid === actor.uuid)) return true;
 
     if (collectionValues(globalThis.game?.users).some((user) => !user?.isGM && user?.character?.uuid === actor.uuid)) return true;

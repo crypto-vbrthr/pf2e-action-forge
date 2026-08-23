@@ -5,7 +5,8 @@ import { MODULE_ID } from "./action-transaction.js";
 import { targetPickerService } from "./target-picker-service.js";
 
 const SOCKET = `module.${MODULE_ID}`;
-const REQUEST_TIMEOUT = 20000;
+const REQUEST_TIMEOUT = 10000;
+const QUERY_NAME = `${MODULE_ID}.applyActionResult`;
 
 function resolveMessage(messageId) {
   return globalThis.game?.messages?.get?.(messageId) ?? null;
@@ -19,14 +20,39 @@ export class ApplicationBroker {
   #pending = new Map();
   #processed = new Set();
   #initialized = false;
+  #queryRegistered = false;
+
+  registerQueryHandler() {
+    if (this.#queryRegistered) return;
+    const queries = globalThis.CONFIG?.queries;
+    if (!queries) return;
+    this.#queryRegistered = true;
+    queries[QUERY_NAME] = async (queryData = {}) => {
+      if (!globalThis.game?.user?.isGM) return { ok: false, reason: "not-gm" };
+      try {
+        return await this.#process({
+          requesterId: queryData.requesterId,
+          payload: queryData.payload
+        });
+      } catch (error) {
+        console.error("PF2E Action Forge | GM application query failed", error);
+        return { ok: false, reason: "broker-error" };
+      }
+    };
+  }
 
   initialize() {
+    this.registerQueryHandler();
     if (this.#initialized || !globalThis.game?.socket) return;
     this.#initialized = true;
+    // Retain the direct socket listener as a compatibility fallback. Foundry v14
+    // User queries are the primary transport for privileged application requests.
     game.socket.on(SOCKET, (message) => this.#onSocket(message));
   }
 
   getBroker(users = globalThis.game?.users ?? []) {
+    const activeGM = users?.activeGM ?? globalThis.game?.users?.activeGM ?? null;
+    if (activeGM?.isGM && activeGM?.active) return activeGM;
     return [...users]
       .filter((user) => Boolean(user?.isGM && user?.active))
       .sort((a, b) => String(a.id ?? "").localeCompare(String(b.id ?? "")))[0] ?? null;
@@ -58,8 +84,24 @@ export class ApplicationBroker {
 
     const broker = this.getBroker();
     if (!broker) return { ok: false, reason: "no-active-gm" };
-    if (!globalThis.game?.socket) return { ok: false, reason: "socket-unavailable" };
 
+    // Foundry v14 provides User#query specifically for request/response work
+    // between clients. It is more reliable here than building a second response
+    // protocol on top of raw module sockets, and it guarantees that the result
+    // is routed back to the requesting player.
+    if (typeof broker.query === "function") {
+      try {
+        const result = await broker.query(QUERY_NAME, { requesterId, payload }, { timeout: REQUEST_TIMEOUT });
+        return result ?? { ok: false, reason: "empty-response" };
+      } catch (error) {
+        console.warn("PF2E Action Forge | GM application query failed", error);
+        return { ok: false, reason: "query-failed" };
+      }
+    }
+
+    // Compatibility fallback if a non-standard Foundry environment does not
+    // expose User#query. The v14 release line should normally never reach this.
+    if (!globalThis.game?.socket) return { ok: false, reason: "socket-unavailable" };
     const requestId = globalThis.foundry?.utils?.randomID?.(20) ?? `${Date.now()}-${Math.random()}`;
     const promise = new Promise((resolve) => {
       const timeout = setTimeout(() => {
@@ -94,11 +136,22 @@ export class ApplicationBroker {
     if (message.type !== "apply-request") return;
     if (!globalThis.game?.user?.isGM || message.brokerId !== globalThis.game.user.id) return;
 
-    const result = await this.#process({ requesterId: message.requesterId, payload: message.payload });
+    // A broker-side validation or PF2e API error must never strand the player
+    // until the request timeout. Always convert unexpected exceptions into a
+    // normal socket response so the UI can fail fast and report the problem.
+    let result;
+    try {
+      result = await this.#process({ requesterId: message.requesterId, payload: message.payload });
+    } catch (error) {
+      console.error("PF2E Action Forge | GM application request failed", error);
+      result = { ok: false, reason: "broker-error" };
+    }
+
     game.socket.emit(SOCKET, {
       type: "apply-response",
       requestId: message.requestId,
       requesterId: message.requesterId,
+      responderId: globalThis.game.user.id,
       result
     });
   }

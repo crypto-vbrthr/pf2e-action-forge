@@ -201,5 +201,7 @@
   "PF2EActionForge.Target.Picker.NoTargets": "Für diese Aktion wurden keine zulässigen Ziele gefunden.",
   "PF2EActionForge.Target.Picker.Unavailable": "Die erweiterte Zielauswahl konnte nicht geöffnet werden.",
   "PF2EActionForge.Target.Picker.Timeout": "Die Zielauswahl hat keine Antwort von einer aktiven Spielleitung erhalten.",
-  "PF2EActionForge.Target.Picker.DirectoryError": "Die Spielleitung konnte die zulässigen Ziele nicht ermitteln."
+  "PF2EActionForge.Target.Picker.DirectoryError": "Die Spielleitung konnte die zulässigen Ziele nicht ermitteln.",
+  "PF2EActionForge.Application.TransactionNotReady": "Die Ergebnisanwendung ist noch nicht vollständig synchronisiert. Bitte erneut versuchen.",
+  "PF2EActionForge.Application.BrokerError": "Die SL konnte die Auswirkung wegen eines internen Fehlers nicht anwenden."
 }

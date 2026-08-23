@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.0-dev.7.6 - Foundry Query Broker Hotfix
+
+- Replaced the primary player-to-GM application transport with Foundry v14 `User.query` / `CONFIG.queries`.
+- Privileged healing, Wounded removal, immunity, damage, and condition applications now receive their response through Foundry's native targeted query mechanism instead of a custom two-message socket handshake.
+- Registered the prefixed `pf2e-action-forge.applyActionResult` query during module initialization on every client.
+- Prefer Foundry's `game.users.activeGM` when selecting the privileged application broker, with the previous deterministic active-GM selection retained as fallback.
+- Kept the legacy raw module-socket broker only as a compatibility fallback for unusual environments without `User#query`.
+- Added regression coverage for query registration and player-to-GM query application.
+
+## 0.1.0-dev.7.5 - Picker Application Broker Hotfix
+
+- Fixed GM-side validation of out-of-combat picker targets when the PF2e party member collection is not a plain Array.
+- Player-triggered healing, condition removal, and immunity application can now be brokered to the GM for picker-selected characters without timing out.
+- Hardened the application socket broker so unexpected GM-side validation/API errors always return an explicit response instead of leaving the player waiting for the timeout.
+- Added regression coverage for picker-selected party/assigned-character targets and broker error responses.
+
+
+## 0.1.0-dev.7.4 - Application Button Reliability Hotfix
+
+- Fixed Treat Wounds and other application-card buttons not reacting in some Foundry v14 chat render paths.
+- Application buttons now bind directly to their rendered ChatMessage while retaining delegated click handling as a fallback.
+- Added short replication retries when a player applies a result before the GM client has received the freshly-created transaction message.
+- Added a dedicated synchronization warning instead of silently failing when a transaction is not yet available.
 
 ## [0.1.0-dev.7.3] - 2026-08-23
 

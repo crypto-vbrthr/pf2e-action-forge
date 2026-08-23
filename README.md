@@ -1,10 +1,10 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.7.3 – Treat Wounds Statistic Roll Hotfix**.
+Development build **0.1.0-dev.7.6 – Foundry Query Broker Hotfix**.
 
-This hotfix completes the Treat Wounds target workflow outside encounters. Players can now choose eligible party members and other safe Actors as Action Forge targets even when they do not own those Actors and no token is present on the current scene.
+This hotfix replaces the player-to-GM application request transport with Foundry v14's native `User.query` mechanism. Healing, Wounded removal, immunity, damage, and other privileged result applications now use a direct request/response query to the active GM instead of waiting on a hand-built socket response.
 
-## Included in dev.7.1
+## Included through dev.7.4
 
 - all foundation, catalog, targeting, DC, Visibility Profiles, GM DC Handoff, Application Engine, and Treat Wounds features from dev.1–dev.7;
 - a new **Choose Target…** button in the active action target panel;

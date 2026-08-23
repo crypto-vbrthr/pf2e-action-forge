@@ -79,7 +79,7 @@ export class ApplicationChat {
   decorate(message, html) {
     const flag = message?.flags?.[MODULE_ID]?.application;
     if (!flag) return;
-    const root = html instanceof HTMLElement ? html : html?.[0] ?? null;
+    const root = globalThis.HTMLElement && html instanceof HTMLElement ? html : html?.[0] ?? null;
     if (!root) return;
 
     const applied = flag.applied ?? {};
@@ -90,6 +90,15 @@ export class ApplicationChat {
         button.classList.add("is-applied");
         button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> ${escapeHtml(appliedLabel(applied[effectId]))}`;
       }
+
+      // Foundry v14 can render chat messages in containers where relying only
+      // on one document-level delegated click handler is brittle. Bind each
+      // rendered application control directly to its ChatMessage as the
+      // authoritative path, while keeping the delegated handler as fallback.
+      if (button.dataset.afApplicationBound !== "true") {
+        button.dataset.afApplicationBound = "true";
+        button.addEventListener("click", (event) => this.#handleButtonClick(event, button, message));
+      }
     }
 
     this.#setPermissionState(flag, root);
@@ -97,45 +106,65 @@ export class ApplicationChat {
 
   bindGlobalClickHandler() {
     if (!globalThis.document?.addEventListener) return;
-    document.addEventListener("click", async (event) => {
+    document.addEventListener("click", (event) => {
       const button = event.target?.closest?.(".af-application-button");
-      if (!button) return;
+      if (!button || button.dataset.afApplicationBound === "true") return;
       const messageElement = button.closest?.(".chat-message");
       const messageId = messageElement?.dataset?.messageId ?? messageElement?.dataset?.messageid;
       const message = globalThis.game?.messages?.get?.(messageId);
-      const flag = message?.flags?.[MODULE_ID]?.application;
-      if (!message || !flag || button.disabled) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      button.disabled = true;
-      button.classList.add("is-pending");
-
-      const result = await applicationBroker.request({
-        messageId: message.id,
-        transactionId: flag.transaction.id,
-        effectId: button.dataset.effectId
-      });
-
-      button.classList.remove("is-pending");
-      if (result.ok) {
-        button.classList.add("is-applied");
-        button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> ${escapeHtml(appliedLabel(result.application))}`;
-        globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.Success") ?? "Action result applied.");
-      } else {
-        button.disabled = false;
-        const key = {
-          "no-active-gm": "PF2EActionForge.Application.NoActiveGM",
-          "source-not-owned": "PF2EActionForge.Application.NotAllowed",
-          "invalid-target": "PF2EActionForge.Application.InvalidTarget",
-          immune: "PF2EActionForge.Application.Immune",
-          "invalid-formula": "PF2EActionForge.Application.InvalidFormula",
-          "missing-hit-points": "PF2EActionForge.Application.MissingHitPoints",
-          timeout: "PF2EActionForge.Application.Timeout"
-        }[result.reason] ?? "PF2EActionForge.Application.Failed";
-        globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.localize?.(key) ?? result.reason);
-      }
+      if (!message) return;
+      void this.#handleButtonClick(event, button, message);
     });
+  }
+
+  async #handleButtonClick(event, button, message) {
+    const flag = message?.flags?.[MODULE_ID]?.application;
+    if (!message || !flag || button.disabled) return;
+
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    button.disabled = true;
+    button.classList.add("is-pending");
+
+    const result = await this.#requestWithReplicationRetry({
+      messageId: message.id,
+      transactionId: flag.transaction.id,
+      effectId: button.dataset.effectId
+    });
+
+    button.classList.remove("is-pending");
+    if (result.ok) {
+      button.classList.add("is-applied");
+      button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> ${escapeHtml(appliedLabel(result.application))}`;
+      globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.Success") ?? "Action result applied.");
+    } else {
+      button.disabled = false;
+      const key = {
+        "no-active-gm": "PF2EActionForge.Application.NoActiveGM",
+        "source-not-owned": "PF2EActionForge.Application.NotAllowed",
+        "invalid-target": "PF2EActionForge.Application.InvalidTarget",
+        immune: "PF2EActionForge.Application.Immune",
+        "invalid-formula": "PF2EActionForge.Application.InvalidFormula",
+        "missing-hit-points": "PF2EActionForge.Application.MissingHitPoints",
+        "missing-transaction": "PF2EActionForge.Application.TransactionNotReady",
+        "transaction-mismatch": "PF2EActionForge.Application.TransactionNotReady",
+        timeout: "PF2EActionForge.Application.Timeout",
+        "broker-error": "PF2EActionForge.Application.BrokerError",
+        "query-failed": "PF2EActionForge.Application.BrokerError"
+      }[result.reason] ?? "PF2EActionForge.Application.Failed";
+      globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.localize?.(key) ?? result.reason);
+    }
+  }
+
+  async #requestWithReplicationRetry(payload) {
+    const delays = [0, 150, 400, 800];
+    let result = { ok: false, reason: "missing-transaction" };
+    for (const delay of delays) {
+      if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+      result = await applicationBroker.request(payload);
+      if (result.ok || !["missing-transaction", "transaction-mismatch"].includes(result.reason)) return result;
+    }
+    return result;
   }
 
   async #autoApply(message, transaction, effect) {
