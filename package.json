@@ -1,6 +1,6 @@
 {
   "name": "pf2e-action-forge",
-  "version": "0.1.0-dev.7.2",
+  "version": "0.1.0-dev.7.3",
   "private": true,
   "type": "module",
   "scripts": {

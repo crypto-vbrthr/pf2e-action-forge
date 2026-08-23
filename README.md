@@ -1,6 +1,6 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.7.2 – Out-of-Combat Target Picker**.
+Development build **0.1.0-dev.7.3 – Treat Wounds Statistic Roll Hotfix**.
 
 This hotfix completes the Treat Wounds target workflow outside encounters. Players can now choose eligible party members and other safe Actors as Action Forge targets even when they do not own those Actors and no token is present on the current scene.
 

@@ -144,3 +144,96 @@ test("canvas-token defense targets keep the PF2e defense slug for full target co
   assert.equal(state.difficultyClass, "reflex");
   assert.equal(state.defenseValue, null);
 });
+
+
+test("PF2e Action Adapter can execute a direct PF2e statistic when no system action exists", async () => {
+  const oldGame = globalThis.game;
+  const calls = [];
+  const message = { id: "message-treat-wounds" };
+  const roll = { total: 27, degreeOfSuccess: 2 };
+  const medicine = {
+    roll: async (options) => {
+      calls.push(options);
+      await options.callback?.(roll, "success", message, null);
+      return roll;
+    }
+  };
+
+  try {
+    globalThis.game = {
+      i18n: { localize: (key) => key },
+      pf2e: { actions: { get: () => null } }
+    };
+
+    const { PF2eActionAdapter } = await import(`../scripts/core/pf2e-action-adapter.js?statistic-adapter=${Date.now()}`);
+    const adapter = new PF2eActionAdapter();
+    const actor = { getStatistic: (slug) => slug === "medicine" ? medicine : null };
+    const targetActor = { getSelfRollOptions: () => [] };
+    const definition = {
+      id: "treat-wounds",
+      label: "PF2EActionForge.Actions.TreatWounds.Name",
+      execution: { enabled: true, mode: "statistic", statistic: "medicine" },
+      visibility: { roll: "public" }
+    };
+
+    assert.equal(adapter.isAvailable(definition), true, "direct statistic actions do not depend on game.pf2e.actions");
+    const execution = await adapter.execute({
+      definition,
+      actor,
+      target: targetActor,
+      difficultyClass: 20,
+      statistic: "medicine"
+    });
+
+    assert.equal(execution.ok, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].action, "treat-wounds");
+    assert.equal(calls[0].identifier, "treat-wounds");
+    assert.deepEqual(calls[0].dc, { value: 20, visible: true });
+    assert.equal(calls[0].target, targetActor);
+    assert.equal(calls[0].createMessage, true);
+    assert.equal(execution.results[0].roll, roll);
+    assert.equal(execution.results[0].outcome, "success");
+    assert.equal(execution.results[0].message, message);
+  } finally {
+    globalThis.game = oldGame;
+  }
+});
+
+test("direct statistic execution still works for UUID-only picker targets", async () => {
+  const oldGame = globalThis.game;
+  const roll = { total: 19, degreeOfSuccess: 1 };
+  let optionsSeen = null;
+  try {
+    globalThis.game = { i18n: { localize: (key) => key }, pf2e: { actions: {} } };
+    const { PF2eActionAdapter } = await import(`../scripts/core/pf2e-action-adapter.js?uuid-only-stat=${Date.now()}`);
+    const adapter = new PF2eActionAdapter();
+    const actor = {
+      getStatistic: () => ({
+        roll: async (options) => {
+          optionsSeen = options;
+          await options.callback?.(roll, "failure", { id: "msg" }, null);
+          return roll;
+        }
+      })
+    };
+    const definition = {
+      id: "treat-wounds",
+      label: "Treat Wounds",
+      execution: { enabled: true, mode: "statistic", statistic: "medicine" },
+      visibility: { roll: "public" }
+    };
+
+    const execution = await adapter.execute({
+      definition,
+      actor,
+      target: { actorUuid: "Actor.other-player", name: "Other PC" },
+      difficultyClass: 20
+    });
+    assert.equal(execution.ok, true);
+    assert.equal(execution.results[0].outcome, "failure");
+    assert.equal("target" in optionsSeen, false, "unknown remote Actor is not required to make the fixed-DC Medicine check");
+  } finally {
+    globalThis.game = oldGame;
+  }
+});

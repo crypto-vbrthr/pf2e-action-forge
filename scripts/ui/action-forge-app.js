@@ -205,7 +205,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.7.2",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.7.3",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,

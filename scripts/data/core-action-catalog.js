@@ -175,7 +175,7 @@ export const CORE_ACTIONS = Object.freeze([
       ]
     },
     systemAction: { slug: "treat-wounds" },
-    execution: { enabled: true, statistic: "medicine", minRank: 1 },
+    execution: { enabled: true, mode: "statistic", statistic: "medicine", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" },
     application: {
       mode: "confirm",

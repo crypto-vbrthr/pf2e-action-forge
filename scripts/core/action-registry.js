@@ -140,6 +140,9 @@ export class ActionRegistry {
       }),
       execution: Object.freeze({
         enabled: Boolean(executionDefinition.enabled),
+        mode: ["system-action", "statistic"].includes(executionDefinition.mode)
+          ? executionDefinition.mode
+          : "system-action",
         statistic: executionDefinition.statistic ? String(executionDefinition.statistic) : null,
         statistics: Object.freeze(
           Array.isArray(executionDefinition.statistics)

@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.1.0-dev.7.3] - 2026-08-23
+
+### Fixed
+- Treat Wounds no longer requires a `game.pf2e.actions` system-action entry. Current PF2e exposes Treat Wounds as compendium/macro content rather than the same `SingleCheckAction` API used by actions such as Trip and Tumble Through.
+- Added a direct PF2e Statistic execution path for actions whose check is fully described by an Actor statistic and a resolved DC. Treat Wounds now rolls the Actor's prepared Medicine statistic, preserving PF2e modifiers, rule elements, roll options, check dialog behavior, and degree-of-success calculation.
+- UUID-only out-of-combat picker targets no longer prevent the fixed-DC Medicine check: the target is retained by Action Forge for result application while the roll itself only requires the healer and selected treatment DC.
+
+### Hardening
+- Action definitions now declare an execution mode (`system-action` or `statistic`) instead of assuming every supported action must exist in `game.pf2e.actions`.
+- Added regression tests for direct-statistic execution and remote picker targets.
+
 ## [0.1.0-dev.7.2] - 2026-08-23
 
 ### Fixed

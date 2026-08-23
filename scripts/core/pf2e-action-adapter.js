@@ -11,6 +11,20 @@ const FALLBACK_SYSTEM_SLUGS = Object.freeze({
   "treat-wounds": "treat-wounds"
 });
 
+const DEGREE_OF_SUCCESS = Object.freeze([
+  "criticalFailure",
+  "failure",
+  "success",
+  "criticalSuccess"
+]);
+
+function actorFromTarget(target) {
+  if (!target) return null;
+  if (target.actor) return target.actor;
+  if (typeof target.getStatistic === "function" || typeof target.getSelfRollOptions === "function") return target;
+  return null;
+}
+
 export class PF2eActionAdapter {
   getSystemAction(definition) {
     const actions = game?.pf2e?.actions;
@@ -49,7 +63,9 @@ export class PF2eActionAdapter {
   }
 
   isAvailable(definition) {
-    return Boolean(definition?.execution?.enabled && this.getSystemAction(definition));
+    if (!definition?.execution?.enabled) return false;
+    if (definition.execution.mode === "statistic") return true;
+    return Boolean(this.getSystemAction(definition));
   }
 
   async execute({ definition, actor, target = null, difficultyClass, statistic = null, event = null }) {
@@ -57,6 +73,10 @@ export class PF2eActionAdapter {
       return { ok: false, reason: "not-enabled", results: [] };
     }
     if (!actor) return { ok: false, reason: "no-actor", results: [] };
+
+    if (definition.execution.mode === "statistic") {
+      return this.#executeStatistic({ definition, actor, target, difficultyClass, statistic, event });
+    }
 
     const action = this.getSystemAction(definition);
     if (!action) return { ok: false, reason: "missing-system-action", results: [] };
@@ -83,6 +103,57 @@ export class PF2eActionAdapter {
       };
     } catch (error) {
       console.error("PF2E Action Forge | PF2e action execution failed", error);
+      return { ok: false, reason: "execution-error", error, results: [] };
+    }
+  }
+
+  async #executeStatistic({ definition, actor, target, difficultyClass, statistic = null, event = null }) {
+    const statisticSlug = statistic || definition.execution?.statistic;
+    const pf2eStatistic = statisticSlug && typeof actor.getStatistic === "function"
+      ? actor.getStatistic(statisticSlug)
+      : null;
+    if (!pf2eStatistic || typeof pf2eStatistic.roll !== "function") {
+      return { ok: false, reason: "missing-statistic", results: [] };
+    }
+
+    try {
+      let captured = null;
+      const targetActor = actorFromTarget(target);
+      const traits = visibilityEngine.getRollTraits(definition);
+      const options = {
+        action: definition.id,
+        identifier: definition.id,
+        title: game?.i18n?.localize?.(definition.label) ?? definition.id,
+        createMessage: true,
+        event: event ?? undefined,
+        callback: (roll, outcome, message) => {
+          captured = {
+            roll,
+            outcome: outcome ?? DEGREE_OF_SUCCESS[roll?.degreeOfSuccess] ?? "unknown",
+            message
+          };
+        }
+      };
+
+      if (Number.isFinite(Number(difficultyClass))) {
+        options.dc = { value: Number(difficultyClass), visible: true };
+      } else if (difficultyClass !== undefined && difficultyClass !== null) {
+        options.dc = difficultyClass;
+      }
+      if (targetActor) options.target = targetActor;
+      if (traits.length > 0) options.traits = traits;
+
+      const roll = await pf2eStatistic.roll(options);
+      if (!roll) return { ok: true, action: null, results: [] };
+
+      const result = captured ?? {
+        roll,
+        outcome: DEGREE_OF_SUCCESS[roll.degreeOfSuccess] ?? "unknown",
+        message: null
+      };
+      return { ok: true, action: null, results: [result] };
+    } catch (error) {
+      console.error("PF2E Action Forge | PF2e statistic execution failed", error);
       return { ok: false, reason: "execution-error", error, results: [] };
     }
   }

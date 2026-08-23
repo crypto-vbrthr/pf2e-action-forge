@@ -15,6 +15,7 @@ test("Treat Wounds is enabled with proficiency-aware DC choices and secure resul
   assert.ok(raw);
   assert.equal(raw.execution.enabled, true);
   assert.equal(raw.execution.statistic, "medicine");
+  assert.equal(raw.execution.mode, "statistic");
   assert.equal(raw.execution.minRank, 1);
   assert.equal(raw.application.blockIfImmuneActionId, "treat-wounds");
 
