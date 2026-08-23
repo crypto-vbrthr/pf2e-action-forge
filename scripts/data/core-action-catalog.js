@@ -1,9 +1,9 @@
 /**
- * Preview catalog for the 0.1.0 MVP action set.
+ * MVP action catalog.
  *
- * dev.2 deliberately provides catalog metadata only. Actual PF2e checks, target
- * resolution, DC resolution, visibility and outcome application are added by
- * later development blocks.
+ * dev.4 adds DC metadata for the full MVP surface and enables real PF2e checks
+ * for Tumble Through and Climb. Remaining actions stay catalog/target previews
+ * until their dedicated workflow blocks arrive.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -17,7 +17,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-brain",
     keywords: ["knowledge", "recall", "secret"],
-    target: { mode: "optional", type: "creature" }
+    target: { mode: "optional", type: "creature", required: false },
+    dc: { strategy: "gm-defined" },
+    systemAction: { slug: "recall-knowledge" },
+    execution: { enabled: false }
   },
   {
     id: "tumble-through",
@@ -30,7 +33,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-person-running",
     keywords: ["acrobatics", "reflex", "movement"],
-    target: { mode: "single", type: "creature" }
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
+    systemAction: { slug: "tumble-through" },
+    execution: { enabled: true, statistic: "acrobatics" }
   },
   {
     id: "grapple",
@@ -43,7 +49,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-hand-fist",
     keywords: ["athletics", "fortitude", "grabbed"],
-    target: { mode: "single", type: "creature" }
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "fortitude", manualFallback: true },
+    systemAction: { slug: "grapple" },
+    execution: { enabled: false, statistic: "athletics" }
   },
   {
     id: "trip",
@@ -56,7 +65,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 20,
     icon: "fa-solid fa-person-falling",
     keywords: ["athletics", "reflex", "prone"],
-    target: { mode: "single", type: "creature" }
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
+    systemAction: { slug: "trip" },
+    execution: { enabled: false, statistic: "athletics" }
   },
   {
     id: "climb",
@@ -69,7 +81,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 30,
     icon: "fa-solid fa-mountain",
     keywords: ["athletics", "manual", "dc", "movement"],
-    target: { mode: "none", type: "creature" }
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "climb" },
+    execution: { enabled: true, statistic: "athletics" }
   },
   {
     id: "lie",
@@ -82,7 +97,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-masks-theater",
     keywords: ["deception", "perception", "secret", "social"],
-    target: { mode: "multiple", type: "creature" }
+    target: { mode: "multiple", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
+    systemAction: { slug: "lie" },
+    execution: { enabled: false, statistic: "deception" }
   },
   {
     id: "demoralize",
@@ -95,7 +113,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-face-angry",
     keywords: ["intimidation", "will", "frightened"],
-    target: { mode: "single", type: "creature" }
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "will", manualFallback: true },
+    systemAction: { slug: "demoralize" },
+    execution: { enabled: false, statistic: "intimidation" }
   },
   {
     id: "treat-wounds",
@@ -108,6 +129,9 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-kit-medical",
     keywords: ["medicine", "healing", "immunity", "wounded"],
-    target: { mode: "single", type: "creature" }
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "fixed-choice", choices: [15, 20, 30, 40] },
+    systemAction: { slug: "treat-wounds" },
+    execution: { enabled: false, statistic: "medicine" }
   }
 ]);

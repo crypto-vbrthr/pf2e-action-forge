@@ -147,6 +147,74 @@
         </div>
       {{/if}}
     </section>
+
+    <section class="af-dc-panel" aria-labelledby="af-dc-heading">
+      <div class="af-dc-header">
+        <div>
+          <span class="af-eyebrow">{{localize "PF2EActionForge.DC.Eyebrow"}}</span>
+          <h3 id="af-dc-heading">{{localize "PF2EActionForge.DC.Heading"}}</h3>
+        </div>
+        <span class="af-dc-source"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> {{dcContext.sourceText}}</span>
+      </div>
+
+      {{#if dcContext.showManualInput}}
+        <label class="af-dc-input">
+          <span>
+            <strong>{{dcContext.manualInputLabel}}</strong>
+            <small>{{dcContext.manualInputHint}}</small>
+          </span>
+          <input
+            data-role="manual-dc"
+            type="number"
+            min="0"
+            max="60"
+            step="1"
+            value="{{dcContext.manualInputValue}}"
+            inputmode="numeric"
+          />
+        </label>
+      {{/if}}
+
+      <div class="af-dc-status {{#if dcContext.valid}}is-valid{{else}}is-required{{/if}}" data-role="dc-status">
+        <i class="fa-solid {{#if dcContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}" aria-hidden="true"></i>
+        <span>{{dcContext.statusText}}</span>
+      </div>
+
+      <div class="af-roll-actions">
+        {{#if executionContext.enabled}}
+          {{#if executionContext.systemActionAvailable}}
+            <button
+              type="button"
+              class="af-primary-button"
+              data-action="executeAction"
+              {{#unless executionContext.canExecute}}disabled{{/unless}}
+            >
+              <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+              {{localize "PF2EActionForge.Roll.Execute"}}
+            </button>
+          {{else}}
+            <div class="af-roll-unavailable">
+              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+              <span>{{executionContext.unavailableText}}</span>
+            </div>
+          {{/if}}
+        {{else}}
+          <div class="af-roll-unavailable is-planned">
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+            <span>{{executionContext.unavailableText}}</span>
+          </div>
+        {{/if}}
+
+        {{#if lastRoll}}
+          <div class="af-roll-result" role="status">
+            <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+            <span>{{localize "PF2EActionForge.Roll.LastResult"}}:</span>
+            <strong>{{lastRoll.total}}</strong>
+            <span>· {{lastRoll.outcomeText}}</span>
+          </div>
+        {{/if}}
+      </div>
+    </section>
   {{/if}}
 
   <section class="af-actions" aria-labelledby="af-actions-heading">

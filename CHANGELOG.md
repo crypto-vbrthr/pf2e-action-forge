@@ -4,6 +4,25 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.4] - 2026-08-23
+
+### Added
+
+- Added a declarative DC Resolver with manual, target-defense, fixed, fixed-choice, and GM-defined strategies.
+- Added defense metadata for the full eight-action MVP catalog.
+- Added a PF2e Action Adapter that delegates checks to the installed PF2e system action implementation.
+- Enabled the first real Action Forge checks for **Tumble Through** and **Climb**.
+- Added automatic target-defense resolution for Tumble Through using the selected target's Reflex DC.
+- Added manual DC fallback for Tumble Through when no target is selected.
+- Added manual environmental DC entry for Climb.
+- Added a compact DC/check panel with readiness feedback and last-result display.
+- Added automated coverage for DC resolution, PF2e action delegation, catalog execution metadata, and the dev.4 UI.
+
+### Changed
+
+- Single-target MVP actions that support a manual DC fallback can now remain valid without a selected Actor target.
+- The Action Forge now distinguishes target validity from DC validity so targetless Theater-of-the-Mind checks can use manually supplied DCs.
+
 ## [0.1.0-dev.3] - 2026-08-23
 
 ### Added

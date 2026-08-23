@@ -1,9 +1,9 @@
 /**
  * Internal action-definition registry.
  *
- * The catalog metadata introduced in dev.2 is intentionally declarative. Later
- * blocks can add target, DC, visibility and application metadata without
- * coupling the application UI to individual actions.
+ * Definitions are deliberately declarative. UI, target, DC, PF2e execution,
+ * visibility, and application layers consume metadata without hard-coding
+ * individual actions into the application shell.
  */
 export class ActionRegistry {
   #actions = new Map();
@@ -56,6 +56,19 @@ export class ActionRegistry {
     const targetMode = ["none", "optional", "single", "multiple"].includes(targetDefinition.mode)
       ? targetDefinition.mode
       : "none";
+    const defaultRequired = targetMode === "single" || targetMode === "multiple";
+
+    const dcDefinition = definition.dc && typeof definition.dc === "object" ? definition.dc : {};
+    const dcStrategy = ["none", "manual", "target-defense", "fixed", "fixed-choice", "gm-defined"].includes(
+      dcDefinition.strategy
+    )
+      ? dcDefinition.strategy
+      : "none";
+
+    const executionDefinition =
+      definition.execution && typeof definition.execution === "object" ? definition.execution : {};
+    const systemActionDefinition =
+      definition.systemAction && typeof definition.systemAction === "object" ? definition.systemAction : {};
 
     return {
       id,
@@ -74,7 +87,22 @@ export class ActionRegistry {
       ),
       target: Object.freeze({
         mode: targetMode,
-        type: String(targetDefinition.type ?? "creature")
+        type: String(targetDefinition.type ?? "creature"),
+        required: targetDefinition.required === undefined ? defaultRequired : Boolean(targetDefinition.required)
+      }),
+      dc: Object.freeze({
+        strategy: dcStrategy,
+        defense: dcDefinition.defense ? String(dcDefinition.defense) : null,
+        manualFallback: Boolean(dcDefinition.manualFallback),
+        value: Number.isFinite(dcDefinition.value) ? dcDefinition.value : null,
+        choices: Object.freeze(Array.isArray(dcDefinition.choices) ? [...dcDefinition.choices] : [])
+      }),
+      systemAction: Object.freeze({
+        slug: String(systemActionDefinition.slug ?? id).trim() || id
+      }),
+      execution: Object.freeze({
+        enabled: Boolean(executionDefinition.enabled),
+        statistic: executionDefinition.statistic ? String(executionDefinition.statistic) : null
       }),
       developmentOnly: Boolean(definition.developmentOnly)
     };

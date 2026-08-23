@@ -53,14 +53,14 @@ export class TargetResolver {
       count: targets.length,
       canvasCount: canvasTargets.length,
       manualCount: manualTargets.length,
-      required: mode === "single" || mode === "multiple",
+      required: Boolean(action?.target?.required),
       allowsTargets: mode !== "none",
       allowsMultiple: mode === "multiple",
       valid:
         mode === "none" ||
         mode === "optional" ||
-        (mode === "single" && targets.length === 1) ||
-        (mode === "multiple" && targets.length >= 1),
+        (mode === "single" && (!action?.target?.required || targets.length === 1)) ||
+        (mode === "multiple" && (!action?.target?.required || targets.length >= 1)),
       canvasOverflow: manualTargets.length === 0 && (mode === "single" || mode === "optional") && canvasTargets.length > 1
     };
   }

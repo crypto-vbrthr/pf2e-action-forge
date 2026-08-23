@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.3 release and release URLs", async () => {
+test("manifest identifies the dev.4 release and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.3");
+  assert.equal(manifest.version, "0.1.0-dev.4");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.3/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.4/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -103,12 +103,12 @@ test("catalog template includes search, category groups, and favorite controls",
   assert.doesNotMatch(template, /Foundation Check/);
 });
 
-test("repository history records dev.3", async () => {
+test("repository history records dev.4", async () => {
   const changelog = await readFile(new URL("CHANGELOG.md", root), "utf8");
   const readme = await readFile(new URL("README.md", root), "utf8");
   const license = await readFile(new URL("LICENSE", root), "utf8");
-  assert.match(changelog, /0\.1\.0-dev\.3/);
-  assert.match(readme, /Targets & Drag-and-Drop/);
+  assert.match(changelog, /0\.1\.0-dev\.4/);
+  assert.match(readme, /DC Resolver & PF2e Roll Adapter/);
   assert.match(license, /MIT License/);
 });
 
@@ -231,4 +231,40 @@ test("target workspace is present in the application template", async () => {
   assert.match(template, /data-action="removeTarget"/);
   assert.match(template, /data-action="useCanvasTargets"/);
   assert.match(template, /targetContext\.canvasOverflow/);
+});
+
+test("dev.4 catalog declares DC strategies and enables only the first two roll workflows", async () => {
+  const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
+  const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
+
+  const tumble = byId.get("tumble-through");
+  assert.equal(tumble.dc.strategy, "target-defense");
+  assert.equal(tumble.dc.defense, "reflex");
+  assert.equal(tumble.dc.manualFallback, true);
+  assert.equal(tumble.target.required, false);
+  assert.equal(tumble.systemAction.slug, "tumble-through");
+  assert.deepEqual(tumble.execution, { enabled: true, statistic: "acrobatics" });
+
+  const climb = byId.get("climb");
+  assert.equal(climb.dc.strategy, "manual");
+  assert.equal(climb.systemAction.slug, "climb");
+  assert.deepEqual(climb.execution, { enabled: true, statistic: "athletics" });
+
+  assert.equal(byId.get("grapple").dc.defense, "fortitude");
+  assert.equal(byId.get("trip").dc.defense, "reflex");
+  assert.equal(byId.get("lie").dc.defense, "perception");
+  assert.equal(byId.get("demoralize").dc.defense, "will");
+  assert.deepEqual(byId.get("treat-wounds").dc.choices, [15, 20, 30, 40]);
+
+  const enabled = CORE_ACTIONS.filter((action) => action.execution.enabled).map((action) => action.id).sort();
+  assert.deepEqual(enabled, ["climb", "tumble-through"]);
+});
+
+test("dev.4 template exposes manual DC entry and real roll controls", async () => {
+  const template = await readFile(new URL("templates/action-forge.hbs", root), "utf8");
+  assert.match(template, /data-role="manual-dc"/);
+  assert.match(template, /data-role="dc-status"/);
+  assert.match(template, /data-action="executeAction"/);
+  assert.match(template, /executionContext\.systemActionAvailable/);
+  assert.match(template, /lastRoll/);
 });
