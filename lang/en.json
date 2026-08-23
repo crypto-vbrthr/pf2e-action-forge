@@ -136,5 +136,21 @@
   "PF2EActionForge.Visibility.Mode.none": "No separate output",
   "PF2EActionForge.Notifications.StatisticRequired": "Choose an appropriate skill for this action first.",
   "PF2EActionForge.Notifications.SingleTargetOnly": "Only one target may be selected for the current execution of this action.",
-  "PF2EActionForge.DC.GMSecret": "DC is determined secretly by the GM"
+  "PF2EActionForge.DC.GMSecret": "DC is determined secretly by the GM",
+  "PF2EActionForge.GMDC.Title": "Action Forge · DC Required",
+  "PF2EActionForge.GMDC.RequestIntro": "A player action is waiting for a secret DC from the GM.",
+  "PF2EActionForge.GMDC.Action": "Action",
+  "PF2EActionForge.GMDC.Actor": "Acting character",
+  "PF2EActionForge.GMDC.Target": "Target",
+  "PF2EActionForge.GMDC.Statistic": "Statistic",
+  "PF2EActionForge.GMDC.DC": "Difficulty Class",
+  "PF2EActionForge.GMDC.Approve": "Set DC & Roll",
+  "PF2EActionForge.GMDC.RequestButton": "Request DC from GM",
+  "PF2EActionForge.GMDC.WaitingButton": "Waiting for GM…",
+  "PF2EActionForge.GMDC.Required": "A secret GM DC is required before this check can be rolled.",
+  "PF2EActionForge.GMDC.Waiting": "Waiting for the GM to provide the secret DC…",
+  "PF2EActionForge.GMDC.NoActiveGM": "This action requires a secret GM DC, but no active GM is connected.",
+  "PF2EActionForge.GMDC.Rejected": "The GM did not provide a DC. The action remains ready to retry or cancel.",
+  "PF2EActionForge.GMDC.Invalid": "The GM response did not contain a valid DC.",
+  "PF2EActionForge.GMDC.Unavailable": "The GM DC request could not be completed."
 }

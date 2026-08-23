@@ -1,10 +1,10 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.5.2 – Secret DC Permission Hotfix**.
+Development build **0.1.0-dev.5.3 – GM DC Handoff**.
 
-This hotfix keeps the dev.5 visibility workflows and workspace scrolling intact while preventing players from editing GM-defined or secret DCs.
+This build completes the secret-DC player workflow: when PF2e cannot determine a secret DC automatically, the player requests it from the GM and the check waits until the GM supplies a valid value.
 
-## Included in dev.5.2
+## Included in dev.5.3
 
 - Foundry VTT v14 / PF2e 8.4.0+ module foundation;
 - German and English localization;
@@ -23,6 +23,8 @@ This hotfix keeps the dev.5 visibility workflows and workspace scrolling intact 
 - visibility-aware player/GM announcement recipients;
 - a full-window vertical workspace scrollbar with stable scrollbar space;
 - GM-only manual entry for GM-defined/secret DCs, enforced by the resolver as well as the UI;
+- GM DC Handoff using Foundry v14's user-targeted DialogV2 query flow;
+- frozen source/action/target/statistic context while a secret DC request is pending;
 - release metadata, `CHANGELOG.md`, and MIT `LICENSE`.
 
 ## Visibility profiles
@@ -51,7 +53,7 @@ The check uses Deception against the selected target's Perception DC, or a manua
 
 **Recall Knowledge** now asks the acting user which skill is being used. Action Forge offers the standard PF2e knowledge skills supported by the system action plus every Lore skill prepared on the Actor.
 
-With an NPC target and an eligible standard identification skill, Action Forge leaves the DC to PF2e so the system can use its hidden identification DC without exposing the number to the player. If the selected skill is a Lore skill, the target is not an NPC, or the selected standard skill is not one PF2e identifies as appropriate for that creature, Action Forge leaves the numeric DC undefined for secret GM adjudication. Only the GM can optionally enter a manual DC; players never receive or control that field. This avoids guessing whether a particular Lore should use an easy, very easy, or other adjusted DC while still letting players initiate the secret check.
+With an NPC target and an eligible standard identification skill, Action Forge leaves the DC to PF2e so the system can use its hidden identification DC without exposing the number to the player. If the selected skill is a Lore skill, the target is not an NPC, or the selected standard skill is not one PF2e identifies as appropriate for that creature, Action Forge starts the **GM DC Handoff** instead. The player requests the check, the action context is frozen, and one active GM receives a small DC dialog. The check is executed only after that GM supplies a valid DC. Players never receive a DC input field in Action Forge.
 
 Its default profile is:
 
@@ -74,11 +76,14 @@ After a player completes the check, Action Forge only reports that the secret ch
 9. With no skill selected, confirm Roll remains disabled.
 10. Select an NPC target and a suitable standard skill such as Nature. Confirm the DC panel states that PF2e will determine the target DC and does not reveal a numeric DC.
 11. Roll as a player. Confirm the restricted action announcement is visible only to that player and active GMs, while the check/result remains blind to the GM.
-12. Select a Lore skill. Confirm Action Forge reports that the DC is determined secretly by the GM rather than guessing a Lore adjustment, while leaving the Roll button available.
-13. As a player, confirm no manual DC field is available for Recall Knowledge, even when PF2e cannot derive an identification DC.
-14. As GM, confirm the manual DC field is available for the same GM-defined case and can be used normally.
-15. Confirm Climb and no-target Tumble Through still allow their explicitly manual/fallback DC entry for players.
-16. Confirm source-Actor lock, target drag-and-drop, search, favorites, and current-token automatic mode still work.
+12. Select a Lore skill as a player. Confirm the button changes to **Request DC from GM** and no manual DC field is shown.
+13. Request the check. Confirm the player UI changes to **Waiting for GM**, while the acting Actor, target controls, and statistic selector remain frozen.
+14. Confirm exactly one active GM receives a small DC dialog showing the requested action context. Enter a DC and confirm the blind PF2e check is executed only after submitting it.
+15. Repeat and close/cancel the selected action while the GM dialog is still open. Confirm a later GM response does not trigger a roll.
+16. As GM, confirm the same GM-defined case requires manual DC entry before rolling.
+17. Confirm an automatically resolvable Recall Knowledge target DC does not trigger the handoff.
+18. Confirm Climb and no-target Tumble Through still allow their explicitly manual/fallback DC entry for players.
+19. Confirm source-Actor lock, target drag-and-drop, search, favorites, and current-token automatic mode still work.
 
 ## Automated checks
 

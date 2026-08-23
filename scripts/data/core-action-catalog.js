@@ -1,8 +1,8 @@
 /**
  * MVP action catalog.
  *
- * dev.5 adds visibility profiles and enables the secret-check workflows for
- * Recall Knowledge and Lie alongside the existing Tumble Through and Climb checks.
+ * dev.5 adds visibility profiles and secret-check workflows. dev.5.3 adds
+ * the GM-DC handoff for secret checks whose DC cannot be resolved automatically.
  */
 export const CORE_ACTIONS = Object.freeze([
   {

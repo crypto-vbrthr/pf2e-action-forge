@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.5.2 hotfix and release URLs", async () => {
+test("manifest identifies the dev.5.3 GM DC handoff build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.5.2");
+  assert.equal(manifest.version, "0.1.0-dev.5.3");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.5.2/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.5.3/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -103,14 +103,14 @@ test("catalog template includes search, category groups, and favorite controls",
   assert.doesNotMatch(template, /Foundation Check/);
 });
 
-test("repository history records dev.5.2 and preserves dev.5 visibility history", async () => {
+test("repository history records dev.5.3 and preserves earlier dev.5 history", async () => {
   const changelog = await readFile(new URL("CHANGELOG.md", root), "utf8");
   const readme = await readFile(new URL("README.md", root), "utf8");
   const license = await readFile(new URL("LICENSE", root), "utf8");
+  assert.match(changelog, /0\.1\.0-dev\.5\.3/);
   assert.match(changelog, /0\.1\.0-dev\.5\.2/);
-  assert.match(changelog, /0\.1\.0-dev\.5/);
-  assert.match(readme, /Secret DC Permission Hotfix/);
-  assert.match(readme, /visibility workflows/i);
+  assert.match(readme, /GM DC Handoff/);
+  assert.match(readme, /Visibility profiles/i);
   assert.match(license, /MIT License/);
 });
 

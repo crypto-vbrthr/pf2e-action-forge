@@ -80,7 +80,7 @@
         <p class="af-target-hint">{{targetContext.hint}}</p>
 
         <div class="af-target-tools">
-          <button type="button" class="af-secondary-button" data-action="useCanvasTargets">
+          <button type="button" class="af-secondary-button" data-action="useCanvasTargets" {{#if interactionLocked}}disabled{{/if}}>
             <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
             {{localize "PF2EActionForge.Target.UseCanvas"}}
           </button>
@@ -89,7 +89,7 @@
           </span>
         </div>
 
-        <div class="af-target-drop-zone" data-role="target-drop-zone">
+        <div class="af-target-drop-zone {{#if interactionLocked}}is-locked{{/if}}" data-role="target-drop-zone">
           <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
           <div>
             <strong>{{localize "PF2EActionForge.Target.DropTitle"}}</strong>
@@ -111,6 +111,7 @@
                   class="af-target-remove"
                   data-action="removeTarget"
                   data-target-key="{{key}}"
+                  {{#if ../interactionLocked}}disabled{{/if}}
                   title="{{localize 'PF2EActionForge.Target.Remove'}}"
                   aria-label="{{localize 'PF2EActionForge.Target.Remove'}}"
                 >
@@ -169,7 +170,7 @@
             <strong>{{statisticContext.label}}</strong>
             <small>{{statisticContext.hint}}</small>
           </span>
-          <select data-role="execution-statistic">
+          <select data-role="execution-statistic" {{#if interactionLocked}}disabled{{/if}}>
             <option value="" {{#unless statisticContext.selected}}selected{{/unless}}>{{localize "PF2EActionForge.Roll.StatisticPlaceholder"}}</option>
             {{#each statisticContext.options}}
               <option value="{{slug}}" {{#if selected}}selected{{/if}}>{{displayLabel}}</option>
@@ -192,12 +193,13 @@
             step="1"
             value="{{dcContext.manualInputValue}}"
             inputmode="numeric"
+            {{#if interactionLocked}}disabled{{/if}}
           />
         </label>
       {{/if}}
 
-      <div class="af-dc-status {{#if dcContext.valid}}is-valid{{else}}is-required{{/if}}" data-role="dc-status">
-        <i class="fa-solid {{#if dcContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}" aria-hidden="true"></i>
+      <div class="af-dc-status {{dcContext.statusClass}}" data-role="dc-status">
+        <i class="fa-solid {{#if dcContext.waitingForGmDc}}fa-hourglass-half{{else}}{{#if dcContext.handoffRequired}}fa-hourglass-half{{else}}{{#if dcContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}{{/if}}{{/if}}" aria-hidden="true"></i>
         <span>{{dcContext.statusText}}</span>
       </div>
 
@@ -232,7 +234,7 @@
               {{#unless executionContext.canExecute}}disabled{{/unless}}
             >
               <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
-              {{localize "PF2EActionForge.Roll.Execute"}}
+              {{executionContext.buttonText}}
             </button>
           {{else}}
             <div class="af-roll-unavailable">
@@ -302,7 +304,7 @@
                   class="af-action-run"
                   data-action="runAction"
                   data-action-id="{{id}}"
-                  {{#unless ../actor}}disabled{{/unless}}
+                  {{#unless ../actor}}disabled{{/unless}} {{#if ../interactionLocked}}disabled{{/if}}
                 >
                   <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
                   <span class="af-action-copy">
@@ -342,7 +344,7 @@
                     class="af-action-run"
                     data-action="runAction"
                     data-action-id="{{id}}"
-                    {{#unless ../../actor}}disabled{{/unless}}
+                    {{#unless ../../actor}}disabled{{/unless}} {{#if ../../interactionLocked}}disabled{{/if}}
                   >
                     <span class="af-action-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
                     <span class="af-action-copy">

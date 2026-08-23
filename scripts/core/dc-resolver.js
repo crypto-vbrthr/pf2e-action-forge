@@ -222,6 +222,21 @@ export class DCResolver {
         }
 
         if (dc.allowUnknown) {
+          if (canSetGmDefinedDc) {
+            return {
+              strategy,
+              valid: false,
+              source: "gm",
+              difficultyClass: undefined,
+              target,
+              manualDc: null,
+              needsManualDc: true,
+              allowsManualDc: true,
+              requiresGmHandoff: false,
+              labelKey: "PF2EActionForge.DC.GMSecret"
+            };
+          }
+
           return {
             strategy,
             valid: true,
@@ -230,7 +245,8 @@ export class DCResolver {
             target,
             manualDc: null,
             needsManualDc: false,
-            allowsManualDc: canSetGmDefinedDc,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
             labelKey: "PF2EActionForge.DC.GMSecret"
           };
         }

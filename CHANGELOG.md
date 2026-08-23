@@ -4,6 +4,28 @@ All notable changes to **PF2E Action Forge** will be documented in this file.
 
 The project is currently in early development. Version entries follow the module's development-build numbering until a stable release line is established.
 
+## [0.1.0-dev.5.3] - 2026-08-23
+
+### Added
+
+- Added a **GM DC Handoff** for secret checks whose DC cannot be determined automatically.
+- A player can now request a secret DC from one deterministic active GM; the roll does not begin until the GM supplies a valid DC.
+- Added a remote GM input dialog showing the action, acting character, target, and selected statistic without exposing the chosen DC in the player's Action Forge UI.
+- Added waiting-state UI and a dedicated **Request DC from GM** action state.
+- Added deterministic active-GM selection to avoid duplicate requests when multiple GMs are connected.
+
+### Changed
+
+- Recall Knowledge with a GM-defined DC now pauses instead of rolling with an undefined DC.
+- While a GM DC request is pending, the acting Actor, action, target controls, and statistic selection remain frozen.
+- Cancelling the selected action or closing Action Forge invalidates the pending request so a late GM response cannot trigger a roll.
+- When the GM performs the same GM-defined check directly, a manual DC is now required unless PF2e can determine the hidden target DC automatically.
+
+### Security / Information Hardening
+
+- Players still cannot enter or override GM-defined DCs.
+- A changed native canvas target during the waiting period cannot alter the already-requested action context.
+
 ## [0.1.0-dev.5.2] - 2026-08-23
 
 ### Fixed

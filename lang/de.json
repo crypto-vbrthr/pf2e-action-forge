@@ -136,5 +136,21 @@
   "PF2EActionForge.Visibility.Mode.none": "Keine separate Ausgabe",
   "PF2EActionForge.Notifications.StatisticRequired": "Wähle zuerst eine passende Fertigkeit für diese Handlung.",
   "PF2EActionForge.Notifications.SingleTargetOnly": "Für die aktuelle Ausführung dieser Handlung darf nur ein Ziel gewählt sein.",
-  "PF2EActionForge.DC.GMSecret": "SG wird geheim von der SL bestimmt"
+  "PF2EActionForge.DC.GMSecret": "SG wird geheim von der SL bestimmt",
+  "PF2EActionForge.GMDC.Title": "Action Forge · SG erforderlich",
+  "PF2EActionForge.GMDC.RequestIntro": "Eine Spieleraktion wartet auf einen geheimen SG der Spielleitung.",
+  "PF2EActionForge.GMDC.Action": "Aktion",
+  "PF2EActionForge.GMDC.Actor": "Handelnder Charakter",
+  "PF2EActionForge.GMDC.Target": "Ziel",
+  "PF2EActionForge.GMDC.Statistic": "Fertigkeit",
+  "PF2EActionForge.GMDC.DC": "Schwierigkeitsgrad",
+  "PF2EActionForge.GMDC.Approve": "SG festlegen & würfeln",
+  "PF2EActionForge.GMDC.RequestButton": "SG bei SL anfordern",
+  "PF2EActionForge.GMDC.WaitingButton": "Warte auf SL …",
+  "PF2EActionForge.GMDC.Required": "Vor diesem Wurf muss die SL einen geheimen SG festlegen.",
+  "PF2EActionForge.GMDC.Waiting": "Warte darauf, dass die SL den geheimen SG festlegt …",
+  "PF2EActionForge.GMDC.NoActiveGM": "Diese Aktion benötigt einen geheimen SG der SL, aber derzeit ist keine aktive SL verbunden.",
+  "PF2EActionForge.GMDC.Rejected": "Die SL hat keinen SG vorgegeben. Die Aktion kann erneut angefordert oder abgebrochen werden.",
+  "PF2EActionForge.GMDC.Invalid": "Die Antwort der SL enthielt keinen gültigen SG.",
+  "PF2EActionForge.GMDC.Unavailable": "Die SG-Anfrage an die SL konnte nicht abgeschlossen werden."
 }

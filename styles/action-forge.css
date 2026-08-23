@@ -967,3 +967,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* dev.5.3 GM-defined secret DC handoff */
+.pf2e-action-forge .af-dc-status.is-waiting {
+  border: 1px solid color-mix(in srgb, var(--af-accent) 50%, var(--af-border));
+  background: color-mix(in srgb, var(--af-accent) 8%, transparent);
+}
+
+.pf2e-action-forge .af-target-drop-zone.is-locked {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.pf2e-action-forge button:disabled,
+.pf2e-action-forge select:disabled,
+.pf2e-action-forge input:disabled {
+  cursor: not-allowed;
+}
+
+.af-gm-dc-query {
+  display: flex;
+  min-width: 360px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.af-gm-dc-query > p {
+  margin: 0;
+}
+
+.af-gm-dc-query dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.af-gm-dc-query dl > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(160px, 1.2fr);
+  gap: 10px;
+}
+
+.af-gm-dc-query dt {
+  color: var(--color-text-subtle, #777);
+}
+
+.af-gm-dc-query dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.af-gm-dc-query-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.af-gm-dc-query-input input {
+  width: 90px;
+  text-align: center;
+}
