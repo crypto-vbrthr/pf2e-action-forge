@@ -67,22 +67,24 @@ export class VisibilityEngine {
     }
   }
 
-  async createAnnouncement({ definition, actor }) {
+  async createAnnouncement({ definition, actor, force = false }) {
     const mode = normalizeMode(definition?.visibility?.announcement, "public");
-    if (mode === "none" || mode === "public") {
+    if (mode === "none") return { created: false, reason: "disabled" };
+    if (mode === "public" && !force) {
       // Public PF2e roll cards already announce their action. Avoid duplicate chat noise.
-      return { created: false, reason: mode === "none" ? "disabled" : "covered-by-roll" };
+      return { created: false, reason: "covered-by-roll" };
     }
 
     if (!globalThis.ChatMessage?.create || !actor) return { created: false, reason: "unavailable" };
 
     const recipients = this.getRecipients(mode);
-    if (recipients.length === 0) return { created: false, reason: "no-recipients" };
+    if (mode !== "public" && recipients.length === 0) return { created: false, reason: "no-recipients" };
 
     const escape = globalThis.foundry?.utils?.escapeHTML ?? ((value) => String(value));
     const actionName = game.i18n.localize(definition.label);
     const content = `<div class="pf2e-action-forge-announcement"><strong>${escape(actor.name)}</strong>: ${escape(actionName)}</div>`;
-    const data = { content, whisper: recipients };
+    const data = { content };
+    if (mode !== "public") data.whisper = recipients;
     if (mode === "blind") data.blind = true;
 
     const message = await ChatMessage.create(data);

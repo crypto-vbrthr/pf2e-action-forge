@@ -1,3 +1,4 @@
+import { resolveActorDefenseDc } from "./dc-resolver.js";
 import { visibilityEngine } from "./visibility-engine.js";
 
 const FALLBACK_SYSTEM_SLUGS = Object.freeze({
@@ -18,6 +19,19 @@ const FALLBACK_SYSTEM_SLUGS = Object.freeze({
   "create-a-diversion": "create-a-diversion",
   lie: "lie",
   feint: "feint",
+  perform: "perform",
+  "make-an-impression": "make-an-impression",
+  request: "request",
+  "gather-information": "gather-information",
+  impersonate: "impersonate",
+  coerce: "coerce",
+  "conceal-an-object": "conceal-an-object",
+  hide: "hide",
+  sneak: "sneak",
+  subsist: "subsist",
+  "sense-direction": "sense-direction",
+  track: "track",
+  "cover-tracks": "cover-tracks",
   demoralize: "demoralize",
   "treat-wounds": "treat-wounds"
 });
@@ -75,7 +89,7 @@ export class PF2eActionAdapter {
 
   isAvailable(definition) {
     if (!definition?.execution?.enabled) return false;
-    if (definition.execution.mode === "statistic") return true;
+    if (["statistic", "system-or-statistic", "activity"].includes(definition.execution.mode)) return true;
     return Boolean(this.getSystemAction(definition));
   }
 
@@ -85,11 +99,18 @@ export class PF2eActionAdapter {
     }
     if (!actor) return { ok: false, reason: "no-actor", results: [] };
 
-    if (definition.execution.mode === "statistic") {
+    const mode = definition.execution.mode;
+    if (mode === "activity") {
+      return { ok: true, action: null, activity: true, results: [] };
+    }
+    if (mode === "statistic") {
       return this.#executeStatistic({ definition, actor, target, difficultyClass, statistic, event });
     }
 
     const action = this.getSystemAction(definition);
+    if (!action && mode === "system-or-statistic") {
+      return this.#executeStatistic({ definition, actor, target, difficultyClass, statistic, event });
+    }
     if (!action) return { ok: false, reason: "missing-system-action", results: [] };
 
     try {
@@ -146,9 +167,14 @@ export class PF2eActionAdapter {
         }
       };
 
+      const rollMode = definition?.visibility?.roll ?? "public";
+      const dcVisible = !["blind", "gm"].includes(rollMode);
       if (Number.isFinite(Number(difficultyClass))) {
-        options.dc = { value: Number(difficultyClass), visible: true };
-      } else if (difficultyClass !== undefined && difficultyClass !== null) {
+        options.dc = { value: Number(difficultyClass), visible: dcVisible };
+      } else if (typeof difficultyClass === "string" && targetActor) {
+        const defenseValue = resolveActorDefenseDc(targetActor, difficultyClass);
+        if (Number.isFinite(defenseValue)) options.dc = { value: defenseValue, visible: dcVisible };
+      } else if (difficultyClass !== undefined && difficultyClass !== null && typeof difficultyClass === "object") {
         options.dc = difficultyClass;
       }
       if (targetActor) options.target = targetActor;

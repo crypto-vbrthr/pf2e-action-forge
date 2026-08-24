@@ -255,7 +255,7 @@
               data-action="executeAction"
               {{#unless executionContext.canExecute}}disabled{{/unless}}
             >
-              <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+              <i class="fa-solid {{#if executionContext.activity}}fa-compass{{else}}fa-dice-d20{{/if}}" aria-hidden="true"></i>
               {{executionContext.buttonText}}
             </button>
           {{else}}

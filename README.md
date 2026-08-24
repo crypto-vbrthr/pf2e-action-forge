@@ -1,95 +1,100 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.10.1 - Execution Workflow Visual Separation**.
+Development build **0.1.0-dev.11 - Social & Exploration Actions**.
 
-This hotfix retains the **19-action dev.10 core catalog** and adds stronger visual separation between choosing an action and carrying it out.
+The dev.11 expansion grows the enabled Action Forge catalog from **19 to 32 actions** and extends the same player-safe workflow beyond combat and movement into social scenes, stealth, navigation, and exploration activities.
 
-## New in dev.10.1
+## New in dev.11
 
-The active-action workflow is now enclosed in a single **muted-purple execution block**. Target selection, DC setup, visibility information, and the final roll button visually belong together, while the action catalog below continues to use the warm/orange Forge accent. This makes it much easier to see where configuration of the selected action begins and ends without adding more vertical chrome.
+### Performance
 
-Semantic states remain unchanged: valid states stay green, warnings stay amber, and errors/required states stay red.
+- **Perform** - Performance against a situational DC.
 
+### Diplomacy
 
-## New in dev.10
-
-### Acrobatics
-
-- **Balance** - Acrobatics against a manually supplied environmental DC.
-- **Squeeze** - trained Acrobatics against a manually supplied environmental DC.
-
-### Athletics
-
-- **Shove** - Athletics against the target's Fortitude DC.
-- **Reposition** - Athletics against the target's Fortitude DC.
-- **Disarm** - trained Athletics against the target's Reflex DC.
-- **Force Open** - Athletics against a manually supplied object/environment DC.
-- **Swim** - Athletics against a manually supplied environmental DC.
-- **High Jump** - Athletics against fixed DC 30.
-- **Long Jump** - Athletics against fixed DC 15.
+- **Make an Impression** - Diplomacy against a selected creature's Will DC.
+- **Request** - Diplomacy with a situational DC chosen for the request.
+- **Gather Information** - a secret Diplomacy check using the existing GM DC handoff.
 
 ### Deception
 
-- **Create a Diversion** - Deception against a target's Perception DC.
-- **Feint** - trained Deception against a target's Perception DC.
+- **Impersonate** - a secret Deception check against an observer's Perception DC when an observer is selected; otherwise the hidden DC is supplied through the GM handoff.
 
-The existing actions remain available: Recall Knowledge, Tumble Through, Grapple, Trip, Climb, Lie, Demoralize, and Treat Wounds.
+### Intimidation
 
-## Wider action workspace
+- **Coerce** - Intimidation against a selected creature's Will DC.
 
-The default Action Forge window is now **1120 x 820 px** instead of the previous 700 px width. Action groups use a responsive grid with cards starting at roughly 235 px, so a normal desktop-sized Forge can generally show **four actions beside each other** in a skill category.
+### Stealth
 
-The window remains resizable. At narrower sizes the grid automatically drops to fewer columns and ultimately a single column, so the wider default does not turn small displays into a horizontal-scroll experiment.
+- **Conceal an Object** - secret Stealth against an observer's Perception DC, with GM handoff when the observer is not represented directly.
+- **Hide** - secret Stealth against an observer's Perception DC, with GM handoff when needed.
+- **Sneak** - secret Stealth against an observer's Perception DC, with GM handoff when needed.
 
-## PF2e execution model
+### General and Survival
 
-The newly added actions delegate their actual checks to PF2e system actions. Action Forge supplies the acting Actor, statistic, selected target, resolved DC, visibility profile, and workflow state while PF2e remains authoritative for the check itself, including rule elements, roll options, modifiers, degree-of-success handling, and system action notes.
+- **Subsist** - choose Society in a settlement or Survival in the wilderness, then roll against a situational DC.
+- **Sense Direction** - secret Survival check using a GM-supplied hidden DC.
+- **Track** - trained Survival against an environmental/trail DC.
+- **Cover Tracks** - trained Survival exploration activity. It intentionally performs no immediate check: creatures following the trail make the relevant Track check against the character's Survival DC when applicable.
 
-DC models in this build are deliberately explicit:
+All 19 actions from dev.10 remain available, including the original MVP actions, Combat & Movement expansion, Treat Wounds, and Demoralize.
 
-- **Fortitude DC:** Shove, Reposition
-- **Reflex DC:** Disarm
-- **Perception DC:** Create a Diversion, Feint
-- **Fixed DC:** High Jump 30, Long Jump 15
-- **Manual/environmental DC:** Balance, Squeeze, Force Open, Swim
+## Execution compatibility
 
-Target-defense actions retain the existing manual fallback for cases where no readable target is available and the GM/player workflow legitimately needs an entered DC.
+Social and exploration actions introduce a new **system-or-statistic** execution mode. Action Forge first uses the matching PF2e system action when the installed PF2e version exposes one. If that action is not present in `game.pf2e.actions`, the Forge falls back to the Actor's prepared PF2e statistic instead of failing the workflow.
 
-### Current automation boundary
+The fallback still delegates the actual check to PF2e. Rule Elements, prepared statistic modifiers, degree of success, roll dialog behavior, and check processing therefore stay under PF2e control rather than being reimplemented by Action Forge.
 
-Forced movement and positional consequences are **not automatically moving tokens** in dev.10. Shove and Reposition therefore use PF2e's system result text rather than Action Forge deciding where a creature may be moved.
+Secret statistic fallbacks preserve the visibility profile: hidden DCs are passed as hidden and the `secret` trait is retained.
 
-Create a Diversion is modeled as a multiple-target action in the Target Resolver, but the current check pipeline still resolves **one target per execution** because different creatures can have different Perception DCs. This is the same deliberate limitation currently used by Lie and avoids pretending that one shared DC represents several creatures.
+## Secret observer checks
 
-## Existing hardening retained
+Impersonate, Conceal an Object, Hide, and Sneak can use a selected readable observer directly. Action Forge resolves that Actor's prepared **Perception DC** and performs the check secretly.
 
-All previous player/security work remains in place:
+If no observer can safely be represented on the player's client, the Forge does not reveal or invent a Perception DC. Instead it uses the existing **GM DC Handoff**. The player sees neither the supplied DC nor the hidden outcome.
 
-- source Actor locking during a running action;
+This also keeps the target picker security boundary intact: a UUID-only or otherwise non-readable target never causes hidden Actor statistics to be sent to the player.
+
+## No-roll activities
+
+The registry and PF2e adapter now support an **activity** execution mode for rulebook activities that do not call for an immediate check. **Cover Tracks** is the first use of this path. Starting it creates the configured public Action Forge announcement and then releases the frozen source Actor cleanly without manufacturing a d20 roll.
+
+## Current automation boundary
+
+Some social and stealth actions can logically involve several creatures with different defenses. dev.11 deliberately resolves **one observer/target per check** where a concrete target is used. In particular, the multi-target option of Make an Impression is not batch-automated yet.
+
+Situational non-secret DCs such as Perform, Request, Track, and Subsist use the normal manual DC field. Secret or unknowable DCs use the GM handoff instead.
+
+The Forge does not automatically change NPC attitudes, decide whether a request is reasonable, choose information learned, or narrate the consequences of Coerce. Those remain GM adjudication rather than hidden automation masquerading as rules.
+
+## UI and hardening retained
+
+The dev.10.1 wide responsive layout and purple execution-workflow block remain unchanged. Existing protections also remain in place:
+
+- source Actor locking during an active workflow;
 - Canvas, sidebar, and out-of-combat target selection;
 - selection of other player characters without granting ownership;
 - GM-side revalidation of privileged applications;
 - Foundry v14 `User.query` broker transport with multi-GM failover;
-- the existing **GM DC Handoff** for secret checks, without exposing hidden DCs or results;
-- existing **Visibility Profiles** for public, player/GM, blind, GM-only, self, and suppressed output;
-- idempotent result application and duplicate-click protection;
-- timed/source-specific action immunities;
-- Treat Wounds healing and public treatment summaries;
-- Demoralize frightened application and ten-minute source-specific immunity;
+- visibility profiles for public, player/GM, blind, GM-only, self, and suppressed output;
+- duplicate-roll and duplicate-application protection;
+- Treat Wounds healing, timed immunity, and public healing summaries;
+- Demoralize frightened application and source-specific timed immunity;
 - hidden/deleted target hardening;
 - preserved scroll position and input focus across rerenders.
 
-## dev.10 manual test checklist
+## dev.11 manual test checklist
 
-1. Open Action Forge and confirm the wider window shows several actions per skill row without horizontal scrolling.
-2. Resize the window narrower and confirm action cards reflow cleanly.
-3. Test Balance, Squeeze, Force Open, and Swim with manual DCs.
-4. Test High Jump at DC 30 and Long Jump at DC 15.
-5. Test Shove and Reposition against another creature and confirm its Fortitude DC is used.
-6. Test Disarm against a target and confirm its Reflex DC is used; confirm an untrained character cannot use the trained-only workflow.
-7. Test Feint against Perception and confirm its trained requirement.
-8. Test Create a Diversion against a selected target and verify PF2e performs the check normally.
-9. Re-test the original eight actions, especially Treat Wounds, Demoralize, Lie, and Recall Knowledge, to confirm the expansion did not disturb broker or secrecy behavior.
+1. Test Perform with a manual DC and verify PF2e uses Performance.
+2. Test Make an Impression and Coerce against visible targets and confirm their Will DCs are used.
+3. Test Request with a selected creature and a situational manual DC.
+4. As a player, start Gather Information and Sense Direction and confirm the hidden GM DC handoff occurs before the blind check.
+5. Test Impersonate, Conceal an Object, Hide, and Sneak with a readable observer and confirm the roll stays secret while using Perception DC.
+6. Repeat one of those secret observer actions without a readable observer and confirm the GM DC handoff is used without exposing the DC or outcome.
+7. Test Subsist and switch between Society and Survival before rolling.
+8. Confirm an untrained character cannot use Track or Cover Tracks.
+9. Start Cover Tracks and confirm it creates an activity announcement without an unnecessary d20 roll.
+10. Re-test Treat Wounds and Demoralize on a foreign player character to confirm the social/exploration expansion did not disturb GM-brokered applications.
 
 ## Automated checks
 
@@ -98,6 +103,6 @@ npm test
 npm run check
 ```
 
-Current suite: **88/88 tests passing**.
+Current suite: **95/95 tests passing**.
 
-The next expansion block is expected to focus on **social and exploration skill actions** before the full MVP Integration Review.
+The next expansion blocks can focus on the remaining **Medicine, Thievery, Crafting, Knowledge, and Magic** actions before the full integration review.

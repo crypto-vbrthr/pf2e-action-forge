@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.0-dev.11] - 2026-08-24
+
+### Added
+
+- Expanded the enabled catalog from **19 to 32 actions** with the Social & Exploration block.
+- Added **Perform** for Performance.
+- Added **Make an Impression**, **Request**, and secret **Gather Information** for Diplomacy.
+- Added secret **Impersonate** for Deception and **Coerce** for Intimidation.
+- Added secret **Conceal an Object**, **Hide**, and **Sneak** for Stealth.
+- Added **Subsist**, secret **Sense Direction**, trained **Track**, and trained **Cover Tracks** for exploration and Survival workflows.
+- Added an `activity` execution mode for activities that do not call for an immediate check; Cover Tracks is the first implementation.
+- Added `system-or-statistic` execution so actions can prefer the PF2e system action and fall back to the Actor's prepared PF2e statistic when that action API is unavailable.
+- Added direct-statistic defense resolution so fallback checks can use a selected Actor's prepared defense DC without relying on stale Canvas targets.
+- Added target-defense `allowUnknown` support: secret observer checks use a readable target's Perception DC when available and otherwise enter the existing GM DC handoff without exposing a manual DC field to players.
+- Added German and English localization for all new categories, actions, descriptions, and the no-roll activity execution label.
+- Added regression coverage for the dev.11 catalog, social/secret DC models, statistic choice, proficiency gates, system-action fallback, hidden statistic rolls, observer-DC handoff, and no-roll activities.
+
+### Changed
+
+- Secret statistic fallback rolls now preserve hidden DC visibility and the PF2e `secret` trait.
+- Track and Cover Tracks are explicitly gated to trained Survival.
+- Cover Tracks announces the activity publicly but does not manufacture an immediate d20 check; pursuers remain responsible for their Track checks against the appropriate Survival DC.
+- Automated suite now contains **95 passing tests**.
+
 ## [0.1.0-dev.10.1] - 2026-08-24
 
 ### Changed

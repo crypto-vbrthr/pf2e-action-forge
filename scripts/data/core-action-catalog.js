@@ -1,9 +1,10 @@
 /**
  * Core skill-action catalog.
  *
- * dev.10 expands the original MVP with combat and movement actions from
- * Acrobatics, Athletics, and Deception while keeping PF2e system actions as
- * the authoritative roll implementation.
+ * dev.11 expands the catalog with social and exploration actions across
+ * Performance, Diplomacy, Deception, Intimidation, Stealth, and Survival.
+ * PF2e system actions remain preferred, with statistic-roll fallbacks for
+ * compatibility and a no-roll activity mode where the rules require none.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -272,6 +273,75 @@ export const CORE_ACTIONS = Object.freeze([
     execution: { enabled: true, statistic: "athletics" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
+
+  {
+    id: "perform",
+    label: "PF2EActionForge.Actions.Perform.Name",
+    description: "PF2EActionForge.Actions.Perform.Description",
+    category: "performance",
+    categoryLabel: "PF2EActionForge.Categories.Performance",
+    categoryIcon: "fa-solid fa-music",
+    categoryOrder: 25,
+    order: 10,
+    icon: "fa-solid fa-masks-theater",
+    keywords: ["performance", "perform", "audience", "social", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "perform" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "performance" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "make-an-impression",
+    label: "PF2EActionForge.Actions.MakeAnImpression.Name",
+    description: "PF2EActionForge.Actions.MakeAnImpression.Description",
+    category: "diplomacy",
+    categoryLabel: "PF2EActionForge.Categories.Diplomacy",
+    categoryIcon: "fa-solid fa-handshake",
+    categoryOrder: 27,
+    order: 10,
+    icon: "fa-solid fa-comments",
+    keywords: ["diplomacy", "make an impression", "will", "attitude", "social"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-defense", defense: "will", manualFallback: true },
+    systemAction: { slug: "make-an-impression" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "diplomacy" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "request",
+    label: "PF2EActionForge.Actions.Request.Name",
+    description: "PF2EActionForge.Actions.Request.Description",
+    category: "diplomacy",
+    categoryLabel: "PF2EActionForge.Categories.Diplomacy",
+    categoryIcon: "fa-solid fa-handshake",
+    categoryOrder: 27,
+    order: 20,
+    icon: "fa-solid fa-hand-holding-hand",
+    keywords: ["diplomacy", "request", "social", "manual", "dc"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "request" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "diplomacy" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "gather-information",
+    label: "PF2EActionForge.Actions.GatherInformation.Name",
+    description: "PF2EActionForge.Actions.GatherInformation.Description",
+    category: "diplomacy",
+    categoryLabel: "PF2EActionForge.Categories.Diplomacy",
+    categoryIcon: "fa-solid fa-handshake",
+    categoryOrder: 27,
+    order: 30,
+    icon: "fa-solid fa-people-group",
+    keywords: ["diplomacy", "gather information", "exploration", "secret", "rumor"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "gather-information" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "diplomacy" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
   {
     id: "create-a-diversion",
     label: "PF2EActionForge.Actions.CreateADiversion.Name",
@@ -306,6 +376,24 @@ export const CORE_ACTIONS = Object.freeze([
     execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
     visibility: { announcement: "none", roll: "blind", outcome: "gm" }
   },
+
+  {
+    id: "impersonate",
+    label: "PF2EActionForge.Actions.Impersonate.Name",
+    description: "PF2EActionForge.Actions.Impersonate.Description",
+    category: "deception",
+    categoryLabel: "PF2EActionForge.Categories.Deception",
+    categoryIcon: "fa-solid fa-masks-theater",
+    categoryOrder: 30,
+    order: 15,
+    icon: "fa-solid fa-user-ninja",
+    keywords: ["deception", "impersonate", "disguise", "exploration", "secret", "perception"],
+    target: { mode: "optional", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "impersonate" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "deception" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
   {
     id: "feint",
     label: "PF2EActionForge.Actions.Feint.Name",
@@ -321,6 +409,24 @@ export const CORE_ACTIONS = Object.freeze([
     dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
     systemAction: { slug: "feint" },
     execution: { enabled: true, statistic: "deception", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
+  {
+    id: "coerce",
+    label: "PF2EActionForge.Actions.Coerce.Name",
+    description: "PF2EActionForge.Actions.Coerce.Description",
+    category: "intimidation",
+    categoryLabel: "PF2EActionForge.Categories.Intimidation",
+    categoryIcon: "fa-solid fa-face-angry",
+    categoryOrder: 40,
+    order: 5,
+    icon: "fa-solid fa-hand-fist",
+    keywords: ["intimidation", "coerce", "will", "social", "exploration", "attitude"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-defense", defense: "will", manualFallback: true },
+    systemAction: { slug: "coerce" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "intimidation" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
@@ -359,6 +465,126 @@ export const CORE_ACTIONS = Object.freeze([
         ]
       }
     }
+  },
+
+  {
+    id: "conceal-an-object",
+    label: "PF2EActionForge.Actions.ConcealAnObject.Name",
+    description: "PF2EActionForge.Actions.ConcealAnObject.Description",
+    category: "stealth",
+    categoryLabel: "PF2EActionForge.Categories.Stealth",
+    categoryIcon: "fa-solid fa-user-secret",
+    categoryOrder: 60,
+    order: 10,
+    icon: "fa-solid fa-box-archive",
+    keywords: ["stealth", "conceal object", "secret", "perception", "observer"],
+    target: { mode: "optional", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "conceal-an-object" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "hide",
+    label: "PF2EActionForge.Actions.Hide.Name",
+    description: "PF2EActionForge.Actions.Hide.Description",
+    category: "stealth",
+    categoryLabel: "PF2EActionForge.Categories.Stealth",
+    categoryIcon: "fa-solid fa-user-secret",
+    categoryOrder: 60,
+    order: 20,
+    icon: "fa-solid fa-eye-slash",
+    keywords: ["stealth", "hide", "secret", "perception", "hidden"],
+    target: { mode: "optional", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "hide" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "sneak",
+    label: "PF2EActionForge.Actions.Sneak.Name",
+    description: "PF2EActionForge.Actions.Sneak.Description",
+    category: "stealth",
+    categoryLabel: "PF2EActionForge.Categories.Stealth",
+    categoryIcon: "fa-solid fa-user-secret",
+    categoryOrder: 60,
+    order: 30,
+    icon: "fa-solid fa-person-walking",
+    keywords: ["stealth", "sneak", "secret", "perception", "undetected", "movement"],
+    target: { mode: "optional", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "sneak" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "subsist",
+    label: "PF2EActionForge.Actions.Subsist.Name",
+    description: "PF2EActionForge.Actions.Subsist.Description",
+    category: "general",
+    categoryLabel: "PF2EActionForge.Categories.General",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 0,
+    order: 20,
+    icon: "fa-solid fa-campground",
+    keywords: ["subsist", "survival", "society", "downtime", "food", "shelter", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "subsist" },
+    execution: { enabled: true, mode: "system-or-statistic", statistics: ["society", "survival"], requiresStatistic: true },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "sense-direction",
+    label: "PF2EActionForge.Actions.SenseDirection.Name",
+    description: "PF2EActionForge.Actions.SenseDirection.Description",
+    category: "survival",
+    categoryLabel: "PF2EActionForge.Categories.Survival",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 70,
+    order: 10,
+    icon: "fa-solid fa-compass",
+    keywords: ["survival", "sense direction", "exploration", "secret", "navigation"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "sense-direction" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "survival" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "track",
+    label: "PF2EActionForge.Actions.Track.Name",
+    description: "PF2EActionForge.Actions.Track.Description",
+    category: "survival",
+    categoryLabel: "PF2EActionForge.Categories.Survival",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 70,
+    order: 20,
+    icon: "fa-solid fa-shoe-prints",
+    keywords: ["survival", "track", "exploration", "trail", "manual", "dc", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "track" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "survival", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "cover-tracks",
+    label: "PF2EActionForge.Actions.CoverTracks.Name",
+    description: "PF2EActionForge.Actions.CoverTracks.Description",
+    category: "survival",
+    categoryLabel: "PF2EActionForge.Categories.Survival",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 70,
+    order: 30,
+    icon: "fa-solid fa-broom",
+    keywords: ["survival", "cover tracks", "exploration", "trail", "activity"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    systemAction: { slug: "cover-tracks" },
+    execution: { enabled: true, mode: "activity", minRank: 1 },
+    visibility: { announcement: "public", roll: "none", outcome: "public" }
   },
   {
     id: "treat-wounds",

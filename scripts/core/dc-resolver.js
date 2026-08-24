@@ -130,7 +130,8 @@ export class DCResolver {
           };
         }
 
-        if (target) {
+        const hasResolvableTarget = Boolean(target?.token || target?.actor);
+        if (target && hasResolvableTarget) {
           // Token targets retain the defense slug so PF2e can build the full
           // origin/target context itself. Actor-only targets (sidebar drops)
           // get a concrete prepared DC to avoid any fallback to a different
@@ -149,6 +150,52 @@ export class DCResolver {
             needsManualDc: false,
             allowsManualDc: Boolean(dc.manualFallback),
             labelKey: `PF2EActionForge.DC.Defense.${defense}`
+          };
+        }
+
+        if (dc.allowUnknown) {
+          if (canSetGmDefinedDc && parsedManualDc !== null) {
+            return {
+              strategy,
+              valid: true,
+              source: "manual",
+              difficultyClass: parsedManualDc,
+              defense,
+              target,
+              manualDc: parsedManualDc,
+              needsManualDc: false,
+              allowsManualDc: true,
+              requiresGmHandoff: false,
+              labelKey: "PF2EActionForge.DC.GMSecret"
+            };
+          }
+          if (canSetGmDefinedDc) {
+            return {
+              strategy,
+              valid: false,
+              source: "gm",
+              difficultyClass: undefined,
+              defense,
+              target,
+              manualDc: null,
+              needsManualDc: true,
+              allowsManualDc: true,
+              requiresGmHandoff: false,
+              labelKey: "PF2EActionForge.DC.GMSecret"
+            };
+          }
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            defense,
+            target,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
+            labelKey: "PF2EActionForge.DC.GMSecret"
           };
         }
 
