@@ -318,7 +318,18 @@
       {{else}}
         <span>{{localize "PF2EActionForge.Roll.LastResult"}} · {{lastRoll.actionName}} · {{lastRoll.actorName}}:</span>
         <strong>{{lastRoll.total}}</strong>
-        <span>· {{lastRoll.outcomeText}}</span>
+        {{#if lastRoll.shared}}
+          <span>· {{localize "PF2EActionForge.SharedRoll.Heading"}} · {{lastRoll.targetCount}}</span>
+          {{#if lastRoll.targets}}
+            <ul class="af-shared-roll-results">
+              {{#each lastRoll.targets}}
+                <li><strong>{{this.name}}</strong><span>{{this.outcomeText}}</span></li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        {{else}}
+          <span>· {{lastRoll.outcomeText}}</span>
+        {{/if}}
       {{/if}}
     </section>
   {{/if}}

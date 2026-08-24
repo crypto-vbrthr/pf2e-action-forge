@@ -1,3 +1,26 @@
+## [0.1.0-dev.16] - 2026-08-24
+
+### Added
+
+- Added authoritative shared-roll/multi-target resolution: one PF2e roll is compared against every selected observer DC without rerolling.
+- Added `sharedRoll` execution metadata and ActionRegistry normalization for observer-based actions.
+- Added the GM-side `SharedRollResolver` broker with source ownership checks, target revalidation, hidden-defense isolation, natural 20/1 degree adjustment, and per-target result summaries.
+- Enabled multi-target execution for Palm an Object, Create a Diversion, Lie, Conceal an Object, Hide, and Sneak.
+- Added a shared-target DC state so multi-target actions never resolve only the first target or request multiple client-side DCs.
+
+### Security & visibility
+
+- Numeric target defenses never return to a player through the shared-roll broker.
+- Secret outcome profiles remain GM-only; public profiles expose only target names and degree-of-success outcomes.
+- GM-side target legitimacy and source-actor authority are revalidated before any comparison is accepted.
+
+### Notes
+
+- Conceal an Object reuses one roll across all observers selected in the current workflow. Later passive observers that were not selected still require GM adjudication until object-specific concealment state exists.
+- Prerequisite & Equipment Validation remains the final planned pre-RC hardening block for dev.17.
+- Automated suite now contains **143 passing tests**.
+- Added `docs/SHARED_ROLL_MULTI_TARGET_REVIEW.md` with the implementation review and remaining persistence boundary.
+
 ## [0.1.0-dev.15] - 2026-08-24
 
 ### Review & hardening

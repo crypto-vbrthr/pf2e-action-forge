@@ -1326,3 +1326,37 @@
   font-size: 0.76rem;
   line-height: 1.35;
 }
+
+/* dev.16: one PF2e check, several authoritative target outcomes */
+.af-shared-roll-results {
+  flex: 1 1 100%;
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.af-shared-roll-results li,
+.pf2e-action-forge-shared-roll li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pf2e-action-forge-shared-roll ul {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+}
+
+.pf2e-action-forge-shared-roll header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pf2e-action-forge-shared-roll p {
+  margin: 0.35rem 0;
+}

@@ -48,12 +48,12 @@ function referencedLocalizationKeys(action) {
   return keys.filter(Boolean);
 }
 
-test("dev.15 release metadata is synchronized", async () => {
+test("dev.16 release metadata is synchronized", async () => {
   const manifest = await readJson("module.json");
   const pkg = await readJson("package.json");
-  assert.equal(manifest.version, "0.1.0-dev.15");
-  assert.equal(pkg.version, "0.1.0-dev.15");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.15/pf2e-action-forge.zip");
+  assert.equal(manifest.version, "0.1.0-dev.16");
+  assert.equal(pkg.version, "0.1.0-dev.16");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.16/pf2e-action-forge.zip");
 });
 
 test("full catalog has 65 unique cards with the reviewed 51 + 4 + 10 split", async () => {
@@ -169,12 +169,13 @@ test("privileged application catalog contains only the reviewed allow-listed eff
   }
 });
 
-test("known shared-roll actions are explicitly marked as an unresolved integration boundary", async () => {
+test("shared-roll actions now use the dev.16 multi-target contract", async () => {
   const actions = await catalog();
   const byId = new Map(actions.map((action) => [action.id, action]));
-  for (const id of ["palm-an-object", "create-a-diversion", "lie"]) {
+  for (const id of ["palm-an-object", "create-a-diversion", "lie", "conceal-an-object", "hide", "sneak"]) {
     assert.equal(byId.get(id).target.mode, "multiple", id);
-    assert.equal(byId.get(id).execution.singleTargetOnly, true, `${id}: review expects current single-target execution limitation`);
+    assert.equal(byId.get(id).execution.sharedRoll, true, `${id}: shared-roll execution`);
+    assert.notEqual(byId.get(id).execution.singleTargetOnly, true, `${id}: no single-target execution guard`);
   }
   const review = await readFile(new URL("docs/FULL_ACTION_CATALOG_INTEGRATION_REVIEW.md", root), "utf8");
   assert.match(review, /Shared Roll \/ Multi-Target Resolution/);

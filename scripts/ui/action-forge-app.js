@@ -8,6 +8,7 @@ import { favoritesService } from "../core/favorites-service.js";
 import { explorationActivityService } from "../core/exploration-activity-service.js";
 import { gmDcHandoff } from "../core/gm-dc-handoff.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
+import { sharedRollResolver } from "../core/shared-roll-resolver.js";
 import { targetResolver } from "../core/target-resolver.js";
 import { targetPickerService } from "../core/target-picker-service.js";
 import { visibilityEngine } from "../core/visibility-engine.js";
@@ -254,6 +255,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const statisticValid = !activeDefinition.execution.requiresStatistic || Boolean(selectedStatistic);
       const proficiencyValid = this.#meetsMinimumRank(activeDefinition, resolution.actor, selectedStatistic);
       const targetCountValid = !activeDefinition.execution.singleTargetOnly || targetState.count <= 1;
+      const sharedRollActive = Boolean(activeDefinition.execution.sharedRoll && targetState.count > 0);
+      const sharedRollAvailable = !sharedRollActive || sharedRollResolver.isAvailable();
       const gmHandoffRequired = Boolean(dcState.requiresGmHandoff && !game.user?.isGM);
       const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
       const activeImmunity = this.#getBlockingImmunity(activeDefinition, targetState, resolution.actor);
@@ -268,6 +271,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         proficiencyValid &&
         targetCountValid &&
         immunityValid &&
+        sharedRollAvailable &&
         gmHandoffAvailable &&
         !interactionLocked
       );
@@ -283,6 +287,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         activeImmunity,
         gmHandoffRequired,
         gmHandoffAvailable,
+        sharedRollActive,
+        sharedRollAvailable,
         waitingForGmDc,
         executionInFlight,
         activity: ["activity", "exploration-activity"].includes(activeDefinition.execution.mode),
@@ -310,7 +316,9 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
               ? game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired")
               : !immunityValid
                 ? game.i18n.format("PF2EActionForge.Application.ActionTargetImmune", { action: game.i18n.localize(activeDefinition.label) })
-                : gmHandoffRequired && !gmHandoffAvailable
+                : sharedRollActive && !sharedRollAvailable
+                  ? game.i18n.localize("PF2EActionForge.SharedRoll.NoActiveGM")
+                  : gmHandoffRequired && !gmHandoffAvailable
               ? game.i18n.localize("PF2EActionForge.GMDC.NoActiveGM")
               : waitingForGmDc
                 ? game.i18n.localize("PF2EActionForge.GMDC.Waiting")
@@ -325,7 +333,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.15",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.16",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -478,6 +486,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return game.i18n.format("PF2EActionForge.DC.TargetDefense", {
           defense: game.i18n.localize(state.labelKey),
           target: state.target?.name ?? ""
+        });
+      }
+      if (state.source === "shared-targets") {
+        return game.i18n.format("PF2EActionForge.DC.SharedTargetsValue", {
+          count: state.targetCount ?? 0,
+          defense: game.i18n.localize(`PF2EActionForge.DC.Defense.${state.defense}`)
         });
       }
       if (state.source === "system-target") {
@@ -698,6 +712,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const statisticValid = !action.execution.requiresStatistic || Boolean(selectedStatistic);
     const proficiencyValid = this.#meetsMinimumRank(action, actor, selectedStatistic);
     const targetCountValid = !action.execution.singleTargetOnly || targetState.count <= 1;
+    const sharedRollActive = Boolean(action.execution.sharedRoll && targetState.count > 0);
+    const sharedRollAvailable = !sharedRollActive || sharedRollResolver.isAvailable();
     const immunityValid = !this.#getBlockingImmunity(action, targetState, actor);
     const waitingForGmDc = Boolean(this.pendingGmDcRequest);
     const executionInFlight = Boolean(this.executionInFlight);
@@ -705,7 +721,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
     const canExecute = Boolean(
       actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid && statisticValid &&
-      proficiencyValid && targetCountValid && immunityValid && gmHandoffAvailable && !waitingForGmDc && !executionInFlight
+      proficiencyValid && targetCountValid && immunityValid && sharedRollAvailable && gmHandoffAvailable && !waitingForGmDc && !executionInFlight
     );
 
     const button = this.element.querySelector('[data-action="executeAction"]');
@@ -819,6 +835,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.SingleTargetOnly"));
       return;
     }
+    const sharedRollActive = Boolean(action.execution.sharedRoll && targetState.count > 0);
+    if (sharedRollActive && !sharedRollResolver.isAvailable()) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.SharedRoll.NoActiveGM"));
+      return;
+    }
     if (!app.#meetsMinimumRank(action, actor, selectedStatistic)) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired"));
       return;
@@ -878,14 +899,21 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     let actionCompleted = false;
 
     try {
-      const execution = await pf2eActionAdapter.execute({
-        definition: action,
-        actor,
-        target: dcResolution.target,
-        difficultyClass,
-        statistic: selectedStatistic,
-        event
-      });
+      const execution = sharedRollActive
+        ? await pf2eActionAdapter.executeShared({
+            definition: action,
+            actor,
+            statistic: selectedStatistic,
+            event
+          })
+        : await pf2eActionAdapter.execute({
+            definition: action,
+            actor,
+            target: dcResolution.target,
+            difficultyClass,
+            statistic: selectedStatistic,
+            event
+          });
 
       if (!execution.ok) {
         const key = {
@@ -924,6 +952,50 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       await visibilityEngine.createAnnouncement({ definition: action, actor });
       const canReveal = visibilityEngine.shouldRevealLocalResult(action, game.user);
+
+      if (sharedRollActive) {
+        const shared = await sharedRollResolver.request({
+          definition: action,
+          sourceActor: actor,
+          targets: targetState.targets,
+          roll: result.roll,
+          rollMessageId: result.message?.id ?? result.messageId ?? null
+        });
+        if (!shared.ok) {
+          const key = shared.reason === "no-active-gm"
+            ? "PF2EActionForge.SharedRoll.NoActiveGM"
+            : "PF2EActionForge.SharedRoll.Failed";
+          ui.notifications.error(game.i18n.localize(key));
+          return;
+        }
+
+        app.lastRoll = canReveal
+          ? {
+              actionId: action.id,
+              actionName: game.i18n.localize(action.label),
+              total: Number.isFinite(result.roll?.total) ? result.roll.total : "–",
+              actorName: actor.name,
+              hidden: false,
+              shared: true,
+              targetCount: shared.targetCount,
+              targets: (shared.results ?? []).map((entry) => ({
+                name: entry.name,
+                outcome: entry.outcome,
+                outcomeText: game.i18n.localize(`PF2EActionForge.Roll.Outcome.${entry.outcome}`)
+              }))
+            }
+          : {
+              actionId: action.id,
+              actionName: game.i18n.localize(action.label),
+              actorName: actor.name,
+              hidden: true,
+              shared: true,
+              targetCount: shared.targetCount,
+              hiddenText: game.i18n.localize("PF2EActionForge.Roll.HiddenResult")
+            };
+        return;
+      }
+
       const outcome = result.outcome ?? "unknown";
       app.lastRoll = canReveal
         ? {

@@ -395,5 +395,13 @@
   "PF2EActionForge.CoreUtility.AidDefaultDC": "Usual DC",
   "PF2EActionForge.CoreUtility.AidStatisticLabel": "Skill used to Aid",
   "PF2EActionForge.CoreUtility.AidStatisticHint": "Choose the skill used for the described assistance. Attack-roll Aid remains a situational PF2e variant outside this skill selector.",
-  "PF2EActionForge.Roll.Unarmed": "Unarmed attack"
+  "PF2EActionForge.Roll.Unarmed": "Unarmed attack",
+  "PF2EActionForge.DC.SharedTargets": "Multiple target DCs",
+  "PF2EActionForge.DC.SharedTargetsValue": "{count} targets · {defense} is resolved by the GM after the same check.",
+  "PF2EActionForge.SharedRoll.Heading": "Shared roll",
+  "PF2EActionForge.SharedRoll.SummaryHint": "One check was compared against the DCs of all selected targets.",
+  "PF2EActionForge.SharedRoll.GMDc": "DC",
+  "PF2EActionForge.SharedRoll.TargetCount": "{count} targets",
+  "PF2EActionForge.SharedRoll.NoActiveGM": "An active GM must be connected to resolve this multi-target check.",
+  "PF2EActionForge.SharedRoll.Failed": "The shared check was rolled, but GM-side multi-target resolution failed."
 }

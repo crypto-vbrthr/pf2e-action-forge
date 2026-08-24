@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.15 integration-review build and release URLs", async () => {
+test("manifest identifies the dev.16 shared-roll build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.15");
+  assert.equal(manifest.version, "0.1.0-dev.16");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.15/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.16/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -198,9 +198,9 @@ test("all catalog actions declare normalized target metadata", async () => {
     ["treat-disease", "single"],
     ["treat-poison", "single"],
     ["treat-wounds", "single"],
-    ["conceal-an-object", "optional"],
-    ["hide", "optional"],
-    ["sneak", "optional"],
+    ["conceal-an-object", "multiple"],
+    ["hide", "multiple"],
+    ["sneak", "multiple"],
     ["sense-direction", "none"],
     ["track", "none"],
     ["cover-tracks", "none"]
@@ -343,7 +343,8 @@ test("dev.10 catalog preserves MVP workflows and enables the combat/movement exp
   assert.equal(byId.get("recall-knowledge").execution.requiresStatistic, true);
   assert.equal(byId.get("recall-knowledge").execution.includeLore, true);
   assert.deepEqual(byId.get("recall-knowledge").visibility, { announcement: "player-gm", roll: "blind", outcome: "gm" });
-  assert.equal(byId.get("lie").execution.singleTargetOnly, true);
+  assert.equal(byId.get("lie").execution.sharedRoll, true);
+  assert.notEqual(byId.get("lie").execution.singleTargetOnly, true);
   assert.deepEqual(byId.get("lie").visibility, { announcement: "none", roll: "blind", outcome: "gm" });
 
   const enabled = new Set(CORE_ACTIONS.filter((action) => action.execution.enabled).map((action) => action.id));

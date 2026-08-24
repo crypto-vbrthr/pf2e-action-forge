@@ -154,8 +154,8 @@ test("Application Broker applies a validated result once and records idempotence
 
 test("module manifest enables module sockets for GM-mediated applications", () => {
   assert.equal(moduleJson.socket, true);
-  assert.equal(moduleJson.version, "0.1.0-dev.15");
-  assert.match(moduleJson.download, /v0\.1\.0-dev\.15/);
+  assert.equal(moduleJson.version, "0.1.0-dev.16");
+  assert.match(moduleJson.download, /v0\.1\.0-dev\.16/);
 });
 
 test("picker-selected party targets validate when PF2e party members is a Set-like collection", async () => {

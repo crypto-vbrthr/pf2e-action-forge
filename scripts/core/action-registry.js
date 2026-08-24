@@ -170,6 +170,7 @@ export class ActionRegistry {
         statisticLabel: executionDefinition.statisticLabel ? String(executionDefinition.statisticLabel).trim() : null,
         statisticHint: executionDefinition.statisticHint ? String(executionDefinition.statisticHint).trim() : null,
         singleTargetOnly: Boolean(executionDefinition.singleTargetOnly),
+        sharedRoll: Boolean(executionDefinition.sharedRoll),
         minRank: Number.isInteger(Number(executionDefinition.minRank))
           ? Math.max(0, Math.min(4, Number(executionDefinition.minRank)))
           : 0

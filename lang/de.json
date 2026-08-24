@@ -395,5 +395,13 @@
   "PF2EActionForge.CoreUtility.AidDefaultDC": "Üblicher SG",
   "PF2EActionForge.CoreUtility.AidStatisticLabel": "Fertigkeit zum Helfen",
   "PF2EActionForge.CoreUtility.AidStatisticHint": "Wähle die Fertigkeit, mit der du die beschriebene Hilfe leistest. Angriffswürfe bleiben als situationsabhängige PF2e-Variante außerhalb dieses Fertigkeitsselectors möglich.",
-  "PF2EActionForge.Roll.Unarmed": "Waffenloser Angriff"
+  "PF2EActionForge.Roll.Unarmed": "Waffenloser Angriff",
+  "PF2EActionForge.DC.SharedTargets": "Mehrere Ziel-SG",
+  "PF2EActionForge.DC.SharedTargetsValue": "{count} Ziele · {defense} werden nach demselben Wurf von der SL ausgewertet.",
+  "PF2EActionForge.SharedRoll.Heading": "Gemeinsamer Wurf",
+  "PF2EActionForge.SharedRoll.SummaryHint": "Ein Wurf wurde mit den SG aller ausgewählten Ziele verglichen.",
+  "PF2EActionForge.SharedRoll.GMDc": "SG",
+  "PF2EActionForge.SharedRoll.TargetCount": "{count} Ziele",
+  "PF2EActionForge.SharedRoll.NoActiveGM": "Für die Mehrzielauswertung muss eine aktive SL verbunden sein.",
+  "PF2EActionForge.SharedRoll.Failed": "Der gemeinsame Wurf wurde ausgeführt, aber die Mehrzielauswertung durch die SL ist fehlgeschlagen."
 }

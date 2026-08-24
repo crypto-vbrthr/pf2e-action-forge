@@ -174,6 +174,28 @@ export class DCResolver {
           };
         }
 
+        // Shared-roll actions intentionally do not bind the PF2e roll to the
+        // first selected target. One check is rolled without a DC and then the
+        // authoritative GM broker compares that immutable result against every
+        // selected target defense. This also keeps hidden defenses off the
+        // requesting player's client.
+        if (action?.execution?.sharedRoll && Number(targetState?.count ?? 0) > 0) {
+          return {
+            strategy,
+            valid: true,
+            source: "shared-targets",
+            difficultyClass: undefined,
+            defense,
+            target: null,
+            targetCount: Number(targetState.count),
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: false,
+            labelKey: "PF2EActionForge.DC.SharedTargets"
+          };
+        }
+
         const hasResolvableTarget = Boolean(target?.token || target?.actor);
         if (target && hasResolvableTarget) {
           // Token targets retain the defense slug so PF2e can build the full

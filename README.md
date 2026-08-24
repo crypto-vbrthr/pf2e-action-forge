@@ -1,8 +1,19 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.15 - Full Action Catalog Integration Review**.
+Development build **0.1.0-dev.16 - Shared Roll & Multi-Target Resolution**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
+
+## New in dev.16
+
+- Added a shared-roll execution path for observer-based actions: exactly one PF2e statistic check is rolled, then an authoritative GM broker compares the immutable result against every selected target DC.
+- Removed the temporary single-target execution limit from **Palm an Object**, **Create a Diversion**, and **Lie**. **Conceal an Object**, **Hide**, and **Sneak** now also accept multiple observer targets and use the same shared resolution model.
+- Hidden Perception DCs remain GM-side. Public actions return only per-target outcomes to the acting player, while secret actions keep outcomes and target defenses GM-only according to the existing visibility profile.
+- Added per-target local/chat summaries without exposing numeric target DCs in public workflows.
+- Added a dedicated shared-target DC state so the ordinary DC resolver no longer binds the roll to the first target or opens one GM-DC prompt per observer.
+- The special long-term reuse rule for **Conceal an Object** is supported for the observers selected for the current resolution. Reusing that result for later, previously unselected passive observers remains a manual GM responsibility because Action Forge does not yet track the concealed object itself.
+- The remaining pre-RC blocker is **Prerequisite & Equipment Validation**, planned for dev.17.
+- Added `docs/SHARED_ROLL_MULTI_TARGET_REVIEW.md` with the dev.16 architecture, security boundaries, and remaining Conceal an Object persistence limit.
 
 ## New in dev.15
 
@@ -143,6 +154,6 @@ npm test
 npm run check
 ```
 
-Current suite: **137/137 tests passing**.
+Current suite: **143/143 tests passing**.
 
 The Player Core skill-action catalog and the common exploration/core-utility layer are now represented. The next major review can focus on multi-target/shared-roll resolution and deeper integration rather than catalog gaps.

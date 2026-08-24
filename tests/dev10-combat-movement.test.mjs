@@ -55,7 +55,8 @@ test("dev.10 DC and target models match the combat/movement workflows", async ()
   assert.equal(byId.get("feint").dc.defense, "perception");
   assert.equal(byId.get("create-a-diversion").dc.defense, "perception");
   assert.equal(byId.get("create-a-diversion").target.mode, "multiple");
-  assert.equal(byId.get("create-a-diversion").execution.singleTargetOnly, true);
+  assert.equal(byId.get("create-a-diversion").execution.sharedRoll, true);
+  assert.notEqual(byId.get("create-a-diversion").execution.singleTargetOnly, true);
 
   assert.equal(byId.get("high-jump").dc.strategy, "fixed");
   assert.equal(byId.get("high-jump").dc.value, 30);

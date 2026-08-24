@@ -55,7 +55,8 @@ test("dev.12 DC and visibility models preserve GM-set and secret workflows", asy
   assert.equal(byId.get("palm-an-object").dc.strategy, "target-defense");
   assert.equal(byId.get("palm-an-object").dc.defense, "perception");
   assert.equal(byId.get("palm-an-object").target.mode, "multiple");
-  assert.equal(byId.get("palm-an-object").execution.singleTargetOnly, true);
+  assert.equal(byId.get("palm-an-object").execution.sharedRoll, true);
+  assert.notEqual(byId.get("palm-an-object").execution.singleTargetOnly, true);
   assert.equal(byId.get("steal").dc.defense, "perception");
 
   for (const id of ["disable-a-device", "pick-a-lock", "repair", "craft", "treat-disease", "treat-poison", "administer-first-aid-stop-bleeding"]) {
@@ -176,5 +177,5 @@ test("dev.12 keeps the wide catalog UI and makes the footer version dynamic", as
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   assert.match(template, /\{\{moduleVersion\}\} · \{\{localize "PF2EActionForge\.Footer\.Catalog"\}\}/);
   assert.match(app, /width:\s*1120/);
-  assert.match(app, /0\.1\.0-dev\.15/);
+  assert.match(app, /0\.1\.0-dev\.16/);
 });

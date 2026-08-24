@@ -116,6 +116,25 @@ export class PF2eActionAdapter {
     return Boolean(this.getSystemAction(definition));
   }
 
+  async executeShared({ definition, actor, statistic = null, event = null }) {
+    if (!definition?.execution?.sharedRoll) {
+      return { ok: false, reason: "not-shared-roll", results: [] };
+    }
+    if (!actor) return { ok: false, reason: "no-actor", results: [] };
+
+    // A shared roll must be generated exactly once and without any one target
+    // or DC attached. The GM-side resolver performs all per-target comparisons
+    // after the PF2e statistic roll has completed.
+    return this.#executeStatistic({
+      definition,
+      actor,
+      target: null,
+      difficultyClass: undefined,
+      statistic,
+      event
+    });
+  }
+
   async execute({ definition, actor, target = null, difficultyClass, statistic = null, event = null }) {
     if (!definition?.execution?.enabled) {
       return { ok: false, reason: "not-enabled", results: [] };

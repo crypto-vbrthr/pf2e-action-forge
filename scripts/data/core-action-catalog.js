@@ -722,7 +722,7 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
     systemAction: { slug: "palm-an-object" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", singleTargetOnly: true },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", sharedRoll: true },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
@@ -842,7 +842,7 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
     systemAction: { slug: "create-a-diversion" },
-    execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
+    execution: { enabled: true, statistic: "deception", sharedRoll: true },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
@@ -859,7 +859,7 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
     systemAction: { slug: "lie" },
-    execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
+    execution: { enabled: true, statistic: "deception", sharedRoll: true },
     visibility: { announcement: "none", roll: "blind", outcome: "gm" }
   },
 
@@ -964,10 +964,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 10,
     icon: "fa-solid fa-box-archive",
     keywords: ["stealth", "conceal object", "secret", "perception", "observer"],
-    target: { mode: "optional", type: "creature", required: false },
+    target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
     systemAction: { slug: "conceal-an-object" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth", sharedRoll: true },
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
   {
@@ -981,10 +981,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 20,
     icon: "fa-solid fa-eye-slash",
     keywords: ["stealth", "hide", "secret", "perception", "hidden"],
-    target: { mode: "optional", type: "creature", required: false },
+    target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
     systemAction: { slug: "hide" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth", sharedRoll: true },
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
   {
@@ -998,10 +998,10 @@ export const CORE_ACTIONS = Object.freeze([
     order: 30,
     icon: "fa-solid fa-person-walking",
     keywords: ["stealth", "sneak", "secret", "perception", "undetected", "movement"],
-    target: { mode: "optional", type: "creature", required: false },
+    target: { mode: "multiple", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
     systemAction: { slug: "sneak" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "stealth", sharedRoll: true },
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
   {
