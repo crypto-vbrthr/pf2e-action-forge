@@ -29,7 +29,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.14"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.14.1"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {

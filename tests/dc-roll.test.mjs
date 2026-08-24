@@ -23,21 +23,28 @@ test("DC Resolver uses a target defense and retains the target token", async () 
   assert.equal(resolved.target, token);
 });
 
-test("DC Resolver accepts manual fallback for target-defense actions without a target", async () => {
+test("DC Resolver routes target-defense fallback to the GM and accepts a GM-entered fallback", async () => {
   const { DCResolver } = await import(`../scripts/core/dc-resolver.js?fallback=${Date.now()}`);
   const resolver = new DCResolver();
   const action = { dc: { strategy: "target-defense", defense: "reflex", manualFallback: true } };
   const emptyTargets = { targets: [] };
 
-  assert.equal(resolver.getState(action, emptyTargets).valid, false);
-  const state = resolver.getState(action, emptyTargets, { manualDc: "27" });
+  const player = resolver.getState(action, emptyTargets, { manualDc: "27", user: { isGM: false } });
+  assert.equal(player.valid, true);
+  assert.equal(player.source, "gm");
+  assert.equal(player.requiresGmHandoff, true);
+  assert.equal(player.difficultyClass, undefined);
+
+  const gmMissing = resolver.getState(action, emptyTargets, { user: { isGM: true } });
+  assert.equal(gmMissing.valid, false);
+  const state = resolver.getState(action, emptyTargets, { manualDc: "27", user: { isGM: true } });
   assert.equal(state.valid, true);
   assert.equal(state.source, "manual");
   assert.equal(state.difficultyClass, 27);
   assert.equal(state.target, null);
 });
 
-test("DC Resolver validates manual DCs for environmental actions", async () => {
+test("DC Resolver validates GM-entered manual DCs for environmental actions", async () => {
   const { DCResolver, normalizeManualDc } = await import(`../scripts/core/dc-resolver.js?manual=${Date.now()}`);
   const resolver = new DCResolver();
   const climb = { dc: { strategy: "manual" } };
@@ -45,8 +52,8 @@ test("DC Resolver validates manual DCs for environmental actions", async () => {
   assert.equal(normalizeManualDc("20"), 20);
   assert.equal(normalizeManualDc("20.5"), null);
   assert.equal(normalizeManualDc("61"), null);
-  assert.equal(resolver.getState(climb, { targets: [] }, { manualDc: "" }).valid, false);
-  const resolved = resolver.resolve(climb, { targets: [] }, { manualDc: 18 });
+  assert.equal(resolver.getState(climb, { targets: [] }, { manualDc: "", user: { isGM: true } }).valid, false);
+  const resolved = resolver.resolve(climb, { targets: [] }, { manualDc: 18, user: { isGM: true } });
   assert.equal(resolved.ok, true);
   assert.equal(resolved.difficultyClass, 18);
   assert.equal(resolved.target, null);

@@ -1,8 +1,16 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.14 - Exploration Mode & Core Utility Actions**.
+Development build **0.1.0-dev.14.1 - GM DC Authority Hotfix**.
 
 The Action Forge now contains **65 actions and activities**: the complete 51-card Player Core skill-action surface plus four selected core utility actions and all ten common Player Core exploration activities. The new exploration layer is persistent state rather than another pile of immediate d20 buttons.
+
+
+## New in dev.14.1
+
+- Situational and environmental **manual DCs are now GM-authoritative**. Players no longer receive a numeric DC input for Balance, Climb, Swim, Force Open, Track, Request, Perform, Subsist, and similar actions. Pressing the action button requests the DC from an active GM through the existing handoff dialog.
+- A missing target on actions with a defense-based manual fallback (for example Escape or Tumble Through) now follows the same GM handoff instead of letting the player invent the fallback DC.
+- Free-form overrides on fixed-choice DCs are GM-only. Players may still select rules-defined choices such as Treat Wounds proficiency tiers or Learn a Spell spell-rank DCs, but arbitrary custom values are rejected by the resolver even if a client tampers with the UI.
+- GM users can still enter all adjudicated/manual DCs directly.
 
 ## New in dev.14
 

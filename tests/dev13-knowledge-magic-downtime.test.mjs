@@ -58,22 +58,27 @@ test("Learn a Spell exposes all ten Player Core rank DCs, costs through localiza
   assert.match(en["PF2EActionForge.LearnSpell.Rank10"], /7,000 gp/);
 });
 
-test("fixed-choice DCs accept an explicit custom value without weakening normal table selection", async () => {
+test("fixed-choice DCs keep rule choices player-selectable and reserve custom values for the GM", async () => {
   const oldGame = globalThis.game;
   try {
-    globalThis.game = { user: { isGM: false } };
     const { DCResolver } = await import(`../scripts/core/dc-resolver.js?dev13-custom=${Date.now()}`);
     const { byId } = await catalog();
     const resolver = new DCResolver();
     const action = byId.get("learn-a-spell");
 
-    const standard = resolver.getState(action, { targets: [] }, { manualDc: 23, statistic: "arcana", actor: null });
+    const standard = resolver.getState(action, { targets: [] }, { manualDc: 23, statistic: "arcana", actor: null, user: { isGM: false } });
     assert.equal(standard.valid, true);
     assert.equal(standard.source, "fixed-choice");
     assert.equal(standard.difficultyClass, 23);
     assert.equal(standard.custom, false);
 
-    const custom = resolver.getState(action, { targets: [] }, { manualDc: 25, statistic: "arcana", actor: null });
+    const injected = resolver.getState(action, { targets: [] }, { manualDc: 25, statistic: "arcana", actor: null, user: { isGM: false } });
+    assert.equal(injected.source, "fixed-choice");
+    assert.equal(injected.difficultyClass, 15);
+    assert.equal(injected.custom, false);
+    assert.equal(injected.allowsManualDc, false);
+
+    const custom = resolver.getState(action, { targets: [] }, { manualDc: 25, statistic: "arcana", actor: null, user: { isGM: true } });
     assert.equal(custom.valid, true);
     assert.equal(custom.source, "fixed-choice-custom");
     assert.equal(custom.difficultyClass, 25);
@@ -187,14 +192,14 @@ test("dev.13 localization is complete in German and English and includes the new
   }
 });
 
-test("dev.14 manifest, fallback versions, and release URL are synchronized", async () => {
+test("dev.14.1 manifest, fallback versions, and release URL are synchronized", async () => {
   const manifest = JSON.parse(await readFile(new URL("module.json", root), "utf8"));
   const pkg = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   const bootstrap = await readFile(new URL("scripts/action-forge.js", root), "utf8");
-  assert.equal(manifest.version, "0.1.0-dev.14");
-  assert.equal(pkg.version, "0.1.0-dev.14");
-  assert.match(manifest.download, /v0\.1\.0-dev\.14\/pf2e-action-forge\.zip$/);
-  assert.match(app, /0\.1\.0-dev\.14/);
-  assert.match(bootstrap, /0\.1\.0-dev\.14/);
+  assert.equal(manifest.version, "0.1.0-dev.14.1");
+  assert.equal(pkg.version, "0.1.0-dev.14.1");
+  assert.match(manifest.download, /v0\.1\.0-dev\.14\.1\/pf2e-action-forge\.zip$/);
+  assert.match(app, /0\.1\.0-dev\.14\.1/);
+  assert.match(bootstrap, /0\.1\.0-dev\.14\.1/);
 });

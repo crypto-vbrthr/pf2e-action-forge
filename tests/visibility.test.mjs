@@ -188,8 +188,9 @@ test("players cannot override GM-defined or secret DCs", async () => {
   assert.equal(gmManual.allowsManualDc, true);
 });
 
-test("GM-defined manual DC field is rendered only when the resolver allows it", async () => {
+test("free-form manual DC field is rendered only when the resolver allows it and player input is rejected", async () => {
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   assert.match(app, /state\.strategy === "gm-defined" && state\.allowsManualDc/);
-  assert.match(app, /action\?\.dc\?\.strategy === "gm-defined" && !game\.user\?\.isGM/);
+  assert.match(app, /state\.strategy === "manual" && state\.allowsManualDc/);
+  assert.match(app, /if \(!game\.user\?\.isGM\) return;/);
 });

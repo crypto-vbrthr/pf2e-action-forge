@@ -325,7 +325,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.14",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.14.1",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -402,7 +402,9 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     manualDcInput?.addEventListener("input", (event) => {
       if (!this.activeActionId || this.pendingGmDcRequest) return;
       const action = actionRegistry.get(this.activeActionId);
-      if (action?.dc?.strategy === "gm-defined" && !game.user?.isGM) return;
+      // Free-form DC entry is GM-only. The resolver also enforces this, so a
+      // player cannot bypass the UI by editing the DOM or dispatching input.
+      if (!game.user?.isGM) return;
       this.manualDcByAction.set(this.activeActionId, event.currentTarget.value ?? "");
       this.#updateExecutionControls();
     });
@@ -489,7 +491,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
       }
       if (state.source === "gm") {
-        return game.i18n.localize("PF2EActionForge.DC.GMSecret");
+        return game.i18n.localize(state.labelKey ?? "PF2EActionForge.DC.GMDefined");
       }
       if (state.source === "manual" && state.manualDc !== null) {
         return game.i18n.format("PF2EActionForge.DC.ManualValue", { dc: state.manualDc });
@@ -537,7 +539,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       choiceLabel: game.i18n.localize(action?.dc?.choiceLabel ?? "PF2EActionForge.DC.FixedChoiceLabel"),
       choiceHint: game.i18n.localize(action?.dc?.choiceHint ?? "PF2EActionForge.DC.FixedChoiceHint"),
       showManualInput:
-        state.strategy === "manual" ||
+        (state.strategy === "manual" && state.allowsManualDc) ||
         (state.strategy === "fixed-choice" && state.allowsManualDc) ||
         (state.strategy === "gm-defined" && state.allowsManualDc) ||
         (state.strategy === "target-dying" && state.allowsManualDc) ||

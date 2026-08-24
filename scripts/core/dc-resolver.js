@@ -125,7 +125,25 @@ export class DCResolver {
           labelKey: "PF2EActionForge.DC.None"
         };
 
-      case "manual":
+      case "manual": {
+        // Situational/environmental DCs are GM adjudication. Players never get
+        // to self-author a DC: their client requests it through the existing
+        // GM handoff. A GM using the Forge directly can still enter it locally.
+        if (!canSetGmDefinedDc) {
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            target: null,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
+            labelKey: "PF2EActionForge.DC.GMDefined"
+          };
+        }
+
         return {
           strategy,
           valid: parsedManualDc !== null,
@@ -135,8 +153,10 @@ export class DCResolver {
           manualDc: parsedManualDc,
           needsManualDc: parsedManualDc === null,
           allowsManualDc: true,
+          requiresGmHandoff: false,
           labelKey: "PF2EActionForge.DC.Manual"
         };
+      }
 
       case "target-defense": {
         const defense = DEFENSES.has(dc.defense) ? dc.defense : null;
@@ -224,6 +244,22 @@ export class DCResolver {
         }
 
         const manualFallback = Boolean(dc.manualFallback);
+        if (manualFallback && !canSetGmDefinedDc) {
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            defense,
+            target: null,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
+            labelKey: "PF2EActionForge.DC.GMDefined"
+          };
+        }
+
         return {
           strategy,
           valid: manualFallback && parsedManualDc !== null,
@@ -233,7 +269,8 @@ export class DCResolver {
           target: null,
           manualDc: parsedManualDc,
           needsManualDc: manualFallback && parsedManualDc === null,
-          allowsManualDc: manualFallback,
+          allowsManualDc: manualFallback && canSetGmDefinedDc,
+          requiresGmHandoff: false,
           labelKey: manualFallback
             ? "PF2EActionForge.DC.ManualFallback"
             : `PF2EActionForge.DC.Defense.${defense}`
@@ -358,10 +395,36 @@ export class DCResolver {
           : allEntries.filter((entry) => entry.minRank <= rank);
         const choices = choiceEntries.map((entry) => entry.value);
         const allowCustom = Boolean(dc.allowCustom);
-        const selected = parsedManualDc !== null && (allowCustom || choices.includes(parsedManualDc))
+        const customRequested = parsedManualDc !== null && !choices.includes(parsedManualDc);
+        const customAllowed = allowCustom && canSetGmDefinedDc;
+        const selected = parsedManualDc !== null && (choices.includes(parsedManualDc) || customAllowed)
           ? parsedManualDc
           : choices[0] ?? null;
         const custom = selected !== null && !choices.includes(selected);
+
+        // Fixed rule choices remain player-selectable (Treat Wounds tiers, spell
+        // ranks, Aid's default DC). Any free-form override is GM authority.
+        // A forged player-side custom value is therefore ignored by the resolver.
+        if (selected === null && allowCustom && !canSetGmDefinedDc) {
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            target,
+            manualDc: null,
+            choices,
+            choiceEntries,
+            statisticRank: rank,
+            custom: false,
+            customRequested,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
+            labelKey: "PF2EActionForge.DC.GMDefined"
+          };
+        }
+
         return {
           strategy,
           valid: selected !== null,
@@ -373,8 +436,10 @@ export class DCResolver {
           choiceEntries,
           statisticRank: rank,
           custom,
+          customRequested,
           needsManualDc: false,
-          allowsManualDc: allowCustom,
+          allowsManualDc: customAllowed,
+          requiresGmHandoff: false,
           labelKey: "PF2EActionForge.DC.FixedChoice"
         };
       }

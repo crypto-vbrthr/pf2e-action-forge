@@ -36,10 +36,10 @@ test("ActionRegistry preserves Learn a Spell custom fixed-choice metadata and la
   assert.deepEqual(action.dc.choices.map((entry) => entry.value), [15, 18, 20, 23, 26, 28, 31, 34, 36, 41]);
 });
 
-test("DCResolver accepts a custom Learn a Spell DC after ActionRegistry normalization", async () => {
+test("DCResolver accepts a GM custom Learn a Spell DC after ActionRegistry normalization", async () => {
   const oldGame = globalThis.game;
   try {
-    globalThis.game = { user: { isGM: false } };
+    globalThis.game = { user: { isGM: true } };
     const registry = await registeredCatalog();
     const { DCResolver } = await import(`../scripts/core/dc-resolver.js?dev13-1-dc=${Date.now()}-${Math.random()}`);
     const state = new DCResolver().getState(

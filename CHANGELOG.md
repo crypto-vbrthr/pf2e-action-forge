@@ -1,3 +1,15 @@
+## [0.1.0-dev.14.1] - 2026-08-24
+
+### Fixed
+- Moved situational/manual DC authority from player clients to the GM. Players now use the existing GM DC handoff for manual environmental DCs and defense fallbacks when no resolvable target is available.
+- Free-form custom values on fixed-choice DCs are now GM-only; player-side injected values are ignored by the resolver while rules-defined choices remain selectable.
+- Hardened the manual DC input handler so DOM manipulation cannot submit a player-authored free-form DC.
+- GM-supplied non-secret DC handoffs now display the generic GM-defined DC source text rather than implying every handoff is secret.
+
+### Tests
+- Added regression coverage for player/GM authority across manual DCs, target-defense fallbacks, and fixed-choice custom overrides.
+- Automated suite now contains **127 passing tests**.
+
 # Changelog
 
 ## [0.1.0-dev.14] - 2026-08-24
