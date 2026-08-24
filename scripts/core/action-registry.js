@@ -82,6 +82,27 @@ export class ActionRegistry {
       definition.systemAction && typeof definition.systemAction === "object" ? definition.systemAction : {};
     const applicationDefinition =
       definition.application && typeof definition.application === "object" ? definition.application : {};
+    const prerequisites = Object.freeze(
+      (Array.isArray(definition.prerequisites) ? definition.prerequisites : [])
+        .filter((entry) => entry && typeof entry === "object" && entry.type)
+        .map((entry) => Object.freeze({
+          type: String(entry.type).trim(),
+          severity: entry.severity === "advisory" ? "advisory" : "hard",
+          message: entry.message ? String(entry.message).trim() : null,
+          slugs: Object.freeze(Array.isArray(entry.slugs) ? entry.slugs.map((slug) => String(slug).trim()).filter(Boolean) : []),
+          sourceWaiverSlugs: Object.freeze(Array.isArray(entry.sourceWaiverSlugs) ? entry.sourceWaiverSlugs.map((slug) => String(slug).trim()).filter(Boolean) : []),
+          targetWaiverSlugs: Object.freeze(Array.isArray(entry.targetWaiverSlugs) ? entry.targetWaiverSlugs.map((slug) => String(slug).trim()).filter(Boolean) : []),
+          usage: entry.usage ? String(entry.usage).trim() : null,
+          speed: entry.speed ? String(entry.speed).trim() : null,
+          min: Number.isFinite(Number(entry.min)) ? Math.max(0, Number(entry.min)) : null,
+          trait: entry.trait ? String(entry.trait).trim() : null,
+          state: entry.state ? String(entry.state).trim() : null,
+          statistic: entry.statistic ? String(entry.statistic).trim() : null,
+          minRank: Number.isInteger(Number(entry.minRank))
+            ? Math.max(0, Math.min(4, Number(entry.minRank)))
+            : 0
+        }))
+    );
     const applicationOutcomes = {};
     for (const outcome of ["criticalSuccess", "success", "failure", "criticalFailure"]) {
       const effects = Array.isArray(applicationDefinition.outcomes?.[outcome])
@@ -154,6 +175,7 @@ export class ActionRegistry {
       systemAction: Object.freeze({
         slug: String(systemActionDefinition.slug ?? id).trim() || id
       }),
+      prerequisites,
       execution: Object.freeze({
         enabled: Boolean(executionDefinition.enabled),
         mode: ["system-action", "statistic", "system-or-statistic", "activity", "exploration-activity"].includes(executionDefinition.mode)

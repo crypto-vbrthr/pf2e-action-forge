@@ -179,7 +179,8 @@ export class ApplicationChat {
         "transaction-mismatch": "PF2EActionForge.Application.TransactionNotReady",
         timeout: "PF2EActionForge.Application.Timeout",
         "broker-error": "PF2EActionForge.Application.BrokerError",
-        "query-failed": "PF2EActionForge.Application.BrokerUnavailable"
+        "query-failed": "PF2EActionForge.Application.BrokerUnavailable",
+        "prerequisite-failed": result?.prerequisiteMessage ?? "PF2EActionForge.Prerequisites.GenericFailure"
       }[result?.reason] ?? "PF2EActionForge.Application.Failed";
       if (owner) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.localize?.(key) ?? result?.reason);
     }

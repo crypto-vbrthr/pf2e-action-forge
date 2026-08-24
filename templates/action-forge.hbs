@@ -286,6 +286,7 @@
               type="button"
               class="af-primary-button"
               data-action="executeAction"
+              data-prerequisite-valid="{{executionContext.prerequisiteValid}}"
               {{#unless executionContext.canExecute}}disabled{{/unless}}
             >
               <i class="fa-solid {{#if executionContext.activity}}fa-compass{{else}}fa-dice-d20{{/if}}" aria-hidden="true"></i>

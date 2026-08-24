@@ -6,6 +6,18 @@
  * PF2e system actions remain preferred, with statistic-roll fallbacks for
  * compatibility, GM-mediated DC handoff, and declarative result applications.
  */
+const TOOL_ALIASES = Object.freeze({
+  healers: Object.freeze(["healers-toolkit", "healers-tools", "healer-toolkit", "heilerwerkzeuge", "heilerwerkzeug", "violet-ray"]),
+  repair: Object.freeze(["repair-kit", "repair-toolkit", "repair-tools", "reparaturausrustung", "reparaturwerkzeug"]),
+  alchemist: Object.freeze(["alchemists-toolkit", "alchemist-toolkit", "alchemists-tools", "alchemistenwerkzeuge", "alchemistenwerkzeug"]),
+  thieves: Object.freeze(["thieves-toolkit", "thieves-tools", "thief-tools", "infiltrator-thieves-toolkit", "diebswerkzeuge", "diebeswerkzeuge"])
+});
+
+const PREREQUISITE_WAIVERS = Object.freeze({
+  rightHandBlood: Object.freeze(["right-hand-blood", "blut-der-rechten-seite"]),
+  aeonbound: Object.freeze(["aeonbound"])
+});
+
 export const CORE_ACTIONS = Object.freeze([
   // Core utility actions are deliberately selective: these are the basic
   // actions that benefit most from Action Forge's DC, target, visibility and
@@ -134,6 +146,9 @@ export const CORE_ACTIONS = Object.freeze([
     keywords: ["exploration", "follow the expert", "expert", "skill", "ally"],
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "none" },
+    prerequisites: [
+      { type: "target-statistic-rank", statistic: "$selected", minRank: 2, message: "PF2EActionForge.Prerequisites.FollowExpert" }
+    ],
     execution: {
       enabled: true,
       mode: "exploration-activity",
@@ -498,6 +513,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "manual" },
     systemAction: { slug: "maneuver-in-flight" },
+    prerequisites: [
+      { type: "movement-speed", speed: "fly", min: 1, message: "PF2EActionForge.Prerequisites.FlySpeed" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "acrobatics", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -756,6 +774,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "disable-a-device" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.thieves, severity: "advisory", message: "PF2EActionForge.Prerequisites.ThievesToolsConditional" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -773,6 +794,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "pick-a-lock" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.thieves, severity: "advisory", message: "PF2EActionForge.Prerequisites.ThievesToolsImprovised" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1104,6 +1128,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "target-defense", defense: "will", manualFallback: true },
     systemAction: { slug: "command-an-animal" },
+    prerequisites: [
+      { type: "target-trait", trait: "animal", message: "PF2EActionForge.Prerequisites.AnimalTarget" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "nature" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1122,6 +1149,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "repair" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.repair, message: "PF2EActionForge.Prerequisites.RepairToolkit" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "crafting" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1139,6 +1169,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "identify-alchemy" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.alchemist, message: "PF2EActionForge.Prerequisites.AlchemistsToolkit" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "crafting", minRank: 1 },
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
@@ -1175,6 +1208,10 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "target-dying", allowUnknown: true },
     systemAction: { slug: "administer-first-aid" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.healers, usage: "held-or-worn", sourceWaiverSlugs: PREREQUISITE_WAIVERS.rightHandBlood, message: "PF2EActionForge.Prerequisites.HealersToolkit" },
+      { type: "target-state", state: "dying", message: "PF2EActionForge.Prerequisites.DyingTarget" }
+    ],
     execution: { enabled: true, mode: "statistic", statistic: "medicine" },
     visibility: { announcement: "public", roll: "public", outcome: "public" },
     application: {
@@ -1200,6 +1237,10 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "administer-first-aid" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.healers, usage: "held-or-worn", sourceWaiverSlugs: PREREQUISITE_WAIVERS.rightHandBlood, message: "PF2EActionForge.Prerequisites.HealersToolkit" },
+      { type: "target-state", state: "persistent-bleed", message: "PF2EActionForge.Prerequisites.BleedingTarget" }
+    ],
     execution: { enabled: true, mode: "statistic", statistic: "medicine" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1217,6 +1258,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "treat-disease" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.healers, sourceWaiverSlugs: PREREQUISITE_WAIVERS.rightHandBlood, message: "PF2EActionForge.Prerequisites.HealersToolkit" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "medicine", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1234,6 +1278,9 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: true },
     dc: { strategy: "gm-defined", allowUnknown: true },
     systemAction: { slug: "treat-poison" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.healers, message: "PF2EActionForge.Prerequisites.HealersToolkit" }
+    ],
     execution: { enabled: true, mode: "system-or-statistic", statistic: "medicine", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
@@ -1260,6 +1307,10 @@ export const CORE_ACTIONS = Object.freeze([
       ]
     },
     systemAction: { slug: "treat-wounds" },
+    prerequisites: [
+      { type: "item", slugs: TOOL_ALIASES.healers, sourceWaiverSlugs: PREREQUISITE_WAIVERS.rightHandBlood, targetWaiverSlugs: PREREQUISITE_WAIVERS.aeonbound, message: "PF2EActionForge.Prerequisites.HealersToolkit" },
+      { type: "target-state", state: "living-wounded", message: "PF2EActionForge.Prerequisites.LivingWoundedTarget" }
+    ],
     execution: { enabled: true, mode: "statistic", statistic: "medicine", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" },
     application: {

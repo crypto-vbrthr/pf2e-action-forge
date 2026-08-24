@@ -1,3 +1,29 @@
+## [0.1.0-dev.17] - 2026-08-24
+
+### Added
+
+- Added declarative `prerequisites` metadata to Action Registry definitions with normalized, deep-frozen entries.
+- Added the shared `PrerequisiteValidator` for equipment, movement-speed, target-trait, target-state, and target-statistic-rank requirements.
+- Added a Foundry v14 GM prerequisite broker for opaque picker targets. The broker returns only validation results, never hidden target statistics.
+- Added hard healer's-toolkit checks for Administer First Aid, Treat Disease, Treat Poison, and Treat Wounds; First Aid also validates held/worn access and the selected dying/bleeding target state.
+- Added explicit prerequisite substitutions/waivers for Violet Ray, Right-Hand Blood / Blut der rechten Seite, and Aeonbound Treat Wounds targets so hard validation respects known PF2e rules exceptions.
+- Added Treat Wounds validation for a living, actually wounded/damaged target.
+- Added repair-toolkit validation for Repair and alchemist-toolkit validation for Identify Alchemy.
+- Added fly-Speed validation for Maneuver in Flight, animal-trait validation for Command an Animal, and expert-rank validation for Follow the Expert.
+- Added advisory thieves'-tools checks for Pick a Lock and Disable a Device, preserving their explicit GM-dependent exceptions.
+
+### Security & rules fidelity
+
+- Privileged application writes re-run hard prerequisites against authoritative Actor documents before the first mutation of a result transaction.
+- Opaque target validation does not expose HP, defenses, traits, or skill ranks to the player; only pass/fail metadata and safe message keys are returned.
+- Result transactions remain coherent after their first authorized mutation, so healing or condition changes caused by one Treat Wounds effect cannot invalidate the remaining effects from the same roll.
+- Item/document context that cannot yet be represented reliably, such as the exact damaged object being Repaired, remains GM-adjudicated instead of being guessed.
+
+### Tests
+
+- Added regression coverage for toolkit aliases, explicit toolkit substitutions/waivers and equipment usage, Treat Wounds target eligibility, First Aid state checks, persistent bleed, animal targets, fly Speed, Follow the Expert rank validation, advisory Thievery exceptions, registry immutability, and UI/broker integration.
+- Automated suite now contains **153 passing tests**.
+
 ## [0.1.0-dev.16] - 2026-08-24
 
 ### Added

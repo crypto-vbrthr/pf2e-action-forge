@@ -8,6 +8,8 @@ import { favoritesService } from "../core/favorites-service.js";
 import { explorationActivityService } from "../core/exploration-activity-service.js";
 import { gmDcHandoff } from "../core/gm-dc-handoff.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
+import { prerequisiteBroker } from "../core/prerequisite-broker.js";
+import { prerequisiteValidator } from "../core/prerequisite-validator.js";
 import { sharedRollResolver } from "../core/shared-roll-resolver.js";
 import { targetResolver } from "../core/target-resolver.js";
 import { targetPickerService } from "../core/target-picker-service.js";
@@ -254,6 +256,23 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         : false;
       const statisticValid = !activeDefinition.execution.requiresStatistic || Boolean(selectedStatistic);
       const proficiencyValid = this.#meetsMinimumRank(activeDefinition, resolution.actor, selectedStatistic);
+      const prerequisiteState = await prerequisiteValidator.validate(activeDefinition, {
+        actor: resolution.actor,
+        targetState,
+        statistic: selectedStatistic,
+        resolveTargets: false
+      });
+      const prerequisiteFailure = prerequisiteState.hardFailures[0] ?? null;
+      const prerequisiteNeedsBroker = prerequisiteState.unresolved.length > 0 && !game.user?.isGM;
+      const prerequisiteBrokerAvailable = !prerequisiteNeedsBroker || prerequisiteBroker.isAvailable();
+      const prerequisiteValid = !prerequisiteFailure && prerequisiteBrokerAvailable;
+      const prerequisiteText = prerequisiteFailure
+        ? game.i18n.localize(prerequisiteFailure.message ?? "PF2EActionForge.Prerequisites.GenericFailure")
+        : prerequisiteNeedsBroker && !prerequisiteBrokerAvailable
+          ? game.i18n.localize("PF2EActionForge.Prerequisites.ValidationUnavailable")
+          : prerequisiteState.warnings[0]?.message
+            ? game.i18n.localize(prerequisiteState.warnings[0].message)
+            : "";
       const targetCountValid = !activeDefinition.execution.singleTargetOnly || targetState.count <= 1;
       const sharedRollActive = Boolean(activeDefinition.execution.sharedRoll && targetState.count > 0);
       const sharedRollAvailable = !sharedRollActive || sharedRollResolver.isAvailable();
@@ -269,6 +288,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         dcState.valid &&
         statisticValid &&
         proficiencyValid &&
+        prerequisiteValid &&
         targetCountValid &&
         immunityValid &&
         sharedRollAvailable &&
@@ -282,6 +302,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         canExecute,
         statisticValid,
         proficiencyValid,
+        prerequisiteValid,
+        prerequisiteText,
         targetCountValid,
         immunityValid,
         activeImmunity,
@@ -314,6 +336,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
             ? game.i18n.localize("PF2EActionForge.Roll.StatisticRequired")
             : !proficiencyValid
               ? game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired")
+              : prerequisiteText
+                ? prerequisiteText
               : !immunityValid
                 ? game.i18n.format("PF2EActionForge.Application.ActionTargetImmune", { action: game.i18n.localize(activeDefinition.label) })
                 : sharedRollActive && !sharedRollAvailable
@@ -333,7 +357,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.16",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.17",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -719,12 +743,14 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const executionInFlight = Boolean(this.executionInFlight);
     const gmHandoffRequired = Boolean(dcState.requiresGmHandoff && !game.user?.isGM);
     const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
+    const renderedButton = this.element.querySelector('[data-action="executeAction"]');
+    const prerequisiteValid = renderedButton?.dataset?.prerequisiteValid !== "false";
     const canExecute = Boolean(
       actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid && statisticValid &&
-      proficiencyValid && targetCountValid && immunityValid && sharedRollAvailable && gmHandoffAvailable && !waitingForGmDc && !executionInFlight
+      proficiencyValid && prerequisiteValid && targetCountValid && immunityValid && sharedRollAvailable && gmHandoffAvailable && !waitingForGmDc && !executionInFlight
     );
 
-    const button = this.element.querySelector('[data-action="executeAction"]');
+    const button = renderedButton;
     if (button) button.disabled = !canExecute;
 
     const status = this.element.querySelector('[data-role="dc-status"]');
@@ -844,6 +870,49 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.warn(game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired"));
       return;
     }
+
+    let prerequisiteState = await prerequisiteValidator.validate(action, {
+      actor,
+      targetState,
+      statistic: selectedStatistic
+    });
+
+    // A picker-only target may deliberately be opaque on the player client. In
+    // that case ask the authoritative GM to evaluate the same declarative
+    // prerequisites without returning hidden Actor statistics.
+    if (prerequisiteState.unresolved.length > 0 && !game.user?.isGM) {
+      if (!prerequisiteBroker.isAvailable()) {
+        ui.notifications.warn(game.i18n.localize("PF2EActionForge.Prerequisites.ValidationUnavailable"));
+        return;
+      }
+      // Freeze the workspace during the authoritative prerequisite round-trip so
+      // the target/statistic being validated cannot be changed mid-request.
+      app.executionInFlight = true;
+      app.render({ force: true });
+      let brokerResult;
+      try {
+        brokerResult = await prerequisiteBroker.request({
+          definition: action, actor, targetState, statistic: selectedStatistic
+        });
+      } finally {
+        app.executionInFlight = false;
+      }
+      if (!brokerResult?.results) {
+        ui.notifications.warn(game.i18n.localize("PF2EActionForge.Prerequisites.ValidationUnavailable"));
+        app.render({ force: true });
+        return;
+      }
+      prerequisiteState = brokerResult;
+    }
+
+    const prerequisiteFailure = prerequisiteState.hardFailures?.[0] ?? prerequisiteState.unresolved?.[0] ?? null;
+    if (prerequisiteFailure) {
+      ui.notifications.warn(game.i18n.localize(prerequisiteFailure.message ?? "PF2EActionForge.Prerequisites.GenericFailure"));
+      return;
+    }
+    const prerequisiteWarnings = [...new Set((prerequisiteState.warnings ?? []).map((entry) => entry.message).filter(Boolean))];
+    for (const messageKey of prerequisiteWarnings) ui.notifications.warn(game.i18n.localize(messageKey));
+
     if (app.#getBlockingImmunity(action, targetState, actor)) {
       ui.notifications.warn(game.i18n.format("PF2EActionForge.Application.ActionTargetImmune", { action: game.i18n.localize(action.label) }));
       return;

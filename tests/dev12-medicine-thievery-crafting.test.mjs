@@ -177,5 +177,5 @@ test("dev.12 keeps the wide catalog UI and makes the footer version dynamic", as
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   assert.match(template, /\{\{moduleVersion\}\} · \{\{localize "PF2EActionForge\.Footer\.Catalog"\}\}/);
   assert.match(app, /width:\s*1120/);
-  assert.match(app, /0\.1\.0-dev\.16/);
+  assert.match(app, /0\.1\.0-dev\.17/);
 });

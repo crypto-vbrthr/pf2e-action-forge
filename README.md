@@ -1,8 +1,23 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.16 - Shared Roll & Multi-Target Resolution**.
+Development build **0.1.0-dev.17 - Prerequisite & Equipment Validation**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
+
+## New in dev.17
+
+- Added a declarative prerequisite layer to the Action Registry. Prerequisites are normalized and deep-frozen alongside target, DC, execution, visibility, and application metadata.
+- Added shared UI/GM validation for machine-readable PF2e requirements. Opaque picker targets can be validated by an authoritative GM without returning hidden Actor statistics to the player.
+- Medicine workflows now verify healer's toolkit access. **Administer First Aid** additionally requires the toolkit to be held or worn, and validates the selected Stabilize or Stop Bleeding target state.
+- Explicit PF2e exceptions are represented instead of being crushed by the validator: a **Violet Ray** counts as a healer's toolkit; **Right-Hand Blood / Blut der rechten Seite** can waive healer's tools for Administer First Aid, Treat Disease, and Treat Wounds; and an **Aeonbound** patient can be treated with Treat Wounds without a healer's toolkit.
+- **Treat Wounds** now requires healer's tools plus a living target that is actually damaged or has the Wounded condition before the check can proceed.
+- **Repair** requires a repair toolkit and **Identify Alchemy** requires an alchemist's toolkit.
+- **Maneuver in Flight** requires a usable fly Speed, **Command an Animal** requires an animal target, and **Follow the Expert** verifies that the chosen expert is at least expert in the selected skill or Lore.
+- **Pick a Lock** and **Disable a Device** surface missing thieves' tools as advisory warnings rather than unconditional blockers. This preserves the Player Core GM exception for improvised lockpicks and the rule that thieves' tools are only mandatory for some devices.
+- Privileged application writes re-run hard prerequisites on the authoritative Actor documents before the first mutation in a result transaction. Later effects from the same already-authorized transaction are not invalidated if the first effect itself changes HP or conditions.
+- The remaining item-context boundary is deliberate: Repair and Identify Alchemy still use GM-defined item context rather than a dedicated Item-document target selector, so the Forge validates their required toolkits but does not pretend it can prove the nature or damage state of an arbitrary environmental object.
+- Automated suite now contains **153 passing tests**.
+- Added `docs/PREREQUISITE_EQUIPMENT_VALIDATION.md` with the rule mapping, validation architecture, broker boundary, and intentional limits.
 
 ## New in dev.16
 

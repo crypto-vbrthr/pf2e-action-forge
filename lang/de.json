@@ -403,5 +403,18 @@
   "PF2EActionForge.SharedRoll.GMDc": "SG",
   "PF2EActionForge.SharedRoll.TargetCount": "{count} Ziele",
   "PF2EActionForge.SharedRoll.NoActiveGM": "Für die Mehrzielauswertung muss eine aktive SL verbunden sein.",
-  "PF2EActionForge.SharedRoll.Failed": "Der gemeinsame Wurf wurde ausgeführt, aber die Mehrzielauswertung durch die SL ist fehlgeschlagen."
+  "PF2EActionForge.SharedRoll.Failed": "Der gemeinsame Wurf wurde ausgeführt, aber die Mehrzielauswertung durch die SL ist fehlgeschlagen.",
+  "PF2EActionForge.Prerequisites.HealersToolkit": "Für diese Handlung benötigst du Heilerwerkzeuge.",
+  "PF2EActionForge.Prerequisites.RepairToolkit": "Für Reparieren benötigst du eine Reparaturausrüstung.",
+  "PF2EActionForge.Prerequisites.AlchemistsToolkit": "Zum Identifizieren eines alchemistischen Gegenstands benötigst du Alchemistenwerkzeuge.",
+  "PF2EActionForge.Prerequisites.ThievesToolsConditional": "Für diesen Mechanismus können Diebeswerkzeuge erforderlich sein. Die Forge lässt den Wurf zu, da die SL dies je nach Mechanismus entscheidet.",
+  "PF2EActionForge.Prerequisites.ThievesToolsImprovised": "Zum Schlossknacken werden normalerweise Diebeswerkzeuge benötigt. Die Forge lässt den Wurf zu, weil die SL improvisierte Werkzeuge erlauben kann.",
+  "PF2EActionForge.Prerequisites.FlySpeed": "Im Flug manövrieren erfordert eine nutzbare Bewegungsrate für Fliegen.",
+  "PF2EActionForge.Prerequisites.AnimalTarget": "Tier anweisen erfordert ein Ziel mit der Kreaturenkategorie Tier.",
+  "PF2EActionForge.Prerequisites.DyingTarget": "Zum Stabilisieren muss das Ziel auf 0 TP sein und den Zustand Sterbend besitzen.",
+  "PF2EActionForge.Prerequisites.BleedingTarget": "Zum Blutung stoppen muss das Ziel Anhaltenden Blutungsschaden erleiden.",
+  "PF2EActionForge.Prerequisites.LivingWoundedTarget": "Wunden versorgen erfordert eine lebende, verwundete Kreatur.",
+  "PF2EActionForge.Prerequisites.FollowExpert": "Am Experten orientieren erfordert, dass der gewählte Verbündete in der gewählten Fertigkeit mindestens Experte ist.",
+  "PF2EActionForge.Prerequisites.ValidationUnavailable": "Die regeltechnischen Voraussetzungen konnten nicht zuverlässig geprüft werden. Eine aktive SL wird für dieses Ziel benötigt.",
+  "PF2EActionForge.Prerequisites.GenericFailure": "Die Voraussetzungen für diese Handlung sind nicht erfüllt."
 }

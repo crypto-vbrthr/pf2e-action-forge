@@ -3,6 +3,7 @@ import { canUserActWith } from "./actor-resolver.js";
 import { applicationEngine } from "./application-engine.js";
 import { MODULE_ID } from "./action-transaction.js";
 import { targetPickerService } from "./target-picker-service.js";
+import { prerequisiteValidator } from "./prerequisite-validator.js";
 
 const SOCKET = `module.${MODULE_ID}`;
 const REQUEST_TIMEOUT = 10000;
@@ -249,6 +250,25 @@ export class ApplicationBroker {
     if (!canUserActWith(sourceActor, requester)) return { ok: false, reason: "source-not-owned" };
     if (!this.#targetWasLegitimate(flag.transaction, targetActor, requester)) {
       return { ok: false, reason: "invalid-target" };
+    }
+
+    // Privileged writes never trust a client-side prerequisite check. Re-run
+    // the same declarative validator against authoritative source/target Actors
+    // before the first mutation in a transaction. Once one effect has applied,
+    // later effects belong to that already-authorized resolution and must not be
+    // invalidated merely because the first effect changed HP or conditions.
+    if (Object.keys(applied).length === 0) {
+      const prerequisiteState = await prerequisiteValidator.validate(definition, {
+        actor: sourceActor,
+        targetState: { targets: [{ actor: targetActor, actorUuid: targetActor.uuid }] },
+        statistic: flag.transaction.statistic ?? null,
+        resolveTargets: false,
+        unknownAsFailure: true
+      });
+      if (!prerequisiteState.ok) {
+        const failure = prerequisiteState.hardFailures[0] ?? prerequisiteState.unresolved[0] ?? null;
+        return { ok: false, reason: "prerequisite-failed", prerequisiteMessage: failure?.message ?? null };
+      }
     }
 
     this.#processed.add(key);

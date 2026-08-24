@@ -7,6 +7,7 @@ import { registerActionForgeSceneControl } from "./ui/scene-controls.js";
 import { targetPickerService } from "./core/target-picker-service.js";
 import { sharedRollResolver } from "./core/shared-roll-resolver.js";
 import { explorationActivityService } from "./core/exploration-activity-service.js";
+import { prerequisiteBroker } from "./core/prerequisite-broker.js";
 
 const MODULE_ID = "pf2e-action-forge";
 
@@ -15,6 +16,7 @@ Hooks.once("init", () => {
   applicationBroker.registerQueryHandler();
   targetPickerService.registerQueryHandler();
   sharedRollResolver.registerQueryHandler();
+  prerequisiteBroker.registerQueryHandler();
 
   const module = game.modules.get(MODULE_ID);
   if (module) {
@@ -31,7 +33,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.16"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.17"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {

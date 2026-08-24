@@ -403,5 +403,18 @@
   "PF2EActionForge.SharedRoll.GMDc": "DC",
   "PF2EActionForge.SharedRoll.TargetCount": "{count} targets",
   "PF2EActionForge.SharedRoll.NoActiveGM": "An active GM must be connected to resolve this multi-target check.",
-  "PF2EActionForge.SharedRoll.Failed": "The shared check was rolled, but GM-side multi-target resolution failed."
+  "PF2EActionForge.SharedRoll.Failed": "The shared check was rolled, but GM-side multi-target resolution failed.",
+  "PF2EActionForge.Prerequisites.HealersToolkit": "This action requires a healer's toolkit.",
+  "PF2EActionForge.Prerequisites.RepairToolkit": "Repair requires a repair toolkit.",
+  "PF2EActionForge.Prerequisites.AlchemistsToolkit": "Identifying an alchemical item requires an alchemist's toolkit.",
+  "PF2EActionForge.Prerequisites.ThievesToolsConditional": "This mechanism may require thieves’ tools. The Forge allows the check because the GM decides whether they are required for a particular device.",
+  "PF2EActionForge.Prerequisites.ThievesToolsImprovised": "Picking a lock normally requires thieves’ tools. The Forge allows the check because the GM can permit improvised tools.",
+  "PF2EActionForge.Prerequisites.FlySpeed": "Maneuver in Flight requires a usable fly Speed.",
+  "PF2EActionForge.Prerequisites.AnimalTarget": "Command an Animal requires a target with the animal trait.",
+  "PF2EActionForge.Prerequisites.DyingTarget": "Stabilize requires a target at 0 HP with the dying condition.",
+  "PF2EActionForge.Prerequisites.BleedingTarget": "Stop Bleeding requires a target taking persistent bleed damage.",
+  "PF2EActionForge.Prerequisites.LivingWoundedTarget": "Treat Wounds requires a living, wounded creature.",
+  "PF2EActionForge.Prerequisites.FollowExpert": "Follow the Expert requires the selected ally to be at least expert in the selected skill.",
+  "PF2EActionForge.Prerequisites.ValidationUnavailable": "The action prerequisites could not be validated reliably. An active GM is required for this target.",
+  "PF2EActionForge.Prerequisites.GenericFailure": "The prerequisites for this action are not met."
 }
