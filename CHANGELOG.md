@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.0-dev.8 - Demoralize & Timed Results
+
+- Enabled **Demoralize** as a live PF2e system action using Intimidation against the target's Will DC.
+- Added confirmable result applications: Critical Success can apply **Frightened 2** and Success can apply **Frightened 1**.
+- Added valued-condition support to the Application Engine. Applying Frightened now raises an existing lower value when needed and never reduces a higher existing value.
+- Added the rules-mandated **10-minute Demoralize immunity** on every degree of success. The immunity is applied automatically and is **source-specific**, so only the same acting character is blocked from Demoralizing that target again during the window.
+- Demoralize immunity uses Foundry world time and becomes eligible again automatically after 10 minutes.
+- The target picker and execution controls respect source-specific Demoralize immunity before a new roll is made.
+- Replaced the Treat-Wounds-specific blocked-action warning with a generic action-immunity warning usable by timed results across the Action Forge.
+- Added German and English labels for Demoralize result applications and immunity effects.
+
 ## 0.1.0-dev.7.7 - Treat Wounds Public Summary
 
 - Added a public chat summary after successful Treat Wounds healing is applied and the standard immunity is active.

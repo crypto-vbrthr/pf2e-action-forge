@@ -84,6 +84,7 @@ export class ActionRegistry {
         type: String(effect?.type ?? "").trim(),
         target: ["source", "target"].includes(effect?.target) ? effect.target : "target",
         condition: effect?.condition ? String(effect.condition).trim() : null,
+        value: Number.isFinite(Number(effect?.value)) ? Math.max(0, Math.trunc(Number(effect.value))) : null,
         label: effect?.label ? String(effect.label).trim() : null,
         formula: effect?.formula ? String(effect.formula).trim() : null,
         formulaByDc: Object.freeze(Object.fromEntries(

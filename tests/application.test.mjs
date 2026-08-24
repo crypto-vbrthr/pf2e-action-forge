@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 const moduleJson = JSON.parse(fs.readFileSync(new URL("../module.json", import.meta.url), "utf8"));
 
-test("dev.6 Grapple and Trip applications remain available in dev.7", async () => {
+test("Grapple and Trip applications remain available in dev.8", async () => {
   const { CORE_ACTIONS } = await import(`../scripts/data/core-action-catalog.js?apps=${Date.now()}`);
   const grapple = CORE_ACTIONS.find((a) => a.id === "grapple");
   const trip = CORE_ACTIONS.find((a) => a.id === "trip");
@@ -154,8 +154,8 @@ test("Application Broker applies a validated result once and records idempotence
 
 test("module manifest enables module sockets for GM-mediated applications", () => {
   assert.equal(moduleJson.socket, true);
-  assert.equal(moduleJson.version, "0.1.0-dev.7.7");
-  assert.match(moduleJson.download, /v0\.1\.0-dev\.7/);
+  assert.equal(moduleJson.version, "0.1.0-dev.8");
+  assert.match(moduleJson.download, /v0\.1\.0-dev\.8/);
 });
 
 test("picker-selected party targets validate when PF2e party members is a Set-like collection", async () => {

@@ -1,12 +1,15 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.7.7 – Treat Wounds Public Summary**.
+Development build **0.1.0-dev.8 – Demoralize & Timed Results**.
 
-This hotfix replaces the player-to-GM application request transport with Foundry v14's native `User.query` mechanism. Healing, Wounded removal, immunity, damage, and other privileged result applications now use a direct request/response query to the active GM instead of waiting on a hand-built socket response.
+This build adds the second full result workflow: **Demoralize** now rolls through PF2e, applies Frightened 1/2 by confirmation, and automatically tracks the action's source-specific 10-minute temporary immunity. It also extends the Application Engine with safe valued-condition updates.
 
-## Included through dev.7.4
+## Included through dev.8
 
 - all foundation, catalog, targeting, DC, Visibility Profiles, GM DC Handoff, Application Engine, and Treat Wounds features from dev.1–dev.7;
+- **Demoralize** is executable against Will DC, with Frightened 1 on Success and Frightened 2 on Critical Success;
+- Demoralize always applies a source-specific 10-minute temporary immunity, regardless of degree of success;
+- an existing Frightened condition is only raised when the new result is stronger and is never reduced by Action Forge;
 - successful Treat Wounds healing now posts a public summary naming healer and target, actual HP restored, success/critical-success degree, and temporary immunity duration;
 - a new **Choose Target…** button in the active action target panel;
 - a GM-built, sanitized out-of-combat target directory;
@@ -49,8 +52,20 @@ npm test
 npm run check
 ```
 
-The next planned block is **0.1.0-dev.8 – Demoralize & Timed Results**.
+The next planned block is **0.1.0-dev.9 – UX & Player Hardening**.
 
 
 ### Out-of-combat target picker reliability
 The target picker resolves safe party, assigned-character, owned, and visible-scene targets locally first. A GM-side sanitized directory is now only a fallback for unusual permission setups.
+
+## dev.8 manual test – Demoralize
+
+1. Select a player character with Intimidation and a visible creature token within a normal Demoralize situation.
+2. Choose **Demoralize** and target the creature. Confirm the target's Will DC is resolved and the PF2e Demoralize roll opens normally.
+3. On **Success**, confirm the public result card offers **Frightened 1**; on **Critical Success**, confirm it offers **Frightened 2**.
+4. Apply the condition as a player to a target the player does not own and confirm the GM Broker performs the write.
+5. Confirm a 10-minute **Immune: Demoralize** effect is applied automatically on the target on every result, including Failure and Critical Failure.
+6. With the same source actor, immediately select Demoralize against that target again. Confirm Action Forge blocks the attempt before rolling.
+7. Switch to a different source actor and confirm that actor may still Demoralize the same target: the immunity is source-specific.
+8. Advance Foundry world time by 10 minutes and confirm the original source actor may Demoralize the target again.
+9. If the target is already Frightened 2 or higher, apply a Success result and confirm Action Forge does not reduce the existing Frightened value. If it is Frightened 1, apply a Critical Success and confirm it rises to 2.

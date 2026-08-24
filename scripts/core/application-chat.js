@@ -13,6 +13,11 @@ function labelForEffect(effect) {
   if (effect.label) return globalThis.game?.i18n?.localize?.(effect.label) ?? effect.label;
   if (effect.type === "condition-add") {
     const conditionName = globalThis.game?.pf2e?.ConditionManager?.getCondition?.(effect.condition)?.name ?? effect.condition;
+    const value = Number(effect.value);
+    if (Number.isFinite(value) && value > 0) {
+      return globalThis.game?.i18n?.format?.("PF2EActionForge.Application.ApplyConditionValue", { condition: conditionName, value })
+        ?? `Apply ${conditionName} ${value}`;
+    }
     return globalThis.game?.i18n?.format?.("PF2EActionForge.Application.ApplyCondition", { condition: conditionName }) ?? `Apply ${conditionName}`;
   }
   if (effect.type === "condition-remove") return globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.RemoveCondition") ?? effect.id;

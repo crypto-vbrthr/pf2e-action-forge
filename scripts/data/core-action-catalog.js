@@ -150,8 +150,28 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "single", type: "creature", required: false },
     dc: { strategy: "target-defense", defense: "will", manualFallback: true },
     systemAction: { slug: "demoralize" },
-    execution: { enabled: false, statistic: "intimidation" },
-    visibility: { announcement: "public", roll: "public", outcome: "public" }
+    execution: { enabled: true, statistic: "intimidation" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" },
+    application: {
+      mode: "confirm",
+      blockIfImmuneActionId: "demoralize",
+      outcomes: {
+        criticalSuccess: [
+          { id: "frightened-2", type: "condition-add", condition: "frightened", value: 2, target: "target", label: "PF2EActionForge.Demoralize.ApplyFrightened2" },
+          { id: "demoralize-immunity", type: "immunity", mode: "auto", actionId: "demoralize", durationSeconds: 600, sourceSpecific: true, target: "target", label: "PF2EActionForge.Demoralize.ApplyImmunity", name: "PF2EActionForge.Demoralize.ImmunityName", description: "PF2EActionForge.Demoralize.ImmunityDescription" }
+        ],
+        success: [
+          { id: "frightened-1", type: "condition-add", condition: "frightened", value: 1, target: "target", label: "PF2EActionForge.Demoralize.ApplyFrightened1" },
+          { id: "demoralize-immunity", type: "immunity", mode: "auto", actionId: "demoralize", durationSeconds: 600, sourceSpecific: true, target: "target", label: "PF2EActionForge.Demoralize.ApplyImmunity", name: "PF2EActionForge.Demoralize.ImmunityName", description: "PF2EActionForge.Demoralize.ImmunityDescription" }
+        ],
+        failure: [
+          { id: "demoralize-immunity", type: "immunity", mode: "auto", actionId: "demoralize", durationSeconds: 600, sourceSpecific: true, target: "target", label: "PF2EActionForge.Demoralize.ApplyImmunity", name: "PF2EActionForge.Demoralize.ImmunityName", description: "PF2EActionForge.Demoralize.ImmunityDescription" }
+        ],
+        criticalFailure: [
+          { id: "demoralize-immunity", type: "immunity", mode: "auto", actionId: "demoralize", durationSeconds: 600, sourceSpecific: true, target: "target", label: "PF2EActionForge.Demoralize.ApplyImmunity", name: "PF2EActionForge.Demoralize.ImmunityName", description: "PF2EActionForge.Demoralize.ImmunityDescription" }
+        ]
+      }
+    }
   },
   {
     id: "treat-wounds",

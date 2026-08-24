@@ -212,5 +212,12 @@
   "PF2EActionForge.TreatWounds.Duration.Minute": "{value} minute",
   "PF2EActionForge.TreatWounds.Duration.Minutes": "{value} minutes",
   "PF2EActionForge.TreatWounds.Duration.Second": "{value} second",
-  "PF2EActionForge.TreatWounds.Duration.Seconds": "{value} seconds"
+  "PF2EActionForge.TreatWounds.Duration.Seconds": "{value} seconds",
+  "PF2EActionForge.Application.ApplyConditionValue": "Apply {condition} {value}",
+  "PF2EActionForge.Application.ActionTargetImmune": "The target is temporarily immune to {action} from this acting character.",
+  "PF2EActionForge.Demoralize.ApplyFrightened1": "Apply Frightened 1",
+  "PF2EActionForge.Demoralize.ApplyFrightened2": "Apply Frightened 2",
+  "PF2EActionForge.Demoralize.ApplyImmunity": "Apply 10-minute immunity (automatic)",
+  "PF2EActionForge.Demoralize.ImmunityName": "Immune: Demoralize",
+  "PF2EActionForge.Demoralize.ImmunityDescription": "This creature is immune to further Demoralize attempts by the specified acting character for 10 minutes."
 }

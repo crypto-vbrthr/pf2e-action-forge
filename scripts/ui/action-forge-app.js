@@ -189,7 +189,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
             : !proficiencyValid
               ? game.i18n.localize("PF2EActionForge.Roll.ProficiencyRequired")
               : !immunityValid
-                ? game.i18n.localize("PF2EActionForge.TreatWounds.TargetImmune")
+                ? game.i18n.format("PF2EActionForge.Application.ActionTargetImmune", { action: game.i18n.localize(activeDefinition.label) })
                 : gmHandoffRequired && !gmHandoffAvailable
               ? game.i18n.localize("PF2EActionForge.GMDC.NoActiveGM")
               : waitingForGmDc
@@ -205,7 +205,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.7.7",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.8",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -671,7 +671,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
     if (app.#getBlockingImmunity(action, targetState, actor)) {
-      ui.notifications.warn(game.i18n.localize("PF2EActionForge.TreatWounds.TargetImmune"));
+      ui.notifications.warn(game.i18n.format("PF2EActionForge.Application.ActionTargetImmune", { action: game.i18n.localize(action.label) }));
       return;
     }
 

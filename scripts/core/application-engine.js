@@ -89,10 +89,30 @@ export class ApplicationEngine {
   async #addCondition({ effect, targetActor, sourceActor, transactionId }) {
     const slug = String(effect.condition ?? "").trim();
     if (!slug) return { ok: false, reason: "invalid-condition" };
+    const desiredValue = Number.isFinite(Number(effect.value))
+      ? Math.max(0, Math.trunc(Number(effect.value)))
+      : null;
 
     try {
-      if (targetActor.conditions?.hasType?.(slug)) {
-        return { ok: true, reason: "already-present", changed: false, condition: slug };
+      const existing = targetActor.conditions?.bySlug?.(slug, { active: true, temporary: false })?.at?.(0)
+        ?? targetActor.conditions?.bySlug?.(slug, { active: true })?.at?.(0)
+        ?? null;
+      if (existing) {
+        if (desiredValue === null) {
+          return { ok: true, reason: "already-present", changed: false, condition: slug };
+        }
+
+        const currentValue = Number(existing.value ?? existing.system?.value?.value ?? 0);
+        if (Number.isFinite(currentValue) && currentValue >= desiredValue) {
+          return { ok: true, reason: "already-at-least-value", changed: false, condition: slug, value: currentValue };
+        }
+
+        if (typeof existing.update === "function") {
+          await existing.update({ "system.value.value": desiredValue });
+          return { ok: true, changed: true, condition: slug, value: desiredValue, updatedId: existing.id ?? null };
+        }
+        // If an unusual synthetic condition cannot be updated, continue through
+        // PF2e's normal creation path rather than silently reducing/ignoring the result.
       }
 
       const template = globalThis.game?.pf2e?.ConditionManager?.getCondition?.(slug);
@@ -109,6 +129,11 @@ export class ApplicationEngine {
       const source = template.toObject?.() ?? null;
       if (!source) return { ok: false, reason: "invalid-condition-template" };
       delete source._id;
+      if (desiredValue !== null) {
+        source.system = source.system ?? {};
+        source.system.value = source.system.value ?? {};
+        source.system.value.value = desiredValue;
+      }
       source.flags = source.flags ?? {};
       source.flags[MODULE_ID] = {
         transactionId,
@@ -118,7 +143,13 @@ export class ApplicationEngine {
 
       const created = await targetActor.createEmbeddedDocuments?.("Item", [source]);
       if (!created) return { ok: false, reason: "create-failed" };
-      return { ok: true, changed: true, condition: slug, createdIds: created.map((item) => item.id) };
+      return {
+        ok: true,
+        changed: true,
+        condition: slug,
+        value: desiredValue,
+        createdIds: created.map((item) => item.id)
+      };
     } catch (error) {
       console.error("PF2E Action Forge | Failed to apply condition", error);
       return { ok: false, reason: "apply-error", error };
