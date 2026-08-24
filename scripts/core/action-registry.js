@@ -65,6 +65,14 @@ export class ActionRegistry {
       ? dcDefinition.strategy
       : "none";
 
+    const dcChoices = Object.freeze(
+      Array.isArray(dcDefinition.choices)
+        ? dcDefinition.choices.map((choice) =>
+            choice && typeof choice === "object" ? Object.freeze({ ...choice }) : choice
+          )
+        : []
+    );
+
     const executionDefinition =
       definition.execution && typeof definition.execution === "object" ? definition.execution : {};
     const visibilityDefinition =
@@ -127,7 +135,7 @@ export class ActionRegistry {
         defense: dcDefinition.defense ? String(dcDefinition.defense) : null,
         manualFallback: Boolean(dcDefinition.manualFallback),
         value: Number.isFinite(dcDefinition.value) ? dcDefinition.value : null,
-        choices: Object.freeze(Array.isArray(dcDefinition.choices) ? [...dcDefinition.choices] : []),
+        choices: dcChoices,
         systemTargetFallback: Boolean(dcDefinition.systemTargetFallback),
         systemTargetRequiresStatisticMatch: Boolean(dcDefinition.systemTargetRequiresStatisticMatch),
         allowUnknown: Boolean(dcDefinition.allowUnknown),

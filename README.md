@@ -1,9 +1,17 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.14.1 - GM DC Authority Hotfix**.
+Development build **0.1.0-dev.15 - Full Action Catalog Integration Review**.
 
-The Action Forge now contains **65 actions and activities**: the complete 51-card Player Core skill-action surface plus four selected core utility actions and all ten common Player Core exploration activities. The new exploration layer is persistent state rather than another pile of immediate d20 buttons.
+Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
 
+## New in dev.15
+
+- Completed a full cross-catalog integration review of all 65 definitions against the current Player Core-facing scope.
+- Added integration gates for catalog uniqueness/splits, trained-only proficiency requirements, DE/EN localization coverage, secret visibility, GM DC authority, persistent exploration contracts, application type safety, and known multi-target boundaries.
+- Re-routed the review tests through the normalized `ActionRegistry` contract rather than trusting raw catalog data alone.
+- Hardened ActionRegistry immutability: objects inside `dc.choices` are now copied and frozen, preventing consumers from mutating registered Treat Wounds, Learn a Spell, or Aid DC choices globally.
+- Confirmed the current release blockers are **Shared Roll / Multi-Target Resolution** and **Prerequisite & Equipment Validation**. The catalog itself is complete for the defined scope.
+- Added `docs/FULL_ACTION_CATALOG_INTEGRATION_REVIEW.md` with the complete findings and recommended roadmap.
 
 ## New in dev.14.1
 
@@ -84,7 +92,7 @@ Identify Magic, Decipher Writing, and Create Forgery remain genuinely secret wor
 
 ## Current Player Core skill-action coverage
 
-The skill-action catalog contains **51 distinct actions/activities**; dev.14 adds 14 core/exploration entries for **65 total cards**. Repeated generic actions such as Recall Knowledge, Earn Income, Identify Magic, Decipher Writing, and Learn a Spell appear once and offer the relevant skill choices rather than being duplicated under every skill heading.
+The skill-action catalog contains **51 cards representing 50 distinct Player Core skill uses**; dev.14 adds 14 core/exploration entries for **65 total cards**. Repeated generic actions such as Recall Knowledge, Earn Income, Identify Magic, Decipher Writing, and Learn a Spell appear once and offer the relevant skill choices rather than being duplicated under every skill heading.
 
 This completes the current **skill-action** catalog target. It does not mean that every Basic Action, exploration activity, class action, feat action, spell action, or subsystem action in Pathfinder is part of Action Forge. Those are separate surfaces and should be evaluated deliberately during the integration review rather than silently folded into the skill catalog.
 
@@ -135,6 +143,6 @@ npm test
 npm run check
 ```
 
-Current suite: **123/123 tests passing**.
+Current suite: **137/137 tests passing**.
 
 The Player Core skill-action catalog and the common exploration/core-utility layer are now represented. The next major review can focus on multi-target/shared-roll resolution and deeper integration rather than catalog gaps.

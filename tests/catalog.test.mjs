@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.11 social and exploration build and release URLs", async () => {
+test("manifest identifies the dev.15 integration-review build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.14.1");
+  assert.equal(manifest.version, "0.1.0-dev.15");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.14.1/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.15/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -24,7 +24,7 @@ test("English and German localization expose the same keys", async () => {
   assert.deepEqual(Object.keys(de).sort(), Object.keys(en).sort());
 });
 
-test("the core catalog contains the MVP, combat/movement, and dev.11 social/exploration actions", async () => {
+test("the core catalog contains the full Player Core skill, utility, and exploration surface", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   assert.equal(CORE_ACTIONS.length, 65);
   assert.deepEqual(
@@ -136,7 +136,7 @@ test("Action Cards override Foundry compact button sizing so text cannot be vert
   assert.match(css, /\.af-action-copy strong,[\s\S]*\.af-action-copy small[\s\S]*overflow: visible;/);
 });
 
-test("all MVP actions declare normalized target metadata", async () => {
+test("all catalog actions declare normalized target metadata", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   const expected = new Map([
     ["escape", "single"],

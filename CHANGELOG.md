@@ -1,3 +1,15 @@
+## [0.1.0-dev.15] - 2026-08-24
+
+### Review & hardening
+
+- Completed the **Full Action Catalog Integration Review** across all 65 current actions and activities.
+- Confirmed the catalog split as 51 skill-action cards representing 50 distinct Player Core skill uses, 4 selected core utility actions, and 10 common exploration activities.
+- Added cross-catalog regression gates for uniqueness, proficiency requirements, ActionRegistry normalization, localization references, secret visibility, exploration-mode contracts, GM DC authority, and application-effect safety.
+- Deep-froze registered DC choice objects in ActionRegistry so consumers cannot mutate Aid, Learn a Spell, or Treat Wounds choice metadata after registration.
+- Documented the two remaining pre-RC integration priorities: shared-roll/multi-target resolution and prerequisite/equipment validation.
+- Added `docs/FULL_ACTION_CATALOG_INTEGRATION_REVIEW.md` with the complete review and roadmap.
+- Synchronized manifest/package/UI version metadata and refreshed the documented automated-test total.
+
 ## [0.1.0-dev.14.1] - 2026-08-24
 
 ### Fixed
