@@ -1,19 +1,31 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.13.1 - Registry DC Metadata Hotfix**.
+Development build **0.1.0-dev.14 - Exploration Mode & Core Utility Actions**.
 
-dev.13 expands the catalog from **43 to 51 actions** and closes the remaining distinct **Player Core skill-action** gaps in the current Action Forge scope. The catalog now covers the core skill actions from Acrobatics through Survival while still delegating actual PF2e checks, modifiers, degree-of-success handling, and Rule Elements to the system wherever possible.
+The Action Forge now contains **65 actions and activities**: the complete 51-card Player Core skill-action surface plus four selected core utility actions and all ten common Player Core exploration activities. The new exploration layer is persistent state rather than another pile of immediate d20 buttons.
 
-## New in dev.13.1
+## New in dev.14
 
-This hotfix closes the registry-contract issue found during the Player Core Integration & Completeness Review. Action definitions are normalized before the UI, DC Resolver, and PF2e adapter consume them; dev.13 introduced additional DC metadata that the registry did not preserve.
+### Persistent exploration mode
 
-- `dc.hidden` now survives ActionRegistry normalization, so a public check such as **Earn Income** can still keep the GM-defined DC hidden.
-- `dc.allowCustom`, `choiceLabel`, `choiceHint`, `customLabel`, and `customHint` now survive normalization, so **Learn a Spell** retains its custom rarity/special-circumstance DC workflow and localized UI labels.
-- Runtime regression tests now register the real catalog through `ActionRegistry` before exercising the DC Resolver and PF2e statistic adapter. This prevents raw-catalog tests from masking future registry-contract regressions.
-- Both module startup fallbacks now report the current module version instead of retaining an older dev fallback.
+The Forge now offers **Search, Follow the Expert, Sustain an Effect, Hustle, Detect Magic, Scout, Avoid Notice, Investigate, Defend, and Repeat a Spell** as dedicated exploration activities. Starting one stores it on the acting Actor, replaces any previous exploration activity, and displays a persistent **Active Exploration Activity** banner when the Forge is reopened. The player can end the activity from that banner.
 
-The action catalog itself is unchanged at **51 actions**.
+Exploration activities deliberately do not manufacture an immediate roll. Search and Investigate, for example, record what the character is doing so the relevant secret checks can be resolved when a clue, hazard, hidden creature, or other trigger actually matters.
+
+**Follow the Expert** additionally remembers the selected expert and chosen skill/Lore statistic.
+
+### Core utility actions
+
+- **Escape** offers Unarmed, Acrobatics, or Athletics and can use a selected creature's Athletics DC or a manual fallback DC for another restraining effect.
+- **Sense Motive** uses Perception against a selected target's Deception DC with a blind roll and GM-only outcome.
+- **Seek** delegates the secret Perception check to PF2e without forcing one artificial DC onto a search that may involve several hidden targets or objects.
+- **Aid** starts from DC 15, allows a GM-adjusted DC, and lets the acting character select a skill or Lore statistic for skill-based Aid.
+
+The DC Resolver can now read prepared Athletics, Deception, and Thievery DCs from Actor statistics in addition to the existing defenses.
+
+## Exploration automation boundary
+
+dev.14 stores and presents the activity state, but it does not yet automatically grant Scout's +1 initiative bonus, keep a shield mechanically Raised for Defend, fire future Search/Investigate secret checks, or continuously recast spells. Those are intentionally left to PF2e/GM adjudication until the later integration layer can apply them without creating stale or misleading effects. Attack-roll Aid also remains outside the current skill/Lore selector.
 
 ## Features retained from dev.13
 
@@ -64,7 +76,7 @@ Identify Magic, Decipher Writing, and Create Forgery remain genuinely secret wor
 
 ## Current Player Core skill-action coverage
 
-The catalog now contains **51 distinct actions/activities**. Repeated generic actions such as Recall Knowledge, Earn Income, Identify Magic, Decipher Writing, and Learn a Spell appear once and offer the relevant skill choices rather than being duplicated under every skill heading.
+The skill-action catalog contains **51 distinct actions/activities**; dev.14 adds 14 core/exploration entries for **65 total cards**. Repeated generic actions such as Recall Knowledge, Earn Income, Identify Magic, Decipher Writing, and Learn a Spell appear once and offer the relevant skill choices rather than being duplicated under every skill heading.
 
 This completes the current **skill-action** catalog target. It does not mean that every Basic Action, exploration activity, class action, feat action, spell action, or subsystem action in Pathfinder is part of Action Forge. Those are separate surfaces and should be evaluated deliberately during the integration review rather than silently folded into the skill catalog.
 
@@ -90,23 +102,23 @@ The wide 1120 px responsive action grid, orange catalog, purple execution workfl
 - foreign player-character targets without granting ownership;
 - GM-side validation of privileged applications;
 - Foundry v14 `User.query` broker transport with multi-GM failover;
+- secure **GM DC Handoff** for player checks whose difficulty must stay under GM control;
 - public, player/GM, blind, GM-only, self, and suppressed visibility profiles;
 - duplicate-roll and duplicate-application protection;
 - Treat Wounds healing, Wounded removal, timed immunity, and public healing summary;
 - Demoralize frightened application and source-specific timed immunity;
 - preserved scroll position and input focus across rerenders.
 
-## dev.13 manual test checklist
+## dev.14 manual test checklist
 
-1. Run Identify Magic and Decipher Writing as a player and confirm the roll is blind and the result is not exposed.
-2. Try each with an untrained selected skill and confirm execution is blocked.
-3. Run Learn a Spell with several spell ranks and verify the displayed DC/cost reference, then enter a custom rarity DC and confirm that value is used.
-4. Run Earn Income with Performance, Crafting, and a Lore skill. Confirm the roll is public but the GM-selected DC is not printed to the player.
-5. Run Prepare from Another Spellbook as a trained Arcana character and confirm the GM DC handoff works.
-6. Run Create Forgery and confirm the check is blind against DC 20.
-7. Select an animal and run Command an Animal against its Will DC.
-8. Run Maneuver in Flight with a manual DC and confirm untrained Acrobatics is blocked.
-9. Re-test Treat Wounds, Demoralize, one social secret action, and First Aid to confirm the expansion did not disturb existing broker/application flows.
+1. Start **Scout**, close and reopen Action Forge, and confirm the active exploration banner persists.
+2. Start another exploration activity and confirm it replaces Scout; use **End** and confirm the banner disappears.
+3. Start **Follow the Expert** with another PC and a selected skill/Lore entry and confirm both are remembered.
+4. Test **Escape** with Athletics/Acrobatics/Unarmed and a selected target, plus a manual fallback DC when no creature provides the restraining effect.
+5. Test **Sense Motive** as a player and confirm the roll/result remains secret.
+6. Test **Seek** and confirm PF2e performs the secret Perception roll without Action Forge demanding one universal DC.
+7. Test skill-based **Aid** with DC 15 and with a GM-adjusted custom DC.
+8. Re-test Treat Wounds, Demoralize, one secret social action, and Learn a Spell to confirm the new categories did not disturb existing workflows.
 
 ## Automated checks
 
@@ -115,6 +127,6 @@ npm test
 npm run check
 ```
 
-Current suite: **115/115 tests passing**.
+Current suite: **123/123 tests passing**.
 
-The Player Core Integration & Completeness Review has now been completed. After this hotfix, the next feature block can proceed to **Exploration Mode & Core Utility Actions**.
+The Player Core skill-action catalog and the common exploration/core-utility layer are now represented. The next major review can focus on multi-target/shared-roll resolution and deeper integration rather than catalog gaps.

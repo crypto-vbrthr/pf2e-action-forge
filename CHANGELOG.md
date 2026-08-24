@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.1.0-dev.14] - 2026-08-24
+
+### Added
+
+- Added a persistent **Exploration Mode** for the ten common Player Core exploration activities: Search, Follow the Expert, Sustain an Effect, Hustle, Detect Magic, Scout, Avoid Notice, Investigate, Defend, and Repeat a Spell.
+- Exploration activities are stored as one active Actor flag and replace the previous activity when a new one is started. The Action Forge shows the current activity in a dedicated banner and lets the controlling player end it explicitly.
+- Follow the Expert remembers both the selected expert target and the selected skill/Lore statistic so the exploration plan survives closing and reopening the Forge.
+- Added the high-value core utility actions **Escape**, **Sense Motive**, **Seek**, and **Aid**.
+- Escape offers Unarmed, Acrobatics, or Athletics as the check method and can resolve a selected creature's Athletics DC or accept a manual fallback DC for other immobilizing effects.
+- Sense Motive uses Perception against Deception DC and keeps the check/result secret. Seek uses the PF2e secret Perception workflow without inventing one universal DC for potentially several hidden creatures or objects.
+- Aid provides the standard DC 15 as the default with GM-adjustable custom DC support and a selectable skill/Lore check.
+- Expanded direct target-statistic DC resolution to Athletics, Deception, and Thievery DCs for current and future core-action workflows.
+- Exposed exploration-state read/clear helpers through the module API and refresh the open Forge when the exploration Actor flag changes.
+- Added German and English localization and dedicated exploration-state UI styling.
+
+### Changed
+
+- The catalog now contains **65 actions/activities**: the complete 51-card skill-action surface from dev.13 plus 4 core utilities and 10 persistent exploration activities.
+- Exploration activities no longer show a meaningless roll-visibility panel. They explicitly explain that no immediate d20 check is made and that relevant checks are resolved later when the situation calls for them.
+- ActionRegistry now preserves exploration execution mode plus custom statistic selector labels/hints.
+- PF2e Action Adapter treats exploration selections as state changes rather than fake rolls while continuing to delegate Escape, Sense Motive, Seek, and Aid to PF2e system actions where available.
+
+### Current automation boundary
+
+- dev.14 records the exploration activity and its configuration; it does **not** yet automatically grant Scout's +1 initiative bonus, maintain Raised Shield state for Defend, trigger future secret Search/Investigate checks, or repeatedly cast spells. Those effects remain PF2e/GM adjudication until a later integration block can apply them safely.
+- Aid currently focuses on skill/Lore-based assistance. Attack-roll Aid remains a situational PF2e workflow because the Forge does not yet provide a generic attack selector for this action.
+- Seek intentionally has no single Forge DC because one Seek can be compared against several different Stealth/detection DCs.
+
+### Tests
+
+- Added dev.14 regression coverage for catalog completeness, exploration persistence, replacement/clearing, registry normalization, skill DC resolution, PF2e utility delegation, and UI/localization wiring.
+- Automated suite now contains **123 passing tests**.
+
 ## [0.1.0-dev.13.1] - 2026-08-24
 
 ### Fixed

@@ -52,6 +52,29 @@
     {{/if}}
   </section>
 
+  {{#if activeExploration}}
+    <section class="af-exploration-active" aria-label="{{localize 'PF2EActionForge.Exploration.ActiveHeading'}}">
+      <div class="af-exploration-active-main">
+        <span class="af-exploration-active-icon" aria-hidden="true"><i class="{{activeExploration.icon}}"></i></span>
+        <div class="af-exploration-active-copy">
+          <span class="af-eyebrow">{{localize "PF2EActionForge.Exploration.ActiveHeading"}}</span>
+          <strong>{{activeExploration.label}}</strong>
+          {{#if activeExploration.description}}<small>{{activeExploration.description}}</small>{{/if}}
+          {{#if activeExploration.targetName}}
+            <span class="af-exploration-detail"><i class="fa-solid fa-user-group" aria-hidden="true"></i> {{localize "PF2EActionForge.Exploration.Expert"}}: {{activeExploration.targetName}}</span>
+          {{/if}}
+          {{#if activeExploration.statisticLabel}}
+            <span class="af-exploration-detail"><i class="fa-solid fa-list-check" aria-hidden="true"></i> {{localize "PF2EActionForge.Exploration.Skill"}}: {{activeExploration.statisticLabel}}</span>
+          {{/if}}
+        </div>
+      </div>
+      <button type="button" class="af-exploration-clear" data-action="clearExplorationActivity" {{#if interactionLocked}}disabled{{/if}}>
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        {{localize "PF2EActionForge.Exploration.Clear"}}
+      </button>
+    </section>
+  {{/if}}
+
   {{#if activeAction}}
     <div class="af-execution-workflow" data-role="execution-workflow">
     <section class="af-target-panel" aria-labelledby="af-target-heading">
@@ -235,6 +258,16 @@
             {{#each visibilityContext.rows}}
               <span>{{label}}</span><strong>{{value}}</strong>
             {{/each}}
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if executionContext.explorationActivity}}
+        <div class="af-exploration-workflow-note">
+          <i class="fa-solid fa-map" aria-hidden="true"></i>
+          <div>
+            <strong>{{localize "PF2EActionForge.Exploration.WorkflowHeading"}}</strong>
+            <span>{{localize "PF2EActionForge.Exploration.WorkflowHint"}}</span>
           </div>
         </div>
       {{/if}}

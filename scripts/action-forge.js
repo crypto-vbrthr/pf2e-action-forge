@@ -5,6 +5,7 @@ import { CORE_ACTIONS } from "./data/core-action-catalog.js";
 import { ActionForgeApp } from "./ui/action-forge-app.js";
 import { registerActionForgeSceneControl } from "./ui/scene-controls.js";
 import { targetPickerService } from "./core/target-picker-service.js";
+import { explorationActivityService } from "./core/exploration-activity-service.js";
 
 const MODULE_ID = "pf2e-action-forge";
 
@@ -20,11 +21,15 @@ Hooks.once("init", () => {
       actions: Object.freeze({
         get: (id) => actionRegistry.get(id),
         list: () => actionRegistry.list()
+      }),
+      exploration: Object.freeze({
+        get: (actor) => explorationActivityService.get(actor),
+        clear: (actor) => explorationActivityService.clear(actor)
       })
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.13.1"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.14"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -47,6 +52,11 @@ Hooks.on("canvasReady", () => {
 Hooks.on("updateUser", (user, changes) => {
   if (user.id !== game.user.id) return;
   if (!("character" in changes) && !("flags" in changes)) return;
+  ActionForgeApp.refreshIfOpen();
+});
+
+Hooks.on("updateActor", (_actor, changes) => {
+  if (!changes?.flags || !(MODULE_ID in changes.flags)) return;
   ActionForgeApp.refreshIfOpen();
 });
 

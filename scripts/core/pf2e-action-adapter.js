@@ -2,6 +2,10 @@ import { resolveActorDefenseDc } from "./dc-resolver.js";
 import { visibilityEngine } from "./visibility-engine.js";
 
 const FALLBACK_SYSTEM_SLUGS = Object.freeze({
+  escape: "escape",
+  "sense-motive": "sense-motive",
+  seek: "seek",
+  aid: "aid",
   "recall-knowledge": "recall-knowledge",
   "earn-income": "earn-income",
   "identify-magic": "identify-magic",
@@ -108,7 +112,7 @@ export class PF2eActionAdapter {
 
   isAvailable(definition) {
     if (!definition?.execution?.enabled) return false;
-    if (["statistic", "system-or-statistic", "activity"].includes(definition.execution.mode)) return true;
+    if (["statistic", "system-or-statistic", "activity", "exploration-activity"].includes(definition.execution.mode)) return true;
     return Boolean(this.getSystemAction(definition));
   }
 
@@ -121,6 +125,9 @@ export class PF2eActionAdapter {
     const mode = definition.execution.mode;
     if (mode === "activity") {
       return { ok: true, action: null, activity: true, results: [] };
+    }
+    if (mode === "exploration-activity") {
+      return { ok: true, action: null, activity: true, explorationActivity: true, results: [] };
     }
     if (mode === "statistic") {
       return this.#executeStatistic({ definition, actor, target, difficultyClass, statistic, event });

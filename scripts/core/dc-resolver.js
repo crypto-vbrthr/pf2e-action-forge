@@ -1,5 +1,5 @@
 const DC_STRATEGIES = new Set(["none", "manual", "target-defense", "target-dying", "fixed", "fixed-choice", "gm-defined"]);
-const DEFENSES = new Set(["ac", "perception", "fortitude", "reflex", "will"]);
+const DEFENSES = new Set(["ac", "perception", "fortitude", "reflex", "will", "athletics", "deception", "thievery"]);
 
 function normalizeManualDc(value) {
   if (value === null || value === undefined || value === "") return null;

@@ -5,6 +5,7 @@ import { ActionTransaction } from "../core/action-transaction.js";
 import { actorResolver, CURRENT_TOKEN_SELECTION } from "../core/actor-resolver.js";
 import { dcResolver, statisticRank } from "../core/dc-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
+import { explorationActivityService } from "../core/exploration-activity-service.js";
 import { gmDcHandoff } from "../core/gm-dc-handoff.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
 import { targetResolver } from "../core/target-resolver.js";
@@ -45,7 +46,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       removeTarget: ActionForgeApp.#removeTarget,
       useCanvasTargets: ActionForgeApp.#useCanvasTargets,
       pickTarget: ActionForgeApp.#pickTarget,
-      closeActionSelection: ActionForgeApp.#closeActionSelection
+      closeActionSelection: ActionForgeApp.#closeActionSelection,
+      clearExplorationActivity: ActionForgeApp.#clearExplorationActivity
     }
   };
 
@@ -183,6 +185,22 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const actions = actionRegistry.list().map((action) => this.#prepareAction(action, favoriteIds));
     const favoriteActions = actions.filter((action) => action.isFavorite);
     const categories = this.#groupByCategory(actions);
+    const storedExploration = explorationActivityService.get(resolution.actor);
+    const storedExplorationDefinition = storedExploration ? actionRegistry.get(storedExploration.actionId) : null;
+    const activeExploration = storedExploration && storedExplorationDefinition?.execution?.mode === "exploration-activity"
+      ? {
+          actionId: storedExploration.actionId,
+          label: game.i18n.localize(storedExplorationDefinition.label),
+          description: storedExplorationDefinition.description ? game.i18n.localize(storedExplorationDefinition.description) : "",
+          icon: storedExplorationDefinition.icon,
+          statistic: storedExploration.statistic,
+          statisticLabel: storedExploration.statistic
+            ? this.#getStatisticOptions(storedExplorationDefinition, resolution.actor)
+                .find((entry) => entry.slug === storedExploration.statistic)?.label ?? storedExploration.statistic
+            : null,
+          targetName: storedExploration.targetActorName ?? null
+        }
+      : null;
 
     const activeDefinition = this.activeActionId ? actionRegistry.get(this.activeActionId) : null;
     const activeAction = activeDefinition ? this.#prepareAction(activeDefinition, favoriteIds) : null;
@@ -202,7 +220,9 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const selectedStatistic = this.#getSelectedStatistic(activeDefinition, resolution.actor);
       const dcState = dcResolver.getState(activeDefinition, targetState, { manualDc, statistic: selectedStatistic, actor: resolution.actor });
       statisticContext = this.#prepareStatisticContext(activeDefinition, resolution.actor, selectedStatistic);
-      visibilityContext = this.#prepareVisibilityContext(activeDefinition);
+      visibilityContext = activeDefinition.execution.mode === "exploration-activity"
+        ? null
+        : this.#prepareVisibilityContext(activeDefinition);
 
       const targetHintKey =
         targetState.mode === "single" && !targetState.required
@@ -265,7 +285,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         gmHandoffAvailable,
         waitingForGmDc,
         executionInFlight,
-        activity: activeDefinition.execution.mode === "activity",
+        activity: ["activity", "exploration-activity"].includes(activeDefinition.execution.mode),
+        explorationActivity: activeDefinition.execution.mode === "exploration-activity",
         buttonText: game.i18n.localize(
           executionInFlight
             ? "PF2EActionForge.Roll.Executing"
@@ -273,9 +294,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
               ? "PF2EActionForge.GMDC.WaitingButton"
               : gmHandoffRequired
                 ? "PF2EActionForge.GMDC.RequestButton"
-                : activeDefinition.execution.mode === "activity"
-                  ? "PF2EActionForge.Roll.StartActivity"
-                  : "PF2EActionForge.Roll.Execute"
+                : activeDefinition.execution.mode === "exploration-activity"
+                  ? "PF2EActionForge.Exploration.Start"
+                  : activeDefinition.execution.mode === "activity"
+                    ? "PF2EActionForge.Roll.StartActivity"
+                    : "PF2EActionForge.Roll.Execute"
         ),
         constraintText: executionInFlight
           ? game.i18n.localize("PF2EActionForge.Roll.ExecutingHint")
@@ -302,7 +325,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.13.1",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.14",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -335,6 +358,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       statisticContext,
       visibilityContext,
       executionContext,
+      activeExploration,
       lastRoll: this.lastRoll
     };
   }
@@ -554,6 +578,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!actor) return [];
     const options = new Map();
     const localizeLabel = (slug, statistic = null) => {
+      if (slug === "unarmed") return game.i18n.localize("PF2EActionForge.Roll.Unarmed");
       const label = statistic?.label ?? actor.getStatistic?.(slug)?.label ?? globalThis.CONFIG?.PF2E?.skills?.[slug]?.label;
       return label ? game.i18n.localize(label) : slug;
     };
@@ -874,6 +899,19 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       // Even a cancelled PF2e roll dialog is a completed attempt from the Forge's
       // perspective: the frozen source/target session can be safely released.
       actionCompleted = true;
+      if (execution.explorationActivity) {
+        const stored = await explorationActivityService.set(actor, action, {
+          statistic: selectedStatistic,
+          targetEntry: targetState.targets[0] ?? null
+        });
+        if (!stored.ok) {
+          actionCompleted = false;
+          ui.notifications.error(game.i18n.localize("PF2EActionForge.Exploration.StoreFailed"));
+          return;
+        }
+        ui.notifications.info(game.i18n.format("PF2EActionForge.Exploration.Started", { action: game.i18n.localize(action.label) }));
+        return;
+      }
       if (execution.activity) {
         await visibilityEngine.createAnnouncement({ definition: action, actor, force: true });
         return;
@@ -1001,6 +1039,25 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     targetResolver.clear();
     actorResolver.unlockActionActor();
     app.render({ force: true });
+  }
+
+  static async #clearExplorationActivity(event) {
+    event?.preventDefault?.();
+    const app = ActionForgeApp.instance;
+    if (app?.pendingGmDcRequest || app?.executionInFlight) return;
+    const actor = actorResolver.resolve();
+    if (!actor) {
+      ui.notifications.warn(game.i18n.localize("PF2EActionForge.Notifications.NoActor"));
+      return;
+    }
+
+    const result = await explorationActivityService.clear(actor);
+    if (!result.ok) {
+      ui.notifications.error(game.i18n.localize("PF2EActionForge.Exploration.ClearFailed"));
+      return;
+    }
+    ui.notifications.info(game.i18n.localize("PF2EActionForge.Exploration.Cleared"));
+    app?.render({ force: true });
   }
 
   static async #toggleFavorite(event, target) {

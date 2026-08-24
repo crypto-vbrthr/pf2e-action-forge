@@ -22,7 +22,7 @@ test("dev.12 registers Medicine, Thievery, and Crafting workflows", async () => 
   const { CORE_ACTIONS } = await import(`../scripts/data/core-action-catalog.js?dev12-catalog=${Date.now()}`);
   const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
 
-  assert.equal(CORE_ACTIONS.length, 51);
+  assert.equal(CORE_ACTIONS.length, 65);
   for (const id of DEV12_IDS) assert.ok(byId.has(id), `${id} should be registered`);
 
   for (const id of ["palm-an-object", "steal", "disable-a-device", "pick-a-lock"]) {
@@ -176,5 +176,5 @@ test("dev.12 keeps the wide catalog UI and makes the footer version dynamic", as
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   assert.match(template, /\{\{moduleVersion\}\} · \{\{localize "PF2EActionForge\.Footer\.Catalog"\}\}/);
   assert.match(app, /width:\s*1120/);
-  assert.match(app, /0\.1\.0-dev\.13/);
+  assert.match(app, /0\.1\.0-dev\.14/);
 });

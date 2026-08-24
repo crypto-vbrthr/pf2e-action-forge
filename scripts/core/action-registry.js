@@ -148,7 +148,7 @@ export class ActionRegistry {
       }),
       execution: Object.freeze({
         enabled: Boolean(executionDefinition.enabled),
-        mode: ["system-action", "statistic", "system-or-statistic", "activity"].includes(executionDefinition.mode)
+        mode: ["system-action", "statistic", "system-or-statistic", "activity", "exploration-activity"].includes(executionDefinition.mode)
           ? executionDefinition.mode
           : "system-action",
         statistic: executionDefinition.statistic ? String(executionDefinition.statistic) : null,
@@ -159,6 +159,8 @@ export class ActionRegistry {
         ),
         includeLore: Boolean(executionDefinition.includeLore),
         requiresStatistic: Boolean(executionDefinition.requiresStatistic),
+        statisticLabel: executionDefinition.statisticLabel ? String(executionDefinition.statisticLabel).trim() : null,
+        statisticHint: executionDefinition.statisticHint ? String(executionDefinition.statisticHint).trim() : null,
         singleTargetOnly: Boolean(executionDefinition.singleTargetOnly),
         minRank: Number.isInteger(Number(executionDefinition.minRank))
           ? Math.max(0, Math.min(4, Number(executionDefinition.minRank)))

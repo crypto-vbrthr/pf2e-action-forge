@@ -1,12 +1,279 @@
 /**
  * Core skill-action catalog.
  *
- * dev.13 completes the main Player Core skill-action surface with knowledge,
- * magic, downtime, Nature/Society, and the previously missing flight action.
+ * dev.14 extends the complete Player Core skill-action surface with persistent
+ * exploration activities and selected high-value core utility actions.
  * PF2e system actions remain preferred, with statistic-roll fallbacks for
  * compatibility, GM-mediated DC handoff, and declarative result applications.
  */
 export const CORE_ACTIONS = Object.freeze([
+  // Core utility actions are deliberately selective: these are the basic
+  // actions that benefit most from Action Forge's DC, target, visibility and
+  // statistic orchestration instead of duplicating ordinary movement controls.
+  {
+    id: "escape",
+    label: "PF2EActionForge.Actions.Escape.Name",
+    description: "PF2EActionForge.Actions.Escape.Description",
+    category: "core-utility",
+    categoryLabel: "PF2EActionForge.Categories.CoreUtility",
+    categoryIcon: "fa-solid fa-toolbox",
+    categoryOrder: -20,
+    order: 10,
+    icon: "fa-solid fa-link-slash",
+    keywords: ["escape", "basic", "acrobatics", "athletics", "unarmed", "grabbed", "restrained", "immobilized"],
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "athletics", manualFallback: true, allowUnknown: true },
+    systemAction: { slug: "escape" },
+    execution: {
+      enabled: true,
+      statistics: ["unarmed", "acrobatics", "athletics"],
+      requiresStatistic: true,
+      statisticLabel: "PF2EActionForge.CoreUtility.EscapeStatisticLabel",
+      statisticHint: "PF2EActionForge.CoreUtility.EscapeStatisticHint"
+    },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "sense-motive",
+    label: "PF2EActionForge.Actions.SenseMotive.Name",
+    description: "PF2EActionForge.Actions.SenseMotive.Description",
+    category: "core-utility",
+    categoryLabel: "PF2EActionForge.Categories.CoreUtility",
+    categoryIcon: "fa-solid fa-toolbox",
+    categoryOrder: -20,
+    order: 20,
+    icon: "fa-solid fa-face-thinking",
+    keywords: ["sense motive", "basic", "perception", "deception", "secret", "lie"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-defense", defense: "deception", allowUnknown: true },
+    systemAction: { slug: "sense-motive" },
+    execution: { enabled: true, statistic: "perception" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "seek",
+    label: "PF2EActionForge.Actions.Seek.Name",
+    description: "PF2EActionForge.Actions.Seek.Description",
+    category: "core-utility",
+    categoryLabel: "PF2EActionForge.Categories.CoreUtility",
+    categoryIcon: "fa-solid fa-toolbox",
+    categoryOrder: -20,
+    order: 30,
+    icon: "fa-solid fa-magnifying-glass-location",
+    keywords: ["seek", "search", "basic", "perception", "secret", "hidden", "undetected"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    systemAction: { slug: "seek" },
+    execution: { enabled: true, statistic: "perception" },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "aid",
+    label: "PF2EActionForge.Actions.Aid.Name",
+    description: "PF2EActionForge.Actions.Aid.Description",
+    category: "core-utility",
+    categoryLabel: "PF2EActionForge.Categories.CoreUtility",
+    categoryIcon: "fa-solid fa-toolbox",
+    categoryOrder: -20,
+    order: 40,
+    icon: "fa-solid fa-handshake-angle",
+    keywords: ["aid", "help", "basic", "reaction", "dc 15", "skill"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: {
+      strategy: "fixed-choice",
+      allowCustom: true,
+      choiceLabel: "PF2EActionForge.CoreUtility.AidDCLabel",
+      choiceHint: "PF2EActionForge.CoreUtility.AidDCHint",
+      customLabel: "PF2EActionForge.CoreUtility.AidCustomDCLabel",
+      customHint: "PF2EActionForge.CoreUtility.AidCustomDCHint",
+      choices: [{ value: 15, label: "PF2EActionForge.CoreUtility.AidDefaultDC" }]
+    },
+    systemAction: { slug: "aid" },
+    execution: {
+      enabled: true,
+      mode: "system-or-statistic",
+      statistics: ["acrobatics", "arcana", "athletics", "crafting", "deception", "diplomacy", "intimidation", "medicine", "nature", "occultism", "performance", "religion", "society", "stealth", "survival", "thievery"],
+      includeLore: true,
+      requiresStatistic: true,
+      statisticLabel: "PF2EActionForge.CoreUtility.AidStatisticLabel",
+      statisticHint: "PF2EActionForge.CoreUtility.AidStatisticHint"
+    },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
+  // Common Player Core exploration activities are persistent choices rather
+  // than immediate d20 rolls. Selecting one records the activity on the acting
+  // Actor until it is replaced or cleared.
+  {
+    id: "exploration-search",
+    label: "PF2EActionForge.Actions.ExplorationSearch.Name",
+    description: "PF2EActionForge.Actions.ExplorationSearch.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 10,
+    icon: "fa-solid fa-magnifying-glass",
+    keywords: ["exploration", "search", "seek", "perception", "secret", "doors", "hazards"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    systemAction: { slug: "seek" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "follow-the-expert",
+    label: "PF2EActionForge.Actions.FollowTheExpert.Name",
+    description: "PF2EActionForge.Actions.FollowTheExpert.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 20,
+    icon: "fa-solid fa-person-chalkboard",
+    keywords: ["exploration", "follow the expert", "expert", "skill", "ally"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "none" },
+    execution: {
+      enabled: true,
+      mode: "exploration-activity",
+      statistics: ["acrobatics", "arcana", "athletics", "crafting", "deception", "diplomacy", "intimidation", "medicine", "nature", "occultism", "performance", "religion", "society", "stealth", "survival", "thievery"],
+      includeLore: true,
+      requiresStatistic: true,
+      statisticLabel: "PF2EActionForge.Exploration.FollowExpertSkillLabel",
+      statisticHint: "PF2EActionForge.Exploration.FollowExpertSkillHint"
+    },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "sustain-an-effect",
+    label: "PF2EActionForge.Actions.SustainAnEffect.Name",
+    description: "PF2EActionForge.Actions.SustainAnEffect.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 30,
+    icon: "fa-solid fa-arrows-rotate",
+    keywords: ["exploration", "sustain", "effect", "concentrate"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "hustle",
+    label: "PF2EActionForge.Actions.Hustle.Name",
+    description: "PF2EActionForge.Actions.Hustle.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 40,
+    icon: "fa-solid fa-person-running",
+    keywords: ["exploration", "hustle", "travel", "speed", "constitution"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "detect-magic-exploration",
+    label: "PF2EActionForge.Actions.DetectMagicExploration.Name",
+    description: "PF2EActionForge.Actions.DetectMagicExploration.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 50,
+    icon: "fa-solid fa-wand-sparkles",
+    keywords: ["exploration", "detect magic", "magic", "cantrip", "aura"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "scout",
+    label: "PF2EActionForge.Actions.Scout.Name",
+    description: "PF2EActionForge.Actions.Scout.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 60,
+    icon: "fa-solid fa-binoculars",
+    keywords: ["exploration", "scout", "initiative", "danger", "group"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "avoid-notice-exploration",
+    label: "PF2EActionForge.Actions.AvoidNoticeExploration.Name",
+    description: "PF2EActionForge.Actions.AvoidNoticeExploration.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 70,
+    icon: "fa-solid fa-user-ninja",
+    keywords: ["exploration", "avoid notice", "stealth", "initiative", "undetected"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "investigate-exploration",
+    label: "PF2EActionForge.Actions.InvestigateExploration.Name",
+    description: "PF2EActionForge.Actions.InvestigateExploration.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 80,
+    icon: "fa-solid fa-book-open-reader",
+    keywords: ["exploration", "investigate", "recall knowledge", "clues", "secret"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "defend-exploration",
+    label: "PF2EActionForge.Actions.DefendExploration.Name",
+    description: "PF2EActionForge.Actions.DefendExploration.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 90,
+    icon: "fa-solid fa-shield-halved",
+    keywords: ["exploration", "defend", "shield", "raise shield", "combat"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+  {
+    id: "repeat-a-spell",
+    label: "PF2EActionForge.Actions.RepeatASpell.Name",
+    description: "PF2EActionForge.Actions.RepeatASpell.Description",
+    category: "exploration",
+    categoryLabel: "PF2EActionForge.Categories.Exploration",
+    categoryIcon: "fa-solid fa-map",
+    categoryOrder: -10,
+    order: 100,
+    icon: "fa-solid fa-repeat",
+    keywords: ["exploration", "repeat spell", "spell", "cantrip", "concentrate"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "none" },
+    execution: { enabled: true, mode: "exploration-activity" },
+    visibility: { announcement: "none", roll: "none", outcome: "none" }
+  },
+
   {
     id: "recall-knowledge",
     label: "PF2EActionForge.Actions.RecallKnowledge.Name",
