@@ -24,6 +24,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   pendingGmDcRequest = null;
   executionInFlight = false;
   _restoreUiState = null;
+  _scrollToExecutionAfterRender = false;
 
   static DEFAULT_OPTIONS = {
     id: "pf2e-action-forge",
@@ -73,6 +74,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#instance.pendingGmDcRequest = null;
       this.#instance.executionInFlight = false;
       this.#instance._restoreUiState = null;
+      this.#instance._scrollToExecutionAfterRender = false;
     }
 
     this.#instance.render({ force: true });
@@ -149,6 +151,28 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     try { element.focus?.({ preventScroll: true }); } catch (_error) { element.focus?.(); }
     if (typeof element.setSelectionRange === "function" && Number.isInteger(descriptor.selectionStart)) {
       try { element.setSelectionRange(descriptor.selectionStart, descriptor.selectionEnd); } catch (_error) { /* non-text control */ }
+    }
+  }
+
+  #scrollToExecutionAfterRender() {
+    const shouldScroll = this._scrollToExecutionAfterRender;
+    this._scrollToExecutionAfterRender = false;
+    if (!shouldScroll || !this.element) return;
+
+    const shell = this.element.querySelector?.(".af-shell");
+    const workflow = this.element.querySelector?.('[data-role="execution-workflow"]');
+    if (!shell || !workflow) return;
+
+    const shellRect = shell.getBoundingClientRect?.();
+    const workflowRect = workflow.getBoundingClientRect?.();
+    if (!shellRect || !workflowRect) return;
+
+    const top = Math.max(0, shell.scrollTop + workflowRect.top - shellRect.top - 8);
+    const reduceMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    if (typeof shell.scrollTo === "function") {
+      shell.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+    } else {
+      shell.scrollTop = top;
     }
   }
 
@@ -278,7 +302,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.11",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.11.1",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -392,6 +416,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#applySearchFilter();
     this.#updateExecutionControls();
     this.#restoreUiStateAfterRender();
+    this.#scrollToExecutionAfterRender();
   }
 
   #prepareAction(action, favoriteIds) {
@@ -706,6 +731,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     actorResolver.lockActionActor(actor);
     app.activeActionId = action.id;
     app.lastRoll = null;
+    app._scrollToExecutionAfterRender = true;
     targetResolver.activate(action);
     app.render({ force: true });
   }

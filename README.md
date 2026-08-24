@@ -1,8 +1,15 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.11 - Social & Exploration Actions**.
+Development build **0.1.0-dev.11.1 - Selected Action Auto-Scroll**.
 
-The dev.11 expansion grows the enabled Action Forge catalog from **19 to 32 actions** and extends the same player-safe workflow beyond combat and movement into social scenes, stealth, navigation, and exploration activities.
+The dev.11.1 UX hotfix keeps the 32-action Social & Exploration build intact and makes action selection faster to operate: choosing an action now scrolls the workspace directly to the purple execution block where target, DC, visibility, and roll controls appear.
+
+
+## New in dev.11.1
+
+When an action card is selected, Action Forge now automatically scrolls the main workspace to the newly rendered **Selected Action** block. This avoids manually scrolling back up from long skill groups before choosing targets or resolving the check.
+
+The behavior is intentionally one-shot: target changes, DC edits, statistic changes, and other rerenders still preserve the current scroll position and focused control. Smooth scrolling respects the operating system's reduced-motion preference.
 
 ## New in dev.11
 
@@ -103,6 +110,6 @@ npm test
 npm run check
 ```
 
-Current suite: **95/95 tests passing**.
+Current suite: **96/96 tests passing**.
 
 The next expansion blocks can focus on the remaining **Medicine, Thievery, Crafting, Knowledge, and Magic** actions before the full integration review.

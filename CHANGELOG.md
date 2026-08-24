@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.0-dev.11.1] - 2026-08-24
+
+### Changed
+
+- Selecting an action now automatically scrolls the Action Forge workspace to the purple **Selected Action** execution block after it appears.
+- The automatic jump is limited to deliberate action selection; ordinary rerenders continue to preserve the user's current scroll position and input focus from the dev.9 hardening work.
+- Smooth scrolling is used by default and respects the operating system's reduced-motion preference.
+- Added regression coverage for the one-shot post-selection scroll behavior.
+- Automated suite now contains **96 passing tests**.
+
 ## [0.1.0-dev.11] - 2026-08-24
 
 ### Added

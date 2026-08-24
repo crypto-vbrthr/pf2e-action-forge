@@ -8,14 +8,14 @@ const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), 
 test("manifest identifies the dev.11 social and exploration build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.11");
+  assert.equal(manifest.version, "0.1.0-dev.11.1");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.11/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.11.1/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
