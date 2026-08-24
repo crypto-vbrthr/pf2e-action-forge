@@ -1,8 +1,15 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.10 - Combat & Movement Actions**.
+Development build **0.1.0-dev.10.1 - Execution Workflow Visual Separation**.
 
-This build expands the original eight-action MVP into a **19-action core catalog** and widens the Action Forge so skill groups can show several actions side by side instead of becoming a long vertical scroll tunnel.
+This hotfix retains the **19-action dev.10 core catalog** and adds stronger visual separation between choosing an action and carrying it out.
+
+## New in dev.10.1
+
+The active-action workflow is now enclosed in a single **muted-purple execution block**. Target selection, DC setup, visibility information, and the final roll button visually belong together, while the action catalog below continues to use the warm/orange Forge accent. This makes it much easier to see where configuration of the selected action begins and ends without adding more vertical chrome.
+
+Semantic states remain unchanged: valid states stay green, warnings stay amber, and errors/required states stay red.
+
 
 ## New in dev.10
 
@@ -91,6 +98,6 @@ npm test
 npm run check
 ```
 
-Current suite: **87/87 tests passing**.
+Current suite: **88/88 tests passing**.
 
 The next expansion block is expected to focus on **social and exploration skill actions** before the full MVP Integration Review.

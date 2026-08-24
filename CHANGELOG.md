@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.0-dev.10.1] - 2026-08-24
+
+### Changed
+
+- Visually separated the selected-action execution workflow from the warm/orange action catalog using a dedicated muted-purple accent.
+- Wrapped target selection and DC/execution controls in one clearly bounded workflow container so the beginning and end of the active action are easier to scan.
+- Matching purple accents now carry through the selected action icon, target controls, drop zone, DC source, and primary execution button while success/warning/error states retain their semantic colors.
+- The catalog and favorites keep the existing warm accent, preserving a clear visual distinction between choosing an action and carrying it out.
+
 ## 0.1.0-dev.10 - Combat & Movement Actions
 
 - Expanded the core Action Forge catalog from 8 to **19 enabled actions**.
