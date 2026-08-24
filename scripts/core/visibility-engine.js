@@ -41,6 +41,12 @@ export class VisibilityEngine {
     return !["blind", "gm"].includes(rollMode) && !["blind", "gm"].includes(outcomeMode);
   }
 
+  canExposeOutcome(definition, user = game?.user) {
+    if (user?.isGM) return true;
+    const outcomeMode = normalizeMode(definition?.visibility?.outcome, "public");
+    return !["blind", "gm"].includes(outcomeMode);
+  }
+
   getRecipients(mode, { user = game?.user, users = game?.users } = {}) {
     const normalized = normalizeMode(mode, "public");
     if (normalized === "public" || normalized === "none") return [];

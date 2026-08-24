@@ -1,4 +1,4 @@
-<section class="af-shell">
+<section class="af-shell {{#if interactionLocked}}is-busy{{/if}}" {{#if interactionLocked}}aria-busy="true"{{/if}}>
   <header class="af-header">
     <div class="af-brand">
       <span class="af-brand-icon" aria-hidden="true"><i class="fa-solid fa-hammer"></i></span>
@@ -70,6 +70,7 @@
             data-action="closeActionSelection"
             title="{{localize 'PF2EActionForge.Target.Close'}}"
             aria-label="{{localize 'PF2EActionForge.Target.Close'}}"
+            {{#if executionInFlight}}disabled{{/if}}
           >
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
@@ -341,6 +342,7 @@
                   title="{{favoriteLabel}}"
                   aria-label="{{favoriteLabel}}"
                   aria-pressed="true"
+                  {{#if ../interactionLocked}}disabled{{/if}}
                 >
                   <i class="fa-solid fa-star" aria-hidden="true"></i>
                 </button>
@@ -381,6 +383,7 @@
                     title="{{favoriteLabel}}"
                     aria-label="{{favoriteLabel}}"
                     aria-pressed="{{#if isFavorite}}true{{else}}false{{/if}}"
+                    {{#if ../../interactionLocked}}disabled{{/if}}
                   >
                     <i class="{{#if isFavorite}}fa-solid{{else}}fa-regular{{/if}} fa-star" aria-hidden="true"></i>
                   </button>

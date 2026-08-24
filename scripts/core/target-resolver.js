@@ -173,6 +173,8 @@ export class TargetResolver {
     const entries = [];
 
     for (const token of targets) {
+      const hidden = token?.document?.hidden ?? token?.hidden ?? false;
+      if (!globalThis.game?.user?.isGM && hidden) continue;
       const actor = token?.actor;
       if (!actor || !this.#isCreatureActor(actor)) continue;
       const tokenUuid = token?.document?.uuid ?? token?.uuid ?? null;

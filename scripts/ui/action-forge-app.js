@@ -22,6 +22,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   statisticByAction = new Map();
   lastRoll = null;
   pendingGmDcRequest = null;
+  executionInFlight = false;
+  _restoreUiState = null;
 
   static DEFAULT_OPTIONS = {
     id: "pf2e-action-forge",
@@ -69,6 +71,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#instance.statisticByAction.clear();
       this.#instance.lastRoll = null;
       this.#instance.pendingGmDcRequest = null;
+      this.#instance.executionInFlight = false;
+      this.#instance._restoreUiState = null;
     }
 
     this.#instance.render({ force: true });
@@ -83,10 +87,69 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static refreshTargetsIfOpen({ preferCanvas = false } = {}) {
     const app = this.#instance;
-    if (!app?.rendered || !app.activeActionId || app.pendingGmDcRequest) return;
+    if (!app?.rendered || !app.activeActionId || app.pendingGmDcRequest || app.executionInFlight) return;
     const action = actionRegistry.get(app.activeActionId);
     if (action && preferCanvas) targetResolver.preferCanvas(action);
     app.render({ force: true });
+  }
+
+
+  render(options = {}) {
+    if (this.rendered && !this._restoreUiState) this._restoreUiState = this.#captureUiState();
+    return super.render(options);
+  }
+
+  #captureUiState() {
+    const shell = this.element?.querySelector?.(".af-shell") ?? null;
+    const active = globalThis.document?.activeElement ?? null;
+    let focus = null;
+    if (active && this.element?.contains?.(active)) {
+      if (active.dataset?.role) {
+        focus = { kind: "role", value: active.dataset.role };
+      } else if (active.dataset?.action) {
+        focus = {
+          kind: "action",
+          value: active.dataset.action,
+          actionId: active.dataset.actionId ?? null,
+          targetKey: active.dataset.targetKey ?? null
+        };
+      } else if (active.id) {
+        focus = { kind: "id", value: active.id };
+      }
+      if (focus && Number.isInteger(active.selectionStart) && Number.isInteger(active.selectionEnd)) {
+        focus.selectionStart = active.selectionStart;
+        focus.selectionEnd = active.selectionEnd;
+      }
+    }
+    return { scrollTop: Number(shell?.scrollTop ?? 0), focus };
+  }
+
+  #restoreUiStateAfterRender() {
+    const state = this._restoreUiState;
+    this._restoreUiState = null;
+    if (!state || !this.element) return;
+
+    const shell = this.element.querySelector?.(".af-shell");
+    if (shell && Number.isFinite(state.scrollTop)) shell.scrollTop = state.scrollTop;
+
+    const descriptor = state.focus;
+    if (!descriptor) return;
+    const escape = globalThis.CSS?.escape ?? ((value) => String(value).replaceAll('"', '\"'));
+    let selector = null;
+    if (descriptor.kind === "role") selector = `[data-role="${escape(descriptor.value)}"]`;
+    else if (descriptor.kind === "id") selector = `#${escape(descriptor.value)}`;
+    else if (descriptor.kind === "action") {
+      selector = `[data-action="${escape(descriptor.value)}"]`;
+      if (descriptor.actionId) selector += `[data-action-id="${escape(descriptor.actionId)}"]`;
+      if (descriptor.targetKey) selector += `[data-target-key="${escape(descriptor.targetKey)}"]`;
+    }
+
+    const element = selector ? this.element.querySelector?.(selector) : null;
+    if (!element || element.disabled || element.hidden) return;
+    try { element.focus?.({ preventScroll: true }); } catch (_error) { element.focus?.(); }
+    if (typeof element.setSelectionRange === "function" && Number.isInteger(descriptor.selectionStart)) {
+      try { element.setSelectionRange(descriptor.selectionStart, descriptor.selectionEnd); } catch (_error) { /* non-text control */ }
+    }
   }
 
   async _prepareContext(options) {
@@ -105,6 +168,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     let statisticContext = null;
     let visibilityContext = null;
     const waitingForGmDc = Boolean(this.pendingGmDcRequest);
+    const executionInFlight = Boolean(this.executionInFlight);
+    const interactionLocked = waitingForGmDc || executionInFlight;
 
     if (activeDefinition) {
       targetResolver.activate(activeDefinition);
@@ -160,7 +225,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         targetCountValid &&
         immunityValid &&
         gmHandoffAvailable &&
-        !waitingForGmDc
+        !interactionLocked
       );
 
       executionContext = {
@@ -175,14 +240,19 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         gmHandoffRequired,
         gmHandoffAvailable,
         waitingForGmDc,
+        executionInFlight,
         buttonText: game.i18n.localize(
-          waitingForGmDc
-            ? "PF2EActionForge.GMDC.WaitingButton"
-            : gmHandoffRequired
-              ? "PF2EActionForge.GMDC.RequestButton"
-              : "PF2EActionForge.Roll.Execute"
+          executionInFlight
+            ? "PF2EActionForge.Roll.Executing"
+            : waitingForGmDc
+              ? "PF2EActionForge.GMDC.WaitingButton"
+              : gmHandoffRequired
+                ? "PF2EActionForge.GMDC.RequestButton"
+                : "PF2EActionForge.Roll.Execute"
         ),
-        constraintText: !targetCountValid
+        constraintText: executionInFlight
+          ? game.i18n.localize("PF2EActionForge.Roll.ExecutingHint")
+          : !targetCountValid
           ? game.i18n.localize("PF2EActionForge.Roll.SingleTargetOnly")
           : !statisticValid
             ? game.i18n.localize("PF2EActionForge.Roll.StatisticRequired")
@@ -205,7 +275,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.8",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.9",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -218,7 +288,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         : null,
       followsCurrentToken: resolution.selectionMode === "auto",
       sourceActorLocked: resolution.actionLocked,
-      interactionLocked: waitingForGmDc,
+      interactionLocked,
+      executionInFlight,
       currentTokenSelectionValue: CURRENT_TOKEN_SELECTION,
       actors: resolution.actors.map((actor) => ({
         uuid: actor.uuid,
@@ -243,6 +314,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _preClose(options) {
     this.pendingGmDcRequest = null;
+    this.executionInFlight = false;
     this.activeActionId = null;
     targetResolver.clear();
     actorResolver.unlockActionActor();
@@ -316,6 +388,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     this.#applySearchFilter();
     this.#updateExecutionControls();
+    this.#restoreUiStateAfterRender();
   }
 
   #prepareAction(action, favoriteIds) {
@@ -551,11 +624,12 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const targetCountValid = !action.execution.singleTargetOnly || targetState.count <= 1;
     const immunityValid = !this.#getBlockingImmunity(action, targetState, actor);
     const waitingForGmDc = Boolean(this.pendingGmDcRequest);
+    const executionInFlight = Boolean(this.executionInFlight);
     const gmHandoffRequired = Boolean(dcState.requiresGmHandoff && !game.user?.isGM);
     const gmHandoffAvailable = !gmHandoffRequired || gmDcHandoff.isAvailable();
     const canExecute = Boolean(
       actor && action.execution.enabled && systemActionAvailable && targetState.valid && dcState.valid && statisticValid &&
-      proficiencyValid && targetCountValid && immunityValid && gmHandoffAvailable && !waitingForGmDc
+      proficiencyValid && targetCountValid && immunityValid && gmHandoffAvailable && !waitingForGmDc && !executionInFlight
     );
 
     const button = this.element.querySelector('[data-action="executeAction"]');
@@ -563,7 +637,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const status = this.element.querySelector('[data-role="dc-status"]');
     if (status) {
-      const waiting = waitingForGmDc || gmHandoffRequired;
+      const waiting = executionInFlight || waitingForGmDc || gmHandoffRequired;
       status.classList.toggle("is-valid", !waiting && dcState.valid);
       status.classList.toggle("is-required", !waiting && !dcState.valid);
       status.classList.toggle("is-waiting", waiting);
@@ -574,9 +648,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const text = status.querySelector("span");
       if (text) {
         text.textContent = game.i18n.localize(
-          waitingForGmDc
-            ? "PF2EActionForge.GMDC.Waiting"
-            : gmHandoffRequired
+          executionInFlight
+            ? "PF2EActionForge.Roll.ExecutingHint"
+            : waitingForGmDc
+              ? "PF2EActionForge.GMDC.Waiting"
+              : gmHandoffRequired
               ? "PF2EActionForge.GMDC.Required"
               : dcState.valid
                 ? "PF2EActionForge.DC.Ready"
@@ -587,7 +663,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async #handleTargetDrop(event) {
-    if (this.pendingGmDcRequest) return;
+    if (this.pendingGmDcRequest || this.executionInFlight) return;
     const action = this.activeActionId ? actionRegistry.get(this.activeActionId) : null;
     if (!action) return;
 
@@ -623,7 +699,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const app = ActionForgeApp.instance;
-    if (!app || app.pendingGmDcRequest) return;
+    if (!app || app.pendingGmDcRequest || app.executionInFlight) return;
     actorResolver.lockActionActor(actor);
     app.activeActionId = action.id;
     app.lastRoll = null;
@@ -634,7 +710,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static async #executeAction(event) {
     event?.preventDefault?.();
     const app = ActionForgeApp.instance;
-    if (app?.pendingGmDcRequest) return;
+    if (app?.pendingGmDcRequest || app?.executionInFlight) return;
     const action = app?.activeActionId ? actionRegistry.get(app.activeActionId) : null;
     const actor = actorResolver.resolve();
 
@@ -717,27 +793,40 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       difficultyClass = handoff.dc;
     }
 
-    const execution = await pf2eActionAdapter.execute({
-      definition: action,
-      actor,
-      target: dcResolution.target,
-      difficultyClass,
-      statistic: selectedStatistic,
-      event
-    });
+    // Lock the workspace before the first asynchronous PF2e roll call. This
+    // prevents double-clicks, target mutation and action switching from creating
+    // duplicate checks while the system roll dialog/result pipeline is active.
+    app.executionInFlight = true;
+    app.render({ force: true });
+    let actionCompleted = false;
 
-    if (!execution.ok) {
-      const key = {
-        "missing-system-action": "PF2EActionForge.Notifications.SystemActionMissing",
-        "execution-error": "PF2EActionForge.Notifications.RollFailed",
-        "not-enabled": "PF2EActionForge.Roll.LaterBlock"
-      }[execution.reason] ?? "PF2EActionForge.Notifications.RollFailed";
-      ui.notifications.error(game.i18n.localize(key));
-      return;
-    }
+    try {
+      const execution = await pf2eActionAdapter.execute({
+        definition: action,
+        actor,
+        target: dcResolution.target,
+        difficultyClass,
+        statistic: selectedStatistic,
+        event
+      });
 
-    const result = execution.results.at(-1) ?? null;
-    if (result) {
+      if (!execution.ok) {
+        const key = {
+          "missing-system-action": "PF2EActionForge.Notifications.SystemActionMissing",
+          "missing-statistic": "PF2EActionForge.Notifications.StatisticRequired",
+          "execution-error": "PF2EActionForge.Notifications.RollFailed",
+          "not-enabled": "PF2EActionForge.Roll.LaterBlock"
+        }[execution.reason] ?? "PF2EActionForge.Notifications.RollFailed";
+        ui.notifications.error(game.i18n.localize(key));
+        return;
+      }
+
+      // Even a cancelled PF2e roll dialog is a completed attempt from the Forge's
+      // perspective: the frozen source/target session can be safely released.
+      actionCompleted = true;
+      const result = execution.results.at(-1) ?? null;
+      if (!result) return;
+
       await visibilityEngine.createAnnouncement({ definition: action, actor });
       const canReveal = visibilityEngine.shouldRevealLocalResult(action, game.user);
       const outcome = result.outcome ?? "unknown";
@@ -760,7 +849,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           };
 
       const targetEntry = targetState.targets[0] ?? null;
-      if (targetEntry?.actorUuid && applicationEngine.hasApplications(action, outcome)) {
+      if (
+        targetEntry?.actorUuid &&
+        applicationEngine.hasApplications(action, outcome) &&
+        visibilityEngine.canExposeOutcome(action, game.user)
+      ) {
         const transaction = ActionTransaction.create({
           definition: action,
           actor,
@@ -772,22 +865,25 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
         await applicationChat.create({ definition: action, transaction });
       }
+    } catch (error) {
+      console.error("PF2E Action Forge | Post-roll workflow failed", error);
+      ui.notifications.error(game.i18n.localize("PF2EActionForge.Notifications.PostRollFailed"));
+    } finally {
+      app.executionInFlight = false;
+      if (actionCompleted) {
+        actorResolver.unlockActionActor();
+        app.activeActionId = null;
+        targetResolver.clear();
+      }
+      app.render({ force: true });
     }
-
-    // The action session ends after the PF2e action returns, including a cancelled
-    // system roll dialog (which yields no result). Release the frozen source actor
-    // so automatic mode can once again follow the currently controlled token.
-    actorResolver.unlockActionActor();
-    app.activeActionId = null;
-    targetResolver.clear();
-    app.render({ force: true });
   }
 
   static async #removeTarget(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
     const app = ActionForgeApp.instance;
-    if (app?.pendingGmDcRequest) return;
+    if (app?.pendingGmDcRequest || app?.executionInFlight) return;
     const key = target?.dataset?.targetKey;
     if (!key) return;
     await targetResolver.remove(key);
@@ -798,7 +894,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static async #pickTarget(event) {
     event?.preventDefault?.();
     const app = ActionForgeApp.instance;
-    if (!app || app.pendingGmDcRequest) return;
+    if (!app || app.pendingGmDcRequest || app.executionInFlight) return;
     const action = app.activeActionId ? actionRegistry.get(app.activeActionId) : null;
     const actor = actorResolver.resolve();
     if (!action || !actor) return;
@@ -813,6 +909,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         "dialog-error": "PF2EActionForge.Target.Picker.Unavailable",
         timeout: "PF2EActionForge.Target.Picker.Timeout",
         "gm-directory-error": "PF2EActionForge.Target.Picker.DirectoryError",
+        "query-failed": "PF2EActionForge.Target.Picker.BrokerUnavailable",
         blocked: "PF2EActionForge.TreatWounds.TargetImmune"
       }[result.reason] ?? "PF2EActionForge.Target.Picker.Unavailable";
       ui.notifications.warn(game.i18n.localize(key));
@@ -831,7 +928,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static #useCanvasTargets(event) {
     event?.preventDefault?.();
     const app = ActionForgeApp.instance;
-    if (app?.pendingGmDcRequest) return;
+    if (app?.pendingGmDcRequest || app?.executionInFlight) return;
     const action = app?.activeActionId ? actionRegistry.get(app.activeActionId) : null;
     if (!action) return;
     targetResolver.preferCanvas(action);
@@ -842,7 +939,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static #closeActionSelection(event) {
     event?.preventDefault?.();
     const app = ActionForgeApp.instance;
-    if (!app) return;
+    if (!app || app.executionInFlight) return;
     app.pendingGmDcRequest = null;
     app.activeActionId = null;
     app.lastRoll = null;

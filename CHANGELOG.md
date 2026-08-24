@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0-dev.9 - UX & Player Hardening
+
+- Added an explicit in-flight execution lock around PF2e checks. Double-clicking the roll button or changing targets while the PF2e roll pipeline is active can no longer start duplicate checks.
+- Successful or cancelled PF2e roll sessions now always release the frozen source Actor and target state, even if later Action Forge chat/result processing throws. Failed roll startup remains selected for a clean retry.
+- Preserved the Action Forge outer scroll position, focused control, and text selection across rerenders so searches and long action workspaces no longer jump unexpectedly.
+- Added `aria-busy` state and clearer localized UI feedback while a check is being processed.
+- Hardened Canvas targeting: hidden tokens are ignored for non-GM users, and application requests from stale/deleted or hidden token UUIDs are rejected by the GM Broker.
+- Hardened secret outcomes: player clients do not create application cards for GM-only or blind outcomes.
+- Hardened privileged applications and the out-of-combat target directory around Foundry v14 `User.query`: the active GM is preferred and requests can fail over to another active GM if the broker disconnects. Raw module sockets remain only as a compatibility fallback.
+- Hardened GM DC handoff for multiple GMs. Transport failure may fail over to another GM, while an intentional rejection/close is final and is never forwarded to a second GM.
+- Coalesced duplicate ChatMessage application clicks for the same transaction/effect onto one broker request, protecting against duplicate rendered chat views and rapid repeated clicks.
+- Added immediate, specific errors for deleted source/target Actors and broker disconnects instead of allowing ambiguous timeouts.
+- Added a dedicated hardening regression suite covering hidden targets, stale tokens, multi-GM failover, secret outcomes, duplicate execution, UI-state preservation, and duplicate application requests.
+
 ## 0.1.0-dev.8 - Demoralize & Timed Results
 
 - Enabled **Demoralize** as a live PF2e system action using Intimidation against the target's Will DC.

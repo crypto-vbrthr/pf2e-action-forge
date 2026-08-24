@@ -133,7 +133,7 @@ test("target picker UI and localization are wired into the Action Forge workspac
   const app = await fs.readFile(new URL("../scripts/ui/action-forge-app.js", import.meta.url), "utf8");
   assert.match(template, /data-action="pickTarget"/);
   assert.match(app, /targetPickerService\.choose/);
-  assert.match(app, /targetEntry\?\.actorUuid && applicationEngine\.hasApplications/);
+  assert.match(app, /targetEntry\?\.actorUuid[\s\S]*applicationEngine\.hasApplications/);
 });
 
 test("player target picker request resolves safe local targets without waiting for GM socket", async () => {

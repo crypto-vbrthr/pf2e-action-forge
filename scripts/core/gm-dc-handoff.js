@@ -25,11 +25,18 @@ function escapeHtml(value) {
  * the same request.
  */
 export class GmDcHandoff {
+  getBrokers(users = globalThis.game?.users ?? []) {
+    const activeGms = [...users].filter((user) => Boolean(user?.isGM && user?.active));
+    const preferred = users?.activeGM ?? globalThis.game?.users?.activeGM ?? null;
+    return activeGms.sort((a, b) => {
+      if (preferred?.id && a.id === preferred.id) return -1;
+      if (preferred?.id && b.id === preferred.id) return 1;
+      return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+    });
+  }
+
   getBroker(users = globalThis.game?.users ?? []) {
-    const activeGms = [...users]
-      .filter((user) => Boolean(user?.isGM && user?.active))
-      .sort((a, b) => String(a.id ?? "").localeCompare(String(b.id ?? "")));
-    return activeGms[0] ?? null;
+    return this.getBrokers(users)[0] ?? null;
   }
 
   isAvailable(users = globalThis.game?.users ?? []) {
@@ -43,7 +50,8 @@ export class GmDcHandoff {
   }
 
   async request({ definition, actor, target = null, statisticLabel = "", requestId = null } = {}) {
-    const broker = this.getBroker();
+    const brokers = this.getBrokers();
+    const broker = brokers[0] ?? null;
     if (!broker) return { ok: false, reason: "no-active-gm", requestId };
 
     const DialogV2 = globalThis.foundry?.applications?.api?.DialogV2;
@@ -68,30 +76,37 @@ export class GmDcHandoff {
         </label>
       </div>`;
 
-    let response;
-    try {
-      response = await DialogV2.query(broker, "input", {
-        window: {
-          title: globalThis.game?.i18n?.localize?.("PF2EActionForge.GMDC.Title") ?? "Action Forge · DC Required"
-        },
-        content,
-        ok: {
-          label: globalThis.game?.i18n?.localize?.("PF2EActionForge.GMDC.Approve") ?? "Set DC & Roll"
-        },
-        rejectClose: false,
-        modal: true
-      });
-    } catch (error) {
-      console.error("PF2E Action Forge | GM DC handoff failed", error);
-      return { ok: false, reason: "query-error", error, requestId, gmId: broker.id };
+    let lastError = null;
+    for (const candidate of brokers) {
+      let response;
+      try {
+        response = await DialogV2.query(candidate, "input", {
+          window: {
+            title: globalThis.game?.i18n?.localize?.("PF2EActionForge.GMDC.Title") ?? "Action Forge · DC Required"
+          },
+          content,
+          ok: {
+            label: globalThis.game?.i18n?.localize?.("PF2EActionForge.GMDC.Approve") ?? "Set DC & Roll"
+          },
+          rejectClose: false,
+          modal: true
+        });
+      } catch (error) {
+        lastError = error;
+        console.warn(`PF2E Action Forge | GM DC handoff failed via ${candidate?.id ?? "?"}`, error);
+        continue;
+      }
+
+      // A normal close/rejection is a deliberate GM decision and must not be
+      // forwarded to a second GM. Failover is reserved for transport/client loss.
+      if (!response) return { ok: false, reason: "rejected", requestId, gmId: candidate.id };
+
+      const dc = normalizeDc(response.dc);
+      if (dc === null) return { ok: false, reason: "invalid-dc", requestId, gmId: candidate.id };
+      return { ok: true, dc, requestId, gmId: candidate.id };
     }
 
-    if (!response) return { ok: false, reason: "rejected", requestId, gmId: broker.id };
-
-    const dc = normalizeDc(response.dc);
-    if (dc === null) return { ok: false, reason: "invalid-dc", requestId, gmId: broker.id };
-
-    return { ok: true, dc, requestId, gmId: broker.id };
+    return { ok: false, reason: "query-error", error: lastError, requestId, gmId: broker.id };
   }
 }
 

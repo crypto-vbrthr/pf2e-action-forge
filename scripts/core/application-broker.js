@@ -91,12 +91,18 @@ export class ApplicationBroker {
     game.socket.on(SOCKET, (message) => this.#onSocket(message));
   }
 
-  getBroker(users = globalThis.game?.users ?? []) {
+  getBrokers(users = globalThis.game?.users ?? []) {
+    const values = [...users].filter((user) => Boolean(user?.isGM && user?.active));
     const activeGM = users?.activeGM ?? globalThis.game?.users?.activeGM ?? null;
-    if (activeGM?.isGM && activeGM?.active) return activeGM;
-    return [...users]
-      .filter((user) => Boolean(user?.isGM && user?.active))
-      .sort((a, b) => String(a.id ?? "").localeCompare(String(b.id ?? "")))[0] ?? null;
+    return values.sort((a, b) => {
+      if (activeGM?.id && a.id === activeGM.id) return -1;
+      if (activeGM?.id && b.id === activeGM.id) return 1;
+      return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+    });
+  }
+
+  getBroker(users = globalThis.game?.users ?? []) {
+    return this.getBrokers(users)[0] ?? null;
   }
 
   isAvailable() {
@@ -109,7 +115,12 @@ export class ApplicationBroker {
 
     const payload = { messageId, transactionId, effectId };
     if (globalThis.game?.user?.isGM) {
-      return this.#process({ requesterId, payload });
+      try {
+        return await this.#process({ requesterId, payload });
+      } catch (error) {
+        console.error("PF2E Action Forge | Local GM application failed", error);
+        return { ok: false, reason: "broker-error" };
+      }
     }
 
     // If the player already owns the target, apply locally after the same
@@ -121,28 +132,38 @@ export class ApplicationBroker {
     const ownsTarget = Boolean(localTarget && typeof localTarget.testUserPermission === "function"
       ? localTarget.testUserPermission(globalThis.game.user, ownerLevel)
       : localTarget?.isOwner);
-    if (ownsTarget) return this.#process({ requesterId, payload });
-
-    const broker = this.getBroker();
-    if (!broker) return { ok: false, reason: "no-active-gm" };
-
-    // Foundry v14 provides User#query specifically for request/response work
-    // between clients. It is more reliable here than building a second response
-    // protocol on top of raw module sockets, and it guarantees that the result
-    // is routed back to the requesting player.
-    if (typeof broker.query === "function") {
+    if (ownsTarget) {
       try {
-        const result = await broker.query(QUERY_NAME, { requesterId, payload }, { timeout: REQUEST_TIMEOUT });
-        return result ?? { ok: false, reason: "empty-response" };
+        return await this.#process({ requesterId, payload });
       } catch (error) {
-        console.warn("PF2E Action Forge | GM application query failed", error);
-        return { ok: false, reason: "query-failed" };
+        console.error("PF2E Action Forge | Local owned-target application failed", error);
+        return { ok: false, reason: "broker-error" };
       }
     }
 
+    const brokers = this.getBrokers();
+    if (brokers.length === 0) return { ok: false, reason: "no-active-gm" };
+
+    // Foundry v14 provides User#query specifically for request/response work
+    // between clients. Prefer the active GM, but if that client disconnects while
+    // the request is in flight, retry with the next deterministic active GM. The
+    // broker's transaction/effect idempotence makes this safe even if a response
+    // is lost after the first GM completed the write.
+    const queryBrokers = brokers.filter((broker) => typeof broker?.query === "function");
+    for (const broker of queryBrokers) {
+      try {
+        const result = await broker.query(QUERY_NAME, { requesterId, payload }, { timeout: REQUEST_TIMEOUT });
+        if (result) return result;
+      } catch (error) {
+        console.warn(`PF2E Action Forge | GM application query failed via ${broker?.id ?? "?"}`, error);
+      }
+    }
+    if (queryBrokers.length > 0) return { ok: false, reason: "query-failed" };
+
     // Compatibility fallback if a non-standard Foundry environment does not
     // expose User#query. The v14 release line should normally never reach this.
-    if (!globalThis.game?.socket) return { ok: false, reason: "socket-unavailable" };
+    const broker = brokers[0];
+    if (!globalThis.game?.socket) return { ok: false, reason: "query-failed" };
     const requestId = globalThis.foundry?.utils?.randomID?.(20) ?? `${Date.now()}-${Math.random()}`;
     const promise = new Promise((resolve) => {
       const timeout = setTimeout(() => {
@@ -410,10 +431,13 @@ export class ApplicationBroker {
 
     if (transaction.targetSource === "canvas" && transaction.targetTokenUuid) {
       // Token targeting is a legitimate game action even when the player does not
-      // own the target Actor. Hidden tokens are never accepted as player targets.
+      // own the target Actor. Re-resolve the exact token at application time and
+      // reject stale/deleted or hidden token UUIDs rather than trusting the client.
       const token = globalThis.fromUuidSync?.(transaction.targetTokenUuid);
-      if (token) return token.hidden !== true;
-      return true;
+      if (!token) return false;
+      const hidden = token.hidden ?? token.document?.hidden ?? false;
+      const actorUuid = token.actor?.uuid ?? token.document?.actor?.uuid ?? null;
+      return hidden !== true && (!actorUuid || actorUuid === targetActor.uuid);
     }
 
     if (transaction.targetSource === "picker") {

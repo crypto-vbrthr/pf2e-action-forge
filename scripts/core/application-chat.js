@@ -36,6 +36,8 @@ function appliedLabel(application) {
 }
 
 export class ApplicationChat {
+  #pendingApplications = new Map();
+
   async create({ definition, transaction } = {}) {
     const effects = applicationEngine.getEffects(definition, transaction?.outcome);
     if (!transaction?.targetActorUuid || effects.length === 0 || !globalThis.ChatMessage?.create) return null;
@@ -130,26 +132,46 @@ export class ApplicationChat {
 
     event?.preventDefault?.();
     event?.stopPropagation?.();
+    const effectId = button.dataset.effectId;
+    const requestKey = `${message.id}:${flag.transaction.id}:${effectId}`;
     button.disabled = true;
     button.classList.add("is-pending");
 
-    const result = await this.#requestWithReplicationRetry({
-      messageId: message.id,
-      transactionId: flag.transaction.id,
-      effectId: button.dataset.effectId
-    });
+    // The same ChatMessage may be rendered in multiple DOM containers. Collapse
+    // all clicks for one transaction/effect onto one broker promise so two visible
+    // copies cannot generate duplicate privileged requests.
+    let request = this.#pendingApplications.get(requestKey);
+    const owner = !request;
+    if (!request) {
+      request = this.#requestWithReplicationRetry({
+        messageId: message.id,
+        transactionId: flag.transaction.id,
+        effectId
+      });
+      this.#pendingApplications.set(requestKey, request);
+    }
+
+    let result;
+    try {
+      result = await request;
+    } finally {
+      if (owner) this.#pendingApplications.delete(requestKey);
+    }
 
     button.classList.remove("is-pending");
-    if (result.ok) {
+    if (result?.ok) {
       button.classList.add("is-applied");
       button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> ${escapeHtml(appliedLabel(result.application))}`;
-      globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.Success") ?? "Action result applied.");
+      if (owner) {
+        globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("PF2EActionForge.Application.Success") ?? "Action result applied.");
+      }
     } else {
       button.disabled = false;
       const key = {
         "no-active-gm": "PF2EActionForge.Application.NoActiveGM",
         "source-not-owned": "PF2EActionForge.Application.NotAllowed",
         "invalid-target": "PF2EActionForge.Application.InvalidTarget",
+        "missing-actor": "PF2EActionForge.Application.ActorMissing",
         immune: "PF2EActionForge.Application.Immune",
         "invalid-formula": "PF2EActionForge.Application.InvalidFormula",
         "missing-hit-points": "PF2EActionForge.Application.MissingHitPoints",
@@ -157,9 +179,9 @@ export class ApplicationChat {
         "transaction-mismatch": "PF2EActionForge.Application.TransactionNotReady",
         timeout: "PF2EActionForge.Application.Timeout",
         "broker-error": "PF2EActionForge.Application.BrokerError",
-        "query-failed": "PF2EActionForge.Application.BrokerError"
-      }[result.reason] ?? "PF2EActionForge.Application.Failed";
-      globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.localize?.(key) ?? result.reason);
+        "query-failed": "PF2EActionForge.Application.BrokerUnavailable"
+      }[result?.reason] ?? "PF2EActionForge.Application.Failed";
+      if (owner) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.localize?.(key) ?? result?.reason);
     }
   }
 

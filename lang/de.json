@@ -219,5 +219,11 @@
   "PF2EActionForge.Demoralize.ApplyFrightened2": "Verängstigt 2 anwenden",
   "PF2EActionForge.Demoralize.ApplyImmunity": "10-Minuten-Immunität anwenden (automatisch)",
   "PF2EActionForge.Demoralize.ImmunityName": "Immun: Demoralisieren",
-  "PF2EActionForge.Demoralize.ImmunityDescription": "Diese Kreatur ist 10 Minuten lang gegen weitere Versuche von Demoralisieren durch den angegebenen handelnden Charakter immun."
+  "PF2EActionForge.Demoralize.ImmunityDescription": "Diese Kreatur ist 10 Minuten lang gegen weitere Versuche von Demoralisieren durch den angegebenen handelnden Charakter immun.",
+  "PF2EActionForge.Roll.Executing": "Wurf läuft…",
+  "PF2EActionForge.Roll.ExecutingHint": "PF2e verarbeitet gerade diesen Wurf. Die Aktionsauswahl bleibt bis zum Abschluss gesperrt.",
+  "PF2EActionForge.Notifications.PostRollFailed": "Der Wurf wurde ausgeführt, aber die anschließende Action-Forge-Verarbeitung ist fehlgeschlagen. Siehe Browserkonsole für Details.",
+  "PF2EActionForge.Application.ActorMissing": "Quelle oder Ziel dieses Ergebnisses existiert nicht mehr. Die Auswirkung wurde nicht angewendet.",
+  "PF2EActionForge.Application.BrokerUnavailable": "Die Verbindung zum aktiven SL wurde während der Anwendung unterbrochen. Es wurde nichts zusätzlich angewendet.",
+  "PF2EActionForge.Target.Picker.BrokerUnavailable": "Die erweiterte Zielauswahl konnte den aktiven SL nicht erreichen."
 }

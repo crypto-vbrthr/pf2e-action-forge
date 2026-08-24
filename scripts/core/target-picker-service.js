@@ -4,6 +4,7 @@ import { MODULE_ID } from "./action-transaction.js";
 
 const SOCKET = `module.${MODULE_ID}`;
 const REQUEST_TIMEOUT = 7000;
+const QUERY_NAME = `${MODULE_ID}.targetDirectory`;
 const CREATURE_TYPES = new Set(["character", "npc", "familiar"]);
 const GROUP_ORDER = Object.freeze(["owned", "party", "characters", "scene", "visible"]);
 
@@ -63,17 +64,53 @@ function hasPermission(actor, user, level) {
 export class TargetPickerService {
   #pending = new Map();
   #initialized = false;
+  #queryRegistered = false;
+
+  registerQueryHandler() {
+    if (this.#queryRegistered) return;
+    const queries = globalThis.CONFIG?.queries;
+    if (!queries) return;
+    this.#queryRegistered = true;
+    queries[QUERY_NAME] = async (queryData = {}) => {
+      if (!globalThis.game?.user?.isGM) return { ok: false, reason: "not-gm", groups: [] };
+      try {
+        const requester = globalThis.game?.users?.get?.(queryData.requesterId)
+          ?? collectionValues(globalThis.game?.users).find((user) => user?.id === queryData.requesterId);
+        if (!requester) return { ok: false, reason: "unknown-requester", groups: [] };
+        return {
+          ok: true,
+          groups: await this.buildGroups(requester, {
+            actionId: queryData.actionId ?? null,
+            sourceActorUuid: queryData.sourceActorUuid ?? null
+          }),
+          source: "gm-query"
+        };
+      } catch (error) {
+        console.error("PF2E Action Forge | GM target directory query failed", error);
+        return { ok: false, reason: "gm-directory-error", groups: [] };
+      }
+    };
+  }
 
   initialize() {
+    this.registerQueryHandler();
     if (this.#initialized || !globalThis.game?.socket) return;
     this.#initialized = true;
     game.socket.on(SOCKET, (message) => this.#onSocket(message));
   }
 
+  getBrokers(users = globalThis.game?.users ?? []) {
+    const values = collectionValues(users).filter((user) => Boolean(user?.isGM && user?.active));
+    const preferred = users?.activeGM ?? globalThis.game?.users?.activeGM ?? null;
+    return values.sort((a, b) => {
+      if (preferred?.id && a.id === preferred.id) return -1;
+      if (preferred?.id && b.id === preferred.id) return 1;
+      return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+    });
+  }
+
   getBroker(users = globalThis.game?.users ?? []) {
-    return collectionValues(users)
-      .filter((user) => Boolean(user?.isGM && user?.active))
-      .sort((a, b) => String(a.id ?? "").localeCompare(String(b.id ?? "")))[0] ?? null;
+    return this.getBrokers(users)[0] ?? null;
   }
 
   isAvailable() {
@@ -102,10 +139,33 @@ export class TargetPickerService {
     // Only fall back to the GM directory when the player cannot resolve any safe
     // target locally. This covers unusual permission setups without making the
     // common path wait on a socket response.
-    const broker = this.getBroker();
-    if (!broker) return { ok: false, reason: "no-active-gm", groups: [] };
-    if (!globalThis.game?.socket) return { ok: false, reason: "socket-unavailable", groups: [] };
+    const brokers = this.getBrokers();
+    if (brokers.length === 0) return { ok: false, reason: "no-active-gm", groups: [] };
 
+    // Use Foundry v14's targeted request/response transport first. If the active
+    // broker disconnects between selection and request, retry once with the next
+    // deterministic active GM instead of making the player wait for a raw-socket timeout.
+    const queryBrokers = brokers.filter((broker) => typeof broker?.query === "function");
+    for (const broker of queryBrokers) {
+      try {
+        const result = await broker.query(QUERY_NAME, {
+          requesterId: requester.id,
+          actionId,
+          sourceActorUuid
+        }, { timeout: REQUEST_TIMEOUT });
+        if (result?.ok) return result;
+        if (result && !["not-gm", "unknown-requester"].includes(result.reason)) return result;
+      } catch (error) {
+        console.warn(`PF2E Action Forge | Target directory query failed via GM ${broker?.id ?? "?"}`, error);
+      }
+    }
+    if (queryBrokers.length > 0) return { ok: false, reason: "query-failed", groups: [] };
+
+    if (!globalThis.game?.socket) return { ok: false, reason: "query-failed", groups: [] };
+
+    // Compatibility fallback for non-standard environments without User#query.
+    // Only the selected deterministic broker may answer, preventing multi-GM races.
+    const broker = brokers[0];
     const requestId = globalThis.foundry?.utils?.randomID?.(20) ?? `${Date.now()}-${Math.random()}`;
     const promise = new Promise((resolve) => {
       const timeout = setTimeout(() => {
@@ -122,7 +182,7 @@ export class TargetPickerService {
       requesterId: requester.id,
       actionId,
       sourceActorUuid,
-      allowAnyBroker: true
+      allowAnyBroker: false
     });
     return promise;
   }

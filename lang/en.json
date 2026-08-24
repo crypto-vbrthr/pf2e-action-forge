@@ -219,5 +219,11 @@
   "PF2EActionForge.Demoralize.ApplyFrightened2": "Apply Frightened 2",
   "PF2EActionForge.Demoralize.ApplyImmunity": "Apply 10-minute immunity (automatic)",
   "PF2EActionForge.Demoralize.ImmunityName": "Immune: Demoralize",
-  "PF2EActionForge.Demoralize.ImmunityDescription": "This creature is immune to further Demoralize attempts by the specified acting character for 10 minutes."
+  "PF2EActionForge.Demoralize.ImmunityDescription": "This creature is immune to further Demoralize attempts by the specified acting character for 10 minutes.",
+  "PF2EActionForge.Roll.Executing": "Rolling…",
+  "PF2EActionForge.Roll.ExecutingHint": "PF2e is processing this check. Action selection remains locked until it finishes.",
+  "PF2EActionForge.Notifications.PostRollFailed": "The check completed, but the follow-up Action Forge processing failed. See the browser console for details.",
+  "PF2EActionForge.Application.ActorMissing": "The source or target for this result no longer exists. The effect was not applied.",
+  "PF2EActionForge.Application.BrokerUnavailable": "The active GM connection was lost during application. No additional effect was applied.",
+  "PF2EActionForge.Target.Picker.BrokerUnavailable": "The extended target picker could not reach an active GM."
 }
