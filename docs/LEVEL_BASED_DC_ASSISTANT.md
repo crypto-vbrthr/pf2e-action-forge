@@ -1,4 +1,4 @@
-# PF2E Action Forge 0.1.0-dev.18.5
+# PF2E Action Forge 0.1.0-rc.1
 
 ## Level-Based DC Assistant
 
@@ -18,7 +18,7 @@ When the GM executes an action with a manual/adjudicated DC, the DC panel shows 
 
 ### Player-originated workflow
 
-When a player action requires a GM-defined DC, Action Forge sends a targeted module-socket request to the selected active GM. The GM-side dialog includes the same level and difficulty selectors. The GM can either:
+When a player action requires a GM-defined DC, Action Forge sends the request through the current GM-DC handoff to the selected active GM. The GM-side dialog includes the same level and difficulty selectors. The GM can either:
 
 1. enter a manual DC, or
 2. leave the manual field empty, choose level and difficulty, and confirm.

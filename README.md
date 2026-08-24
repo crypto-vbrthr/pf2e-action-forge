@@ -1,8 +1,17 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.18.7 - GM DC Dialog Localization Hotfix**.
+Release candidate **0.1.0-rc.1 - Release Candidate & Final Integration Review**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
+
+## Release candidate rc.1
+
+- Completed the final cross-catalog integration review of rules metadata, target/DC models, PF2e execution, visibility, GM brokering, prerequisites, application effects, exploration state, localization, release metadata, and multiplayer safeguards.
+- **Steal** now supports the base-rule observer case with one immutable Thievery roll against the robbed creature and any selected observers.
+- GM-DC diagnostics remain available through `game.modules.get("pf2e-action-forge").api.debug`, but routine successful traces use console `debug` instead of `info`.
+- Release metadata and runtime fallback versions are synchronized to `0.1.0-rc.1`.
+- Known automation boundaries are deliberate: Item-document mutation, contextual feat-specific exceptions, forced token movement, future Search/Investigate triggers, and similar campaign-state-heavy consequences remain PF2e/GM controlled.
+- Release-candidate gate: **168/168 automated tests pass**, plus the complete JavaScript syntax check.
 
 ## New in dev.18.5
 
@@ -205,14 +214,14 @@ npm test
 npm run check
 ```
 
-Current suite: **143/143 tests passing**.
+At the dev.14 checkpoint: **143/143 tests passing**.
 
-The Player Core skill-action catalog and the common exploration/core-utility layer are now represented. The next major review can focus on multi-target/shared-roll resolution and deeper integration rather than catalog gaps.
+At that checkpoint, the Player Core skill-action catalog and the common exploration/core-utility layer were represented; later development added shared-roll handling, prerequisites, and the release-candidate hardening described above.
 
 
-## GM DC diagnostics (development)
+## GM DC diagnostics
 
-`0.1.0-dev.18.7` retains the client diagnostics from dev.18.6 and records the GM-DC handoff lifecycle independently on every connected client. After reproducing a problem, open the Foundry developer console (F12 / Ctrl+Shift+I) and filter for `PF2E Action Forge][GM-DC`.
+The release candidate retains the client diagnostics introduced in dev.18.6 and records the GM-DC handoff lifecycle independently on every connected client. After reproducing a problem, open the Foundry developer console (F12 / Ctrl+Shift+I) and filter for `PF2E Action Forge][GM-DC`.
 
 Useful console commands:
 

@@ -45,9 +45,10 @@ export class GmDcDebugLog {
     this.#entries.push(entry);
     if (this.#entries.length > MAX_ENTRIES) this.#entries.splice(0, this.#entries.length - MAX_ENTRIES);
 
-    // Intentionally info-level in this development build so F12 -> Console shows
-    // the handoff trace without requiring verbose/debug logging to be enabled.
-    console.info(`[PF2E Action Forge][GM-DC] ${event}`, entry);
+    // Keep the client-local ring buffer available in RC builds without filling
+    // the normal console during successful play. The trace is still visible when
+    // verbose/debug messages are enabled and through module.api.debug.
+    console.debug(`[PF2E Action Forge][GM-DC] ${event}`, entry);
     return entry;
   }
 

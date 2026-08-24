@@ -22,7 +22,7 @@ function makeRoll(total, dieResult) {
 }
 
 test("dev.16 catalog and ActionRegistry expose the shared-roll contract", () => {
-  const ids = ["palm-an-object", "create-a-diversion", "lie", "conceal-an-object", "hide", "sneak"];
+  const ids = ["palm-an-object", "steal", "create-a-diversion", "lie", "conceal-an-object", "hide", "sneak"];
   const registry = new ActionRegistry();
   registry.registerMany(ids.map((id) => byId.get(id)));
 

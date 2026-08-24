@@ -9,7 +9,7 @@ Date: 2026-08-24
 
 Action Forge now supports the Pathfinder pattern **one check, several target DCs, separate outcomes** without rolling once per target.
 
-The shared-roll path is active for:
+The shared-roll path introduced in dev.16 was active for:
 
 - Palm an Object
 - Create a Diversion
@@ -17,6 +17,8 @@ The shared-roll path is active for:
 - Conceal an Object
 - Hide
 - Sneak
+
+**RC addendum:** the final integration review found the same observer rule on **Steal**. `0.1.0-rc.1` therefore adds Steal to the shared-roll surface as the seventh reviewed action.
 
 ## Runtime contract
 
@@ -53,6 +55,6 @@ The dev.16 suite verifies:
 - secret responses contain no per-target outcome payload for the player;
 - GM-only summaries retain the information needed to adjudicate secret checks.
 
-## Next release block
+## Historical next release block
 
-The remaining pre-RC integration priority is **0.1.0-dev.17 - Prerequisite & Equipment Validation**.
+At the dev.16 checkpoint, the remaining pre-RC integration priority was **0.1.0-dev.17 - Prerequisite & Equipment Validation**. That block was completed before rc.1.

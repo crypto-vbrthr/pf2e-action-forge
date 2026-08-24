@@ -753,11 +753,11 @@ export const CORE_ACTIONS = Object.freeze([
     categoryOrder: 26,
     order: 20,
     icon: "fa-solid fa-sack-dollar",
-    keywords: ["thievery", "steal", "perception", "pickpocket", "manipulate"],
-    target: { mode: "single", type: "creature", required: true },
+    keywords: ["thievery", "steal", "perception", "pickpocket", "manipulate", "observer"],
+    target: { mode: "multiple", type: "creature", required: true },
     dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
     systemAction: { slug: "steal" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", sharedRoll: true },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {

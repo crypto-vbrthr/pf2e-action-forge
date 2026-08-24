@@ -284,7 +284,7 @@
   "PF2EActionForge.Actions.PalmAnObject.Name": "Palm an Object",
   "PF2EActionForge.Actions.PalmAnObject.Description": "Palm a small unattended object unnoticed and roll Thievery against an observer's Perception DC. For multiple observers, the current workflow resolves one observer per roll.",
   "PF2EActionForge.Actions.Steal.Name": "Steal",
-  "PF2EActionForge.Actions.Steal.Description": "Try to take a small object from another creature unnoticed, normally rolling Thievery against its Perception DC.",
+  "PF2EActionForge.Actions.Steal.Description": "Try to take a small object from another creature unnoticed. Select the creature being robbed and any relevant observers; the same Thievery check is compared against every selected Perception DC. Protected items and situational modifiers remain GM-adjudicated.",
   "PF2EActionForge.Actions.DisableADevice.Name": "Disable a Device",
   "PF2EActionForge.Actions.DisableADevice.Description": "Use trained Thievery to disable a trap or complex mechanism. The GM sets the DC and, where appropriate, the number of successes required.",
   "PF2EActionForge.Actions.PickALock.Name": "Pick a Lock",

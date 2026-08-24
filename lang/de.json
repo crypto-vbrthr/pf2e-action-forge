@@ -284,7 +284,7 @@
   "PF2EActionForge.Actions.PalmAnObject.Name": "Gegenstand einstecken",
   "PF2EActionForge.Actions.PalmAnObject.Description": "Stecke einen kleinen, nicht getragenen Gegenstand unbemerkt ein und würfle Diebeskunst gegen den Wahrnehmungs-SG eines Beobachters. Bei mehreren Beobachtern wird vorerst ein Beobachter pro Wurf ausgewertet.",
   "PF2EActionForge.Actions.Steal.Name": "Stehlen",
-  "PF2EActionForge.Actions.Steal.Description": "Versuche, einer Kreatur unbemerkt einen kleinen Gegenstand abzunehmen; normalerweise würfelst du Diebeskunst gegen ihren Wahrnehmungs-SG.",
+  "PF2EActionForge.Actions.Steal.Description": "Versuche, einer Kreatur unbemerkt einen kleinen Gegenstand abzunehmen. Wähle die bestohlene Kreatur und alle relevanten Beobachter; derselbe Diebeskunstwurf wird gegen jeden ausgewählten Wahrnehmungs-SG verglichen. Geschützte Gegenstände und situationsabhängige Modifikatoren legt der SL fest.",
   "PF2EActionForge.Actions.DisableADevice.Name": "Mechanismus ausschalten",
   "PF2EActionForge.Actions.DisableADevice.Description": "Schalte mit geübter Diebeskunst eine Falle oder einen komplexen Mechanismus aus. Die SL legt den SG und gegebenenfalls die Zahl erforderlicher Erfolge fest.",
   "PF2EActionForge.Actions.PickALock.Name": "Schloss knacken",

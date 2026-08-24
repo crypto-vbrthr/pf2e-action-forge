@@ -1,3 +1,27 @@
+## 0.1.0-rc.1 – Release Candidate & Final Integration Review
+
+### Fixed
+
+- Completed the release-candidate integration pass across the full 65-card catalog, ActionRegistry normalization, GM authority, visibility, target brokering, shared rolls, prerequisites, application writes, exploration persistence, localization, diagnostics, and release metadata.
+- Closed a shared-roll rules gap in **Steal**: the same Thievery check can now be compared against the Perception DC of the creature being robbed and any selected observers instead of forcing the workflow to one target.
+- Updated the German and English Steal descriptions to make the victim-plus-observer workflow explicit while leaving protected-item and situational DC adjustments to the GM.
+- Reduced successful GM-DC diagnostic traffic from console `info` to `debug`; the bounded client-local trace and `module.api.debug` inspection tools remain available.
+- Synchronized module/package/runtime fallback versions and the release download URL to `0.1.0-rc.1`.
+- Corrected the historical dev.18.6 diagnostics changelog heading.
+
+### Review result
+
+- Player Core skill-action catalog: complete for the defined scope.
+- Common exploration layer and selected core utility actions: complete for the defined scope.
+- Shared-roll observer model: complete for the reviewed base actions, including Steal secondary observers.
+- Prerequisite/equipment validation: release-ready for reliably machine-readable prerequisites; scene geometry, feat-specific substitutions, arbitrary Item/environment targets, and other context-heavy exceptions remain GM-adjudicated by design.
+- Mechanical result automation remains intentionally partial where automatic mutation would require guessing player or GM intent.
+
+### Tests
+
+- Added RC metadata/packaging and Steal shared-roll regression coverage.
+- Full suite passes **168/168 tests**; all shipped JavaScript syntax checks pass.
+
 ## 0.1.0-dev.18.7 – GM DC Dialog Localization Hotfix
 
 ### Fixed
@@ -10,7 +34,7 @@
 
 - Added a regression test using a context-sensitive `i18n.format` implementation that fails when called unbound, matching the Foundry v14 failure observed in the GM log.
 
-## 0.1.0-dev.18.7 – GM DC Client Diagnostics
+## 0.1.0-dev.18.6 – GM DC Client Diagnostics
 
 ### Added
 
