@@ -34,8 +34,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       resizable: true
     },
     position: {
-      width: 700,
-      height: 790
+      width: 1120,
+      height: 820
     },
     actions: {
       runAction: ActionForgeApp.#runAction,
@@ -275,7 +275,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.9",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.10",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,

@@ -4,7 +4,7 @@
   --af-panel-strong: color-mix(in srgb, var(--color-cool-5, #25282b) 88%, transparent);
   --af-accent: var(--color-warm-1, #f0b35a);
   --af-muted: var(--color-text-subtle, #b9b4aa);
-  min-width: 440px;
+  min-width: 640px;
 }
 
 .pf2e-action-forge .window-content {
@@ -273,7 +273,7 @@
 
 .pf2e-action-forge .af-action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
   gap: 9px;
 }
 
@@ -433,6 +433,16 @@
   clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .pf2e-action-forge {
+    min-width: 440px;
+  }
+
+  .pf2e-action-forge .af-action-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
 }
 
 @media (max-width: 560px) {

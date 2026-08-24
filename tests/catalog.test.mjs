@@ -5,17 +5,17 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the dev.9 UX hardening build and release URLs", async () => {
+test("manifest identifies the dev.10 combat and movement build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.9");
+  assert.equal(manifest.version, "0.1.0-dev.10");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.9/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.10/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -24,12 +24,16 @@ test("English and German localization expose the same keys", async () => {
   assert.deepEqual(Object.keys(de).sort(), Object.keys(en).sort());
 });
 
-test("the MVP catalog contains the eight planned actions and category metadata", async () => {
+test("the core catalog contains the original MVP plus the dev.10 combat and movement actions", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
-  assert.equal(CORE_ACTIONS.length, 8);
+  assert.equal(CORE_ACTIONS.length, 19);
   assert.deepEqual(
     CORE_ACTIONS.map((action) => action.id).sort(),
-    ["climb", "demoralize", "grapple", "lie", "recall-knowledge", "treat-wounds", "trip", "tumble-through"].sort()
+    [
+      "balance", "climb", "create-a-diversion", "demoralize", "disarm", "feint", "force-open",
+      "grapple", "high-jump", "lie", "long-jump", "recall-knowledge", "reposition", "shove",
+      "squeeze", "swim", "treat-wounds", "trip", "tumble-through"
+    ].sort()
   );
   for (const action of CORE_ACTIONS) {
     assert.ok(action.category);
@@ -130,11 +134,22 @@ test("all MVP actions declare normalized target metadata", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   const expected = new Map([
     ["recall-knowledge", "optional"],
+    ["balance", "none"],
     ["tumble-through", "single"],
+    ["squeeze", "none"],
     ["grapple", "single"],
     ["trip", "single"],
+    ["shove", "single"],
+    ["reposition", "single"],
+    ["disarm", "single"],
+    ["force-open", "none"],
     ["climb", "none"],
+    ["swim", "none"],
+    ["high-jump", "none"],
+    ["long-jump", "none"],
+    ["create-a-diversion", "multiple"],
     ["lie", "multiple"],
+    ["feint", "single"],
     ["demoralize", "single"],
     ["treat-wounds", "single"]
   ]);
@@ -246,7 +261,7 @@ test("target workspace is present in the application template", async () => {
   assert.match(template, /targetContext\.canvasOverflow/);
 });
 
-test("dev.8 catalog declares DC, visibility, and all eight enabled MVP roll workflows", async () => {
+test("dev.10 catalog preserves MVP workflows and enables the combat/movement expansion", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
 
@@ -280,7 +295,27 @@ test("dev.8 catalog declares DC, visibility, and all eight enabled MVP roll work
   assert.deepEqual(byId.get("lie").visibility, { announcement: "none", roll: "blind", outcome: "gm" });
 
   const enabled = CORE_ACTIONS.filter((action) => action.execution.enabled).map((action) => action.id).sort();
-  assert.deepEqual(enabled, ["climb", "demoralize", "grapple", "lie", "recall-knowledge", "treat-wounds", "trip", "tumble-through"]);
+  assert.deepEqual(enabled, [
+    "balance",
+    "climb",
+    "create-a-diversion",
+    "demoralize",
+    "disarm",
+    "feint",
+    "force-open",
+    "grapple",
+    "high-jump",
+    "lie",
+    "long-jump",
+    "recall-knowledge",
+    "reposition",
+    "shove",
+    "squeeze",
+    "swim",
+    "treat-wounds",
+    "trip",
+    "tumble-through",
+  ]);
 });
 
 test("dev.5 template exposes DC, skill selection, visibility, and real roll controls", async () => {

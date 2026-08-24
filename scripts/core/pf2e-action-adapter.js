@@ -2,11 +2,22 @@ import { visibilityEngine } from "./visibility-engine.js";
 
 const FALLBACK_SYSTEM_SLUGS = Object.freeze({
   "recall-knowledge": "recall-knowledge",
+  balance: "balance",
   "tumble-through": "tumble-through",
+  squeeze: "squeeze",
   grapple: "grapple",
   trip: "trip",
+  shove: "shove",
+  reposition: "reposition",
+  disarm: "disarm",
+  "force-open": "force-open",
   climb: "climb",
+  swim: "swim",
+  "high-jump": "high-jump",
+  "long-jump": "long-jump",
+  "create-a-diversion": "create-a-diversion",
   lie: "lie",
+  feint: "feint",
   demoralize: "demoralize",
   "treat-wounds": "treat-wounds"
 });

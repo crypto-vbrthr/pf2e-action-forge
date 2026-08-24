@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.0-dev.10 - Combat & Movement Actions
+
+- Expanded the core Action Forge catalog from 8 to **19 enabled actions**.
+- Added **Balance** and trained **Squeeze** for Acrobatics.
+- Added **Shove**, **Reposition**, trained **Disarm**, **Force Open**, **Swim**, **High Jump**, and **Long Jump** for Athletics.
+- Added **Create a Diversion** and trained **Feint** for Deception.
+- Added the corresponding PF2e system-action slugs to the PF2e Action Adapter fallback map.
+- Added target-defense DC mappings for Fortitude, Reflex, and Perception based actions.
+- Added fixed DC handling for High Jump (30) and Long Jump (15), while environmental movement actions use the existing manual-DC workflow.
+- Preserved PF2e as the authoritative roll engine for the new actions instead of duplicating action check logic in Action Forge.
+- Kept forced movement and positional outcomes descriptive in this build rather than automatically moving tokens.
+- Modeled Create a Diversion as multi-target-capable in target metadata while retaining one target per execution until per-target DC batching is implemented.
+- Increased the default Action Forge window from 700 to **1120 px** wide and 820 px high.
+- Changed skill action groups to a responsive multi-column grid that generally fits four cards side by side at the default desktop width, with narrow-window fallbacks.
+- Added German and English localization for every new action and updated the development footer/version metadata.
+- Added dev.10 regression coverage for the complete action set, DC/target models, proficiency gates, PF2e action resolution, and the wider responsive layout.
+- Automated suite now contains **87 passing tests**.
+
 ## 0.1.0-dev.9 - UX & Player Hardening
 
 - Added an explicit in-flight execution lock around PF2e checks. Double-clicking the roll button or changing targets while the PF2e roll pipeline is active can no longer start duplicate checks.

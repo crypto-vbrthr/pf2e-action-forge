@@ -1,9 +1,9 @@
 /**
- * MVP action catalog.
+ * Core skill-action catalog.
  *
- * dev.5 adds visibility profiles and secret-check workflows. dev.6 adds safe
- * declarative applications for Athletics actions, and dev.7 adds the full
- * Treat Wounds result workflow.
+ * dev.10 expands the original MVP with combat and movement actions from
+ * Acrobatics, Athletics, and Deception while keeping PF2e system actions as
+ * the authoritative roll implementation.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -35,6 +35,23 @@ export const CORE_ACTIONS = Object.freeze([
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
   {
+    id: "balance",
+    label: "PF2EActionForge.Actions.Balance.Name",
+    description: "PF2EActionForge.Actions.Balance.Description",
+    category: "acrobatics",
+    categoryLabel: "PF2EActionForge.Categories.Acrobatics",
+    categoryIcon: "fa-solid fa-person-running",
+    categoryOrder: 10,
+    order: 5,
+    icon: "fa-solid fa-scale-balanced",
+    keywords: ["acrobatics", "balance", "movement", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "balance" },
+    execution: { enabled: true, statistic: "acrobatics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
     id: "tumble-through",
     label: "PF2EActionForge.Actions.TumbleThrough.Name",
     description: "PF2EActionForge.Actions.TumbleThrough.Description",
@@ -49,6 +66,23 @@ export const CORE_ACTIONS = Object.freeze([
     dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
     systemAction: { slug: "tumble-through" },
     execution: { enabled: true, statistic: "acrobatics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "squeeze",
+    label: "PF2EActionForge.Actions.Squeeze.Name",
+    description: "PF2EActionForge.Actions.Squeeze.Description",
+    category: "acrobatics",
+    categoryLabel: "PF2EActionForge.Categories.Acrobatics",
+    categoryIcon: "fa-solid fa-person-running",
+    categoryOrder: 10,
+    order: 20,
+    icon: "fa-solid fa-arrows-left-right-to-line",
+    keywords: ["acrobatics", "squeeze", "exploration", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "squeeze" },
+    execution: { enabled: true, statistic: "acrobatics", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
@@ -103,6 +137,74 @@ export const CORE_ACTIONS = Object.freeze([
     }
   },
   {
+    id: "shove",
+    label: "PF2EActionForge.Actions.Shove.Name",
+    description: "PF2EActionForge.Actions.Shove.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 30,
+    icon: "fa-solid fa-person-walking-arrow-right",
+    keywords: ["athletics", "fortitude", "shove", "forced movement", "attack"],
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "fortitude", manualFallback: true },
+    systemAction: { slug: "shove" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "reposition",
+    label: "PF2EActionForge.Actions.Reposition.Name",
+    description: "PF2EActionForge.Actions.Reposition.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 40,
+    icon: "fa-solid fa-arrows-up-down-left-right",
+    keywords: ["athletics", "fortitude", "reposition", "forced movement", "attack"],
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "fortitude", manualFallback: true },
+    systemAction: { slug: "reposition" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "disarm",
+    label: "PF2EActionForge.Actions.Disarm.Name",
+    description: "PF2EActionForge.Actions.Disarm.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 50,
+    icon: "fa-solid fa-hand",
+    keywords: ["athletics", "reflex", "disarm", "attack", "trained"],
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "reflex", manualFallback: true },
+    systemAction: { slug: "disarm" },
+    execution: { enabled: true, statistic: "athletics", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "force-open",
+    label: "PF2EActionForge.Actions.ForceOpen.Name",
+    description: "PF2EActionForge.Actions.ForceOpen.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 60,
+    icon: "fa-solid fa-door-open",
+    keywords: ["athletics", "force open", "door", "object", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "force-open" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
     id: "climb",
     label: "PF2EActionForge.Actions.Climb.Name",
     description: "PF2EActionForge.Actions.Climb.Description",
@@ -110,13 +212,81 @@ export const CORE_ACTIONS = Object.freeze([
     categoryLabel: "PF2EActionForge.Categories.Athletics",
     categoryIcon: "fa-solid fa-dumbbell",
     categoryOrder: 20,
-    order: 30,
+    order: 70,
     icon: "fa-solid fa-mountain",
     keywords: ["athletics", "manual", "dc", "movement"],
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "manual" },
     systemAction: { slug: "climb" },
     execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "swim",
+    label: "PF2EActionForge.Actions.Swim.Name",
+    description: "PF2EActionForge.Actions.Swim.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 80,
+    icon: "fa-solid fa-person-swimming",
+    keywords: ["athletics", "swim", "movement", "water", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "swim" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "high-jump",
+    label: "PF2EActionForge.Actions.HighJump.Name",
+    description: "PF2EActionForge.Actions.HighJump.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 90,
+    icon: "fa-solid fa-arrow-up",
+    keywords: ["athletics", "high jump", "jump", "movement", "dc 30"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "fixed", value: 30 },
+    systemAction: { slug: "high-jump" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "long-jump",
+    label: "PF2EActionForge.Actions.LongJump.Name",
+    description: "PF2EActionForge.Actions.LongJump.Description",
+    category: "athletics",
+    categoryLabel: "PF2EActionForge.Categories.Athletics",
+    categoryIcon: "fa-solid fa-dumbbell",
+    categoryOrder: 20,
+    order: 100,
+    icon: "fa-solid fa-arrow-right-long",
+    keywords: ["athletics", "long jump", "jump", "movement", "dc 15"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "fixed", value: 15 },
+    systemAction: { slug: "long-jump" },
+    execution: { enabled: true, statistic: "athletics" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "create-a-diversion",
+    label: "PF2EActionForge.Actions.CreateADiversion.Name",
+    description: "PF2EActionForge.Actions.CreateADiversion.Description",
+    category: "deception",
+    categoryLabel: "PF2EActionForge.Categories.Deception",
+    categoryIcon: "fa-solid fa-masks-theater",
+    categoryOrder: 30,
+    order: 5,
+    icon: "fa-solid fa-eye-slash",
+    keywords: ["deception", "perception", "diversion", "hidden", "social"],
+    target: { mode: "multiple", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
+    systemAction: { slug: "create-a-diversion" },
+    execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
@@ -135,6 +305,23 @@ export const CORE_ACTIONS = Object.freeze([
     systemAction: { slug: "lie" },
     execution: { enabled: true, statistic: "deception", singleTargetOnly: true },
     visibility: { announcement: "none", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "feint",
+    label: "PF2EActionForge.Actions.Feint.Name",
+    description: "PF2EActionForge.Actions.Feint.Description",
+    category: "deception",
+    categoryLabel: "PF2EActionForge.Categories.Deception",
+    categoryIcon: "fa-solid fa-masks-theater",
+    categoryOrder: 30,
+    order: 20,
+    icon: "fa-solid fa-hand-sparkles",
+    keywords: ["deception", "perception", "feint", "off-guard", "trained"],
+    target: { mode: "single", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", manualFallback: true },
+    systemAction: { slug: "feint" },
+    execution: { enabled: true, statistic: "deception", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
   {
     id: "demoralize",
