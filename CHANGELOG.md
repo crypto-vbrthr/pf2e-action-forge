@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.0-dev.13.1] - 2026-08-24
+
+### Fixed
+
+- Fixed a registry-contract regression where dev.13 DC metadata was present in `CORE_ACTIONS` but discarded by `ActionRegistry` normalization before runtime consumers could use it.
+- Preserved `dc.hidden`, restoring hidden GM-defined DCs for public statistic rolls such as **Earn Income** through the real registered-action path.
+- Preserved `dc.allowCustom`, `choiceLabel`, `choiceHint`, `customLabel`, and `customHint`, restoring the complete **Learn a Spell** custom-DC and localized-selector workflow after registration.
+- Updated the main module startup fallback version, removing the stale dev.10 fallback found during the integration review.
+
+### Tests
+
+- Added registry-path regression coverage for Earn Income hidden DC metadata and Learn a Spell custom fixed-choice metadata.
+- Added runtime regression coverage proving that the DC Resolver accepts a custom Learn a Spell DC from a registered action and that the PF2e statistic adapter keeps a registered Earn Income DC hidden while the roll remains public.
+- Synchronized manifest, package, UI fallback, startup fallback, and release download metadata to **0.1.0-dev.13.1**.
+- Automated suite now contains **115 passing tests**.
+
 ## [0.1.0-dev.13] - 2026-08-24
 
 ### Added

@@ -131,6 +131,12 @@ export class ActionRegistry {
         systemTargetFallback: Boolean(dcDefinition.systemTargetFallback),
         systemTargetRequiresStatisticMatch: Boolean(dcDefinition.systemTargetRequiresStatisticMatch),
         allowUnknown: Boolean(dcDefinition.allowUnknown),
+        hidden: Boolean(dcDefinition.hidden),
+        allowCustom: Boolean(dcDefinition.allowCustom),
+        choiceLabel: dcDefinition.choiceLabel ? String(dcDefinition.choiceLabel).trim() : null,
+        choiceHint: dcDefinition.choiceHint ? String(dcDefinition.choiceHint).trim() : null,
+        customLabel: dcDefinition.customLabel ? String(dcDefinition.customLabel).trim() : null,
+        customHint: dcDefinition.customHint ? String(dcDefinition.customHint).trim() : null,
         systemTargetStatistics: Object.freeze(
           Array.isArray(dcDefinition.systemTargetStatistics)
             ? dcDefinition.systemTargetStatistics.map((slug) => String(slug)).filter(Boolean)

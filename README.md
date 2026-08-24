@@ -1,10 +1,21 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.13 - Knowledge, Magic & Downtime Actions**.
+Development build **0.1.0-dev.13.1 - Registry DC Metadata Hotfix**.
 
 dev.13 expands the catalog from **43 to 51 actions** and closes the remaining distinct **Player Core skill-action** gaps in the current Action Forge scope. The catalog now covers the core skill actions from Acrobatics through Survival while still delegating actual PF2e checks, modifiers, degree-of-success handling, and Rule Elements to the system wherever possible.
 
-## New in dev.13
+## New in dev.13.1
+
+This hotfix closes the registry-contract issue found during the Player Core Integration & Completeness Review. Action definitions are normalized before the UI, DC Resolver, and PF2e adapter consume them; dev.13 introduced additional DC metadata that the registry did not preserve.
+
+- `dc.hidden` now survives ActionRegistry normalization, so a public check such as **Earn Income** can still keep the GM-defined DC hidden.
+- `dc.allowCustom`, `choiceLabel`, `choiceHint`, `customLabel`, and `customHint` now survive normalization, so **Learn a Spell** retains its custom rarity/special-circumstance DC workflow and localized UI labels.
+- Runtime regression tests now register the real catalog through `ActionRegistry` before exercising the DC Resolver and PF2e statistic adapter. This prevents raw-catalog tests from masking future registry-contract regressions.
+- Both module startup fallbacks now report the current module version instead of retaining an older dev fallback.
+
+The action catalog itself is unchanged at **51 actions**.
+
+## Features retained from dev.13
 
 ### General knowledge, magic, and downtime
 
@@ -104,6 +115,6 @@ npm test
 npm run check
 ```
 
-Current suite: **111/111 tests passing**.
+Current suite: **115/115 tests passing**.
 
-The next step should be the full **MVP / Player Core Integration Review**, including a deliberate audit of what belongs in Action Forge beyond the completed skill-action surface.
+The Player Core Integration & Completeness Review has now been completed. After this hotfix, the next feature block can proceed to **Exploration Mode & Core Utility Actions**.

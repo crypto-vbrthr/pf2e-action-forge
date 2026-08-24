@@ -187,12 +187,14 @@ test("dev.13 localization is complete in German and English and includes the new
   }
 });
 
-test("dev.13 manifest, fallback version, and release URL are synchronized", async () => {
+test("dev.13.1 manifest, fallback versions, and release URL are synchronized", async () => {
   const manifest = JSON.parse(await readFile(new URL("module.json", root), "utf8"));
   const pkg = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
-  assert.equal(manifest.version, "0.1.0-dev.13");
-  assert.equal(pkg.version, "0.1.0-dev.13");
-  assert.match(manifest.download, /v0\.1\.0-dev\.13\/pf2e-action-forge\.zip$/);
-  assert.match(app, /0\.1\.0-dev\.13/);
+  const bootstrap = await readFile(new URL("scripts/action-forge.js", root), "utf8");
+  assert.equal(manifest.version, "0.1.0-dev.13.1");
+  assert.equal(pkg.version, "0.1.0-dev.13.1");
+  assert.match(manifest.download, /v0\.1\.0-dev\.13\.1\/pf2e-action-forge\.zip$/);
+  assert.match(app, /0\.1\.0-dev\.13\.1/);
+  assert.match(bootstrap, /0\.1\.0-dev\.13\.1/);
 });
