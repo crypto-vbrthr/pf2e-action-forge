@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.1.0-dev.13] - 2026-08-24
+
+### Added
+
+- Expanded the enabled catalog from **43 to 51 actions** with the Knowledge, Magic & Downtime block, completing the distinct Player Core skill-action entries covered by the Action Forge catalog.
+- Added trained **Identify Magic** with Arcana, Nature, Occultism, or Religion and a blind roll / GM-only outcome.
+- Added trained **Decipher Writing** with Arcana, Society, Occultism, or Religion and the same secret-result workflow.
+- Added trained **Learn a Spell** with the Player Core spell-rank DC table (15/18/20/23/26/28/31/34/36/41), localized material-cost reminders, and an optional custom DC for rarity or special circumstances.
+- Added trained **Prepare from Another Spellbook** using Arcana and a GM-defined DC.
+- Added trained **Earn Income** with Performance, Crafting, or character Lore skills and a GM-defined DC that remains hidden even though the work check itself is public.
+- Added secret trained **Create Forgery** using Society against fixed DC 20.
+- Added **Command an Animal** using Nature against the animal's Will DC.
+- Added trained **Maneuver in Flight**, closing the Acrobatics movement-action gap left by dev.10.
+- Added generic fixed-choice custom-DC support to the DC Resolver and UI, initially used by Learn a Spell.
+- Added German and English localization for Arcana, Society, Nature, all new actions, and spell-rank/cost choices.
+- Added dev.13 regression coverage for catalog completeness, trained skill sets, secret knowledge checks, custom fixed-choice DCs, hidden public-roll DCs, new action models, localization, and release metadata.
+
+### Changed
+
+- Direct PF2e statistic rolls now honor an action-level `dc.hidden` flag independently of roll visibility. This lets checks such as Earn Income remain publicly rolled without exposing the GM-selected DC.
+- The generic statistic selector now has separate hints for workflows that include Lore skills and workflows that do not.
+- Version metadata, application fallback version, manifest download URL, and package metadata are synchronized to dev.13.
+- Automated suite now contains **111 passing tests**.
+
+### Current automation boundary
+
+- Earn Income resolves the chosen trained skill and check but does not automatically calculate or award coin, persist a job, or advance downtime days.
+- Learn a Spell provides the standard rank DC/cost reference and check but does not consume materials or add the spell to a spellbook/repertoire.
+- Prepare from Another Spellbook does not alter prepared spell slots automatically.
+- Create Forgery resolves the secret Society check but does not create a Journal/Item document for the forgery.
+- Command an Animal resolves the Nature check but does not inject or execute actions on the animal's turn.
+- Maneuver in Flight resolves the Acrobatics check but leaves actual token movement to the player/GM.
+
 ## [0.1.0-dev.12] - 2026-08-24
 
 ### Added

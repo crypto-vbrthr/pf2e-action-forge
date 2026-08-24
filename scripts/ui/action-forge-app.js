@@ -302,7 +302,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.12",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.13",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -493,24 +493,34 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       handoffRequired,
       statusClass: waitingForGmDc || handoffRequired ? "is-waiting" : state.valid ? "is-valid" : "is-required",
       showChoiceSelect: state.strategy === "fixed-choice" && Array.isArray(state.choiceEntries) && state.choiceEntries.length > 0,
-      choiceOptions: (state.choiceEntries ?? []).map((entry) => ({
-        value: entry.value,
-        selected: entry.value === state.manualDc,
-        label: game.i18n.format("PF2EActionForge.DC.FixedChoiceOption", {
-          dc: entry.value,
-          label: entry.label ? game.i18n.localize(entry.label) : ""
-        })
-      })),
-      choiceLabel: game.i18n.localize("PF2EActionForge.DC.FixedChoiceLabel"),
-      choiceHint: game.i18n.localize("PF2EActionForge.DC.FixedChoiceHint"),
+      choiceOptions: [
+        ...(state.choiceEntries ?? []).map((entry) => ({
+          value: entry.value,
+          selected: entry.value === state.manualDc,
+          label: game.i18n.format("PF2EActionForge.DC.FixedChoiceOption", {
+            dc: entry.value,
+            label: entry.label ? game.i18n.localize(entry.label) : ""
+          })
+        })),
+        ...(state.custom
+          ? [{
+              value: state.manualDc,
+              selected: true,
+              label: game.i18n.format("PF2EActionForge.DC.CustomChoiceOption", { dc: state.manualDc })
+            }]
+          : [])
+      ],
+      choiceLabel: game.i18n.localize(action?.dc?.choiceLabel ?? "PF2EActionForge.DC.FixedChoiceLabel"),
+      choiceHint: game.i18n.localize(action?.dc?.choiceHint ?? "PF2EActionForge.DC.FixedChoiceHint"),
       showManualInput:
         state.strategy === "manual" ||
+        (state.strategy === "fixed-choice" && state.allowsManualDc) ||
         (state.strategy === "gm-defined" && state.allowsManualDc) ||
         (state.strategy === "target-dying" && state.allowsManualDc) ||
         (state.strategy === "target-defense" && !state.target && state.allowsManualDc),
-      manualInputValue: this.manualDcByAction.get(action.id) ?? "",
-      manualInputLabel: game.i18n.localize("PF2EActionForge.DC.ManualInput"),
-      manualInputHint: game.i18n.localize("PF2EActionForge.DC.ManualInputHint")
+      manualInputValue: this.manualDcByAction.get(action.id) ?? state.manualDc ?? "",
+      manualInputLabel: game.i18n.localize(action?.dc?.customLabel ?? "PF2EActionForge.DC.ManualInput"),
+      manualInputHint: game.i18n.localize(action?.dc?.customHint ?? "PF2EActionForge.DC.ManualInputHint")
     };
   }
 
@@ -585,8 +595,11 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       selected: selectedStatistic,
       options,
       hasOptions: options.length > 0,
-      label: game.i18n.localize("PF2EActionForge.Roll.Statistic"),
-      hint: game.i18n.localize("PF2EActionForge.Roll.StatisticHint")
+      label: game.i18n.localize(action?.execution?.statisticLabel ?? "PF2EActionForge.Roll.Statistic"),
+      hint: game.i18n.localize(
+        action?.execution?.statisticHint
+          ?? (action?.execution?.includeLore ? "PF2EActionForge.Roll.StatisticHint" : "PF2EActionForge.Roll.StatisticHintNoLore")
+      )
     };
   }
 

@@ -3,6 +3,14 @@ import { visibilityEngine } from "./visibility-engine.js";
 
 const FALLBACK_SYSTEM_SLUGS = Object.freeze({
   "recall-knowledge": "recall-knowledge",
+  "earn-income": "earn-income",
+  "identify-magic": "identify-magic",
+  "decipher-writing": "decipher-writing",
+  "learn-a-spell": "learn-a-spell",
+  "prepare-from-spellbook": "borrow-an-arcane-spell",
+  "maneuver-in-flight": "maneuver-in-flight",
+  "create-forgery": "create-forgery",
+  "command-an-animal": "command-an-animal",
   balance: "balance",
   "tumble-through": "tumble-through",
   squeeze: "squeeze",
@@ -179,7 +187,7 @@ export class PF2eActionAdapter {
       };
 
       const rollMode = definition?.visibility?.roll ?? "public";
-      const dcVisible = !["blind", "gm"].includes(rollMode);
+      const dcVisible = !definition?.dc?.hidden && !["blind", "gm"].includes(rollMode);
       if (Number.isFinite(Number(difficultyClass))) {
         options.dc = { value: Number(difficultyClass), visible: dcVisible };
       } else if (typeof difficultyClass === "string" && targetActor) {

@@ -23,7 +23,7 @@ test("dev.10 registers the complete agreed Combat & Movement action set", async 
   const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
 
   for (const id of DEV10_IDS) assert.ok(byId.has(id), `${id} should be registered`);
-  assert.equal(CORE_ACTIONS.length, 43);
+  assert.equal(CORE_ACTIONS.length, 51);
 
   assert.equal(byId.get("balance").execution.statistic, "acrobatics");
   assert.equal(byId.get("squeeze").execution.statistic, "acrobatics");

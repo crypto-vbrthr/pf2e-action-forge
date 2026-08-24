@@ -357,19 +357,24 @@ export class DCResolver {
           ? allEntries
           : allEntries.filter((entry) => entry.minRank <= rank);
         const choices = choiceEntries.map((entry) => entry.value);
-        const selected = choices.includes(parsedManualDc) ? parsedManualDc : choices[0] ?? null;
+        const allowCustom = Boolean(dc.allowCustom);
+        const selected = parsedManualDc !== null && (allowCustom || choices.includes(parsedManualDc))
+          ? parsedManualDc
+          : choices[0] ?? null;
+        const custom = selected !== null && !choices.includes(selected);
         return {
           strategy,
           valid: selected !== null,
-          source: "fixed-choice",
+          source: custom ? "fixed-choice-custom" : "fixed-choice",
           difficultyClass: selected ?? undefined,
           target,
           manualDc: selected,
           choices,
           choiceEntries,
           statisticRank: rank,
+          custom,
           needsManualDc: false,
-          allowsManualDc: false,
+          allowsManualDc: allowCustom,
           labelKey: "PF2EActionForge.DC.FixedChoice"
         };
       }

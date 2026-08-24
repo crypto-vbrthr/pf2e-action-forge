@@ -8,14 +8,14 @@ const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), 
 test("manifest identifies the dev.11 social and exploration build and release URLs", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-dev.12");
+  assert.equal(manifest.version, "0.1.0-dev.13");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.12/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-dev.13/pf2e-action-forge.zip");
 });
 
 test("English and German localization expose the same keys", async () => {
@@ -26,17 +26,19 @@ test("English and German localization expose the same keys", async () => {
 
 test("the core catalog contains the MVP, combat/movement, and dev.11 social/exploration actions", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
-  assert.equal(CORE_ACTIONS.length, 43);
+  assert.equal(CORE_ACTIONS.length, 51);
   assert.deepEqual(
     CORE_ACTIONS.map((action) => action.id).sort(),
     [
       "administer-first-aid-stabilize", "administer-first-aid-stop-bleeding", "balance", "climb",
-      "coerce", "conceal-an-object", "cover-tracks", "craft", "create-a-diversion", "demoralize",
-      "disable-a-device", "disarm", "feint", "force-open", "gather-information", "grapple", "hide",
-      "high-jump", "identify-alchemy", "impersonate", "lie", "long-jump", "make-an-impression",
-      "palm-an-object", "perform", "pick-a-lock", "recall-knowledge", "repair", "reposition",
-      "request", "sense-direction", "shove", "sneak", "squeeze", "steal", "subsist", "swim",
-      "track", "treat-disease", "treat-poison", "treat-wounds", "trip", "tumble-through"
+      "coerce", "command-an-animal", "conceal-an-object", "cover-tracks", "craft", "create-a-diversion",
+      "create-forgery", "decipher-writing", "demoralize", "disable-a-device", "disarm", "earn-income",
+      "feint", "force-open", "gather-information", "grapple", "hide", "high-jump", "identify-alchemy",
+      "identify-magic", "impersonate", "learn-a-spell", "lie", "long-jump", "make-an-impression",
+      "maneuver-in-flight", "palm-an-object", "perform", "pick-a-lock", "prepare-from-spellbook",
+      "recall-knowledge", "repair", "reposition", "request", "sense-direction", "shove", "sneak",
+      "squeeze", "steal", "subsist", "swim", "track", "treat-disease", "treat-poison", "treat-wounds",
+      "trip", "tumble-through"
     ].sort()
   );
   for (const action of CORE_ACTIONS) {
@@ -138,6 +140,14 @@ test("all MVP actions declare normalized target metadata", async () => {
   const { CORE_ACTIONS } = await import("../scripts/data/core-action-catalog.js");
   const expected = new Map([
     ["recall-knowledge", "optional"],
+    ["earn-income", "none"],
+    ["identify-magic", "none"],
+    ["decipher-writing", "none"],
+    ["learn-a-spell", "none"],
+    ["prepare-from-spellbook", "none"],
+    ["maneuver-in-flight", "none"],
+    ["create-forgery", "none"],
+    ["command-an-animal", "single"],
     ["subsist", "none"],
     ["balance", "none"],
     ["tumble-through", "single"],

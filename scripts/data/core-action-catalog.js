@@ -1,7 +1,8 @@
 /**
  * Core skill-action catalog.
  *
- * dev.12 expands the catalog with Medicine, Thievery, and Crafting actions.
+ * dev.13 completes the main Player Core skill-action surface with knowledge,
+ * magic, downtime, Nature/Society, and the previously missing flight action.
  * PF2e system actions remain preferred, with statistic-roll fallbacks for
  * compatibility, GM-mediated DC handoff, and declarative result applications.
  */
@@ -34,6 +35,119 @@ export const CORE_ACTIONS = Object.freeze([
     },
     visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
   },
+  {
+    id: "earn-income",
+    label: "PF2EActionForge.Actions.EarnIncome.Name",
+    description: "PF2EActionForge.Actions.EarnIncome.Description",
+    category: "general",
+    categoryLabel: "PF2EActionForge.Categories.General",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 0,
+    order: 30,
+    icon: "fa-solid fa-coins",
+    keywords: ["earn income", "downtime", "performance", "crafting", "lore", "job", "work"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true, hidden: true },
+    systemAction: { slug: "earn-income" },
+    execution: {
+      enabled: true,
+      mode: "statistic",
+      statistics: ["performance", "crafting"],
+      includeLore: true,
+      requiresStatistic: true,
+      minRank: 1
+    },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "identify-magic",
+    label: "PF2EActionForge.Actions.IdentifyMagic.Name",
+    description: "PF2EActionForge.Actions.IdentifyMagic.Description",
+    category: "general",
+    categoryLabel: "PF2EActionForge.Categories.General",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 0,
+    order: 40,
+    icon: "fa-solid fa-wand-magic-sparkles",
+    keywords: ["identify magic", "arcana", "nature", "occultism", "religion", "exploration", "secret", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "identify-magic" },
+    execution: {
+      enabled: true,
+      mode: "system-or-statistic",
+      statistics: ["arcana", "nature", "occultism", "religion"],
+      requiresStatistic: true,
+      minRank: 1
+    },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "decipher-writing",
+    label: "PF2EActionForge.Actions.DecipherWriting.Name",
+    description: "PF2EActionForge.Actions.DecipherWriting.Description",
+    category: "general",
+    categoryLabel: "PF2EActionForge.Categories.General",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 0,
+    order: 50,
+    icon: "fa-solid fa-scroll",
+    keywords: ["decipher writing", "arcana", "society", "occultism", "religion", "exploration", "secret", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "decipher-writing" },
+    execution: {
+      enabled: true,
+      mode: "system-or-statistic",
+      statistics: ["arcana", "society", "occultism", "religion"],
+      requiresStatistic: true,
+      minRank: 1
+    },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "learn-a-spell",
+    label: "PF2EActionForge.Actions.LearnASpell.Name",
+    description: "PF2EActionForge.Actions.LearnASpell.Description",
+    category: "general",
+    categoryLabel: "PF2EActionForge.Categories.General",
+    categoryIcon: "fa-solid fa-compass",
+    categoryOrder: 0,
+    order: 60,
+    icon: "fa-solid fa-book-open-reader",
+    keywords: ["learn a spell", "arcana", "nature", "occultism", "religion", "spell rank", "downtime", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: {
+      strategy: "fixed-choice",
+      allowCustom: true,
+      choiceLabel: "PF2EActionForge.LearnSpell.DCLabel",
+      choiceHint: "PF2EActionForge.LearnSpell.DCHint",
+      customLabel: "PF2EActionForge.LearnSpell.CustomDCLabel",
+      customHint: "PF2EActionForge.LearnSpell.CustomDCHint",
+      choices: [
+        { value: 15, label: "PF2EActionForge.LearnSpell.Rank1" },
+        { value: 18, label: "PF2EActionForge.LearnSpell.Rank2" },
+        { value: 20, label: "PF2EActionForge.LearnSpell.Rank3" },
+        { value: 23, label: "PF2EActionForge.LearnSpell.Rank4" },
+        { value: 26, label: "PF2EActionForge.LearnSpell.Rank5" },
+        { value: 28, label: "PF2EActionForge.LearnSpell.Rank6" },
+        { value: 31, label: "PF2EActionForge.LearnSpell.Rank7" },
+        { value: 34, label: "PF2EActionForge.LearnSpell.Rank8" },
+        { value: 36, label: "PF2EActionForge.LearnSpell.Rank9" },
+        { value: 41, label: "PF2EActionForge.LearnSpell.Rank10" }
+      ]
+    },
+    systemAction: { slug: "learn-a-spell" },
+    execution: {
+      enabled: true,
+      mode: "system-or-statistic",
+      statistics: ["arcana", "nature", "occultism", "religion"],
+      requiresStatistic: true,
+      minRank: 1
+    },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
   {
     id: "balance",
     label: "PF2EActionForge.Actions.Balance.Name",
@@ -85,6 +199,42 @@ export const CORE_ACTIONS = Object.freeze([
     execution: { enabled: true, statistic: "acrobatics", minRank: 1 },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
+  {
+    id: "prepare-from-spellbook",
+    label: "PF2EActionForge.Actions.PrepareFromSpellbook.Name",
+    description: "PF2EActionForge.Actions.PrepareFromSpellbook.Description",
+    category: "arcana",
+    categoryLabel: "PF2EActionForge.Categories.Arcana",
+    categoryIcon: "fa-solid fa-hat-wizard",
+    categoryOrder: 15,
+    order: 10,
+    icon: "fa-solid fa-book-open",
+    keywords: ["arcana", "spellbook", "prepare", "borrow", "spell", "exploration", "trained", "gm dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "borrow-an-arcane-spell" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "arcana", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
+  {
+    id: "maneuver-in-flight",
+    label: "PF2EActionForge.Actions.ManeuverInFlight.Name",
+    description: "PF2EActionForge.Actions.ManeuverInFlight.Description",
+    category: "acrobatics",
+    categoryLabel: "PF2EActionForge.Categories.Acrobatics",
+    categoryIcon: "fa-solid fa-person-running",
+    categoryOrder: 10,
+    order: 30,
+    icon: "fa-solid fa-plane-up",
+    keywords: ["acrobatics", "maneuver in flight", "fly", "movement", "trained", "manual", "dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "manual" },
+    systemAction: { slug: "maneuver-in-flight" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "acrobatics", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
   {
     id: "grapple",
     label: "PF2EActionForge.Actions.Grapple.Name",
@@ -654,6 +804,41 @@ export const CORE_ACTIONS = Object.freeze([
     systemAction: { slug: "cover-tracks" },
     execution: { enabled: true, mode: "activity", minRank: 1 },
     visibility: { announcement: "public", roll: "none", outcome: "public" }
+  },
+
+  {
+    id: "create-forgery",
+    label: "PF2EActionForge.Actions.CreateForgery.Name",
+    description: "PF2EActionForge.Actions.CreateForgery.Description",
+    category: "society",
+    categoryLabel: "PF2EActionForge.Categories.Society",
+    categoryIcon: "fa-solid fa-landmark",
+    categoryOrder: 46,
+    order: 10,
+    icon: "fa-solid fa-file-signature",
+    keywords: ["society", "create forgery", "forgery", "downtime", "secret", "dc 20", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "fixed", value: 20 },
+    systemAction: { slug: "create-forgery" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "society", minRank: 1 },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "command-an-animal",
+    label: "PF2EActionForge.Actions.CommandAnAnimal.Name",
+    description: "PF2EActionForge.Actions.CommandAnAnimal.Description",
+    category: "nature",
+    categoryLabel: "PF2EActionForge.Categories.Nature",
+    categoryIcon: "fa-solid fa-paw",
+    categoryOrder: 47,
+    order: 10,
+    icon: "fa-solid fa-paw",
+    keywords: ["nature", "command an animal", "animal", "will", "auditory", "concentrate"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-defense", defense: "will", manualFallback: true },
+    systemAction: { slug: "command-an-animal" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "nature" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
 
   {

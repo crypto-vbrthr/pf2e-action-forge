@@ -1,106 +1,101 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.12 - Medicine, Thievery & Crafting Actions**.
+Development build **0.1.0-dev.13 - Knowledge, Magic & Downtime Actions**.
 
-dev.12 expands the catalog from **32 to 43 actions** and adds the remaining core workflows for Medicine, Thievery, and Crafting. Administer First Aid is represented as two operational cards because Stabilize and Stop Bleeding use different DC and outcome logic.
+dev.13 expands the catalog from **43 to 51 actions** and closes the remaining distinct **Player Core skill-action** gaps in the current Action Forge scope. The catalog now covers the core skill actions from Acrobatics through Survival while still delegating actual PF2e checks, modifiers, degree-of-success handling, and Rule Elements to the system wherever possible.
 
-## New in dev.12
+## New in dev.13
 
-### Thievery
+### General knowledge, magic, and downtime
 
-- **Palm an Object** - Thievery against the Perception DC of an observer. Multiple observers can be selected, while one observer is resolved per check until per-target batching is implemented.
-- **Steal** - Thievery against the selected creature's Perception DC.
-- **Disable a Device** - trained Thievery against a GM-defined device DC.
-- **Pick a Lock** - trained Thievery against a GM-defined lock DC.
+- **Earn Income** - trained Performance, Crafting, or one of the acting character's Lore skills. The GM supplies the job DC; the d20 roll can stay public while the DC remains hidden.
+- **Identify Magic** - trained Arcana, Nature, Occultism, or Religion. The check is blind and the result remains GM-only.
+- **Decipher Writing** - trained Arcana, Society, Occultism, or Religion with the same secret-result workflow.
+- **Learn a Spell** - trained tradition skill with the Player Core spell-rank DC table and material-cost reminder built into the DC selector. An adjusted DC can be entered for rarity or special circumstances.
 
-### Crafting
+### Skill-specific additions
 
-- **Repair** - Crafting against the GM-defined repair/crafting DC.
-- **Identify Alchemy** - trained, secret Crafting check with blind roll and GM-only outcome.
-- **Craft** - trained Crafting check against the GM-defined item DC.
+- **Prepare from Another Spellbook** - trained Arcana with a GM-defined DC based on the spell and circumstances.
+- **Maneuver in Flight** - trained Acrobatics with a manual environmental/maneuver DC. This is the movement action that was still missing after dev.10.
+- **Create Forgery** - trained Society, secret check against fixed DC 20.
+- **Command an Animal** - Nature against the selected animal's Will DC, with the usual manual fallback for unusual target situations.
 
-### Medicine
+## Cross-skill statistic selection
 
-- **Administer First Aid: Stabilize** - Medicine against `15 + Dying`. On success or critical success, Action Forge can remove Dying through the GM Broker. On a critical failure, it can increase Dying by 1.
-- **Administer First Aid: Stop Bleeding** - Medicine against the GM-defined bleeding-effect DC.
-- **Treat Disease** - trained Medicine against the disease DC.
-- **Treat Poison** - trained Medicine against the poison DC.
-- Existing **Treat Wounds** remains fully integrated with healing, Wounded removal, timed immunity, out-of-combat foreign-PC targeting, and public result summary.
+Identify Magic, Decipher Writing, Learn a Spell, and Earn Income can be used with more than one skill. Action Forge therefore presents the available prepared PF2e statistics rather than hardcoding one modifier.
 
-## First Aid target-aware DC
+Earn Income also includes the character's Lore skills. Identify Magic and Learn a Spell offer Arcana, Nature, Occultism, and Religion; Decipher Writing offers Arcana, Society, Occultism, and Religion. Trained-only workflows are blocked when the selected statistic does not meet the required proficiency.
 
-The DC Resolver now supports a dedicated `target-dying` strategy. If the target Actor is readable, the Forge derives the stabilization DC directly from the target's current Dying value. A readable target that is not Dying is rejected immediately instead of unnecessarily asking the GM for a DC.
+## Learn a Spell DC reference
 
-If the patient is a secure picker-only target whose conditions are intentionally opaque to the player, the existing GM DC handoff is used instead. The player's client never receives the hidden target state.
+The selector exposes the standard rank/DC progression used by Player Core:
 
-The Application Engine also gains a declarative `condition-increase` effect so privileged condition changes such as **Dying 2 → Dying 3** remain validated and idempotent rather than relying on arbitrary client updates.
+| Spell rank | DC | Material cost reminder |
+| --- | ---: | ---: |
+| Cantrip / 1st | 15 | 2 gp |
+| 2nd | 18 | 6 gp |
+| 3rd | 20 | 16 gp |
+| 4th | 23 | 36 gp |
+| 5th | 26 | 70 gp |
+| 6th | 28 | 140 gp |
+| 7th | 31 | 300 gp |
+| 8th | 34 | 650 gp |
+| 9th | 36 | 1,500 gp |
+| 10th | 41 | 7,000 gp |
 
-## GM-defined situational DCs
+The cost is presented as a reference only. Action Forge does not remove money or materials in this build. The custom DC field exists so rarity or campaign circumstances can raise the check without replacing the standard table.
 
-The previous secret-DC handoff is now worded generically as a **GM-defined DC** workflow. This allows public checks such as Disable a Device, Pick a Lock, Repair, Craft, Treat Disease, Treat Poison, and Stop Bleeding to use the same secure handoff when the player should not choose the relevant object, affliction, or environmental DC.
+## Hidden DC with a public roll
 
-## UI
+Earn Income introduces a useful distinction between **roll visibility** and **DC visibility**. The character can make an ordinary public work check while the GM-selected job DC is passed to PF2e as hidden. This avoids turning every GM-set DC into a blind roll merely to conceal the target number.
 
-The wide 1120 px responsive catalog, purple execution-workflow block, preserved scroll/focus behavior, and dev.11.1 automatic scroll to **Selected Action** all remain intact. The footer version is now rendered from the actual module version instead of a hardcoded development string.
+Identify Magic, Decipher Writing, and Create Forgery remain genuinely secret workflows: their rolls are blind and their outcomes are GM-only.
 
-## Execution compatibility
+## Current Player Core skill-action coverage
 
-Social and exploration actions introduce a new **system-or-statistic** execution mode. Action Forge first uses the matching PF2e system action when the installed PF2e version exposes one. If that action is not present in `game.pf2e.actions`, the Forge falls back to the Actor's prepared PF2e statistic instead of failing the workflow.
+The catalog now contains **51 distinct actions/activities**. Repeated generic actions such as Recall Knowledge, Earn Income, Identify Magic, Decipher Writing, and Learn a Spell appear once and offer the relevant skill choices rather than being duplicated under every skill heading.
 
-The fallback still delegates the actual check to PF2e. Rule Elements, prepared statistic modifiers, degree of success, roll dialog behavior, and check processing therefore stay under PF2e control rather than being reimplemented by Action Forge.
-
-Secret statistic fallbacks preserve the visibility profile: hidden DCs are passed as hidden and the `secret` trait is retained.
-
-## Secret observer checks
-
-Impersonate, Conceal an Object, Hide, and Sneak can use a selected readable observer directly. Action Forge resolves that Actor's prepared **Perception DC** and performs the check secretly.
-
-If no observer can safely be represented on the player's client, the Forge does not reveal or invent a Perception DC. Instead it uses the existing **GM DC Handoff**. The player sees neither the supplied DC nor the hidden outcome.
-
-This also keeps the target picker security boundary intact: a UUID-only or otherwise non-readable target never causes hidden Actor statistics to be sent to the player.
-
-## No-roll activities
-
-The registry and PF2e adapter now support an **activity** execution mode for rulebook activities that do not call for an immediate check. **Cover Tracks** is the first use of this path. Starting it creates the configured public Action Forge announcement and then releases the frozen source Actor cleanly without manufacturing a d20 roll.
+This completes the current **skill-action** catalog target. It does not mean that every Basic Action, exploration activity, class action, feat action, spell action, or subsystem action in Pathfinder is part of Action Forge. Those are separate surfaces and should be evaluated deliberately during the integration review rather than silently folded into the skill catalog.
 
 ## Current automation boundary
 
-The dev.12 workflows intentionally stop where Action Forge does not yet have a safe item/affliction target model. **Repair** performs the Crafting check but does not automatically select or modify an item’s HP. **Craft** performs the rule check but does not create an item or consume raw materials. **Pick a Lock** and **Disable a Device** do not yet persist multi-success progress or automatically break tools on a critical failure. **Treat Disease** and **Treat Poison** currently resolve the Medicine check but do not create one-save-only +4/+2/−2 modifiers on the patient. **First Aid: Stop Bleeding** likewise leaves the persistent-damage recovery resolution to PF2e/GM adjudication.
+The new actions resolve the rules-facing check workflow but deliberately stop before unsafe or campaign-state-heavy mutations:
 
-Some social and stealth actions can logically involve several creatures with different defenses. dev.11 deliberately resolves **one observer/target per check** where a concrete target is used. In particular, the multi-target option of Make an Impression is not batch-automated yet.
+- **Earn Income** does not calculate or award coin, persist job level, or advance downtime days.
+- **Learn a Spell** does not consume materials or insert the learned spell into a spellbook/repertoire.
+- **Prepare from Another Spellbook** does not alter prepared spell slots.
+- **Create Forgery** does not create a Journal or Item document representing the forged text.
+- **Command an Animal** does not inject movement/attacks into the animal's turn.
+- **Maneuver in Flight** does not move the token automatically.
 
-Situational non-secret DCs such as Perform, Request, Track, and Subsist use the normal manual DC field. Secret or unknowable DCs use the GM handoff instead.
-
-The Forge does not automatically change NPC attitudes, decide whether a request is reasonable, choose information learned, or narrate the consequences of Coerce. Those remain GM adjudication rather than hidden automation masquerading as rules.
+The same boundaries from dev.12 remain: Repair/Craft do not yet mutate item documents, locks/devices do not persist multi-success progress, and Treat Disease/Treat Poison do not yet create a one-save-only modifier effect.
 
 ## UI and hardening retained
 
-The dev.10.1 wide responsive layout and purple execution-workflow block remain unchanged. Existing protections also remain in place:
+The wide 1120 px responsive action grid, orange catalog, purple execution workflow, and dev.11.1 auto-scroll to **Selected Action** remain in place. Existing protections also remain active:
 
-- source Actor locking during an active workflow;
+- source Actor locking while a workflow is active;
 - Canvas, sidebar, and out-of-combat target selection;
-- selection of other player characters without granting ownership;
-- GM-side revalidation of privileged applications;
+- foreign player-character targets without granting ownership;
+- GM-side validation of privileged applications;
 - Foundry v14 `User.query` broker transport with multi-GM failover;
-- visibility profiles for public, player/GM, blind, GM-only, self, and suppressed output;
+- public, player/GM, blind, GM-only, self, and suppressed visibility profiles;
 - duplicate-roll and duplicate-application protection;
-- Treat Wounds healing, timed immunity, and public healing summaries;
+- Treat Wounds healing, Wounded removal, timed immunity, and public healing summary;
 - Demoralize frightened application and source-specific timed immunity;
-- hidden/deleted target hardening;
 - preserved scroll position and input focus across rerenders.
 
-## dev.12 manual test checklist
+## dev.13 manual test checklist
 
-1. Test Palm an Object and Steal against a visible creature and confirm its Perception DC is used.
-2. As a player, run Disable a Device and Pick a Lock and confirm the GM receives the DC handoff before the public Thievery check.
-3. Confirm an untrained character cannot use Disable a Device, Pick a Lock, Identify Alchemy, Craft, Treat Disease, or Treat Poison.
-4. Run Identify Alchemy and confirm both DC and outcome remain hidden from the player.
-5. Test First Aid: Stabilize on Dying 1, Dying 2, and a non-Dying target. The first two should derive DC 16/17; the non-Dying target should be rejected.
-6. On a successful stabilization, apply **Remove Dying** to a foreign player character through the GM Broker.
-7. On a critical failure, apply **Increase Dying** and verify the valued condition increases by exactly 1.
-8. Test First Aid: Stop Bleeding, Treat Disease, and Treat Poison with GM-supplied DCs.
-9. Test Repair and Craft checks and confirm no item mutation is falsely implied yet.
-10. Re-test Treat Wounds, Demoralize, and one secret social action to confirm dev.12 did not disturb existing broker and visibility behavior.
+1. Run Identify Magic and Decipher Writing as a player and confirm the roll is blind and the result is not exposed.
+2. Try each with an untrained selected skill and confirm execution is blocked.
+3. Run Learn a Spell with several spell ranks and verify the displayed DC/cost reference, then enter a custom rarity DC and confirm that value is used.
+4. Run Earn Income with Performance, Crafting, and a Lore skill. Confirm the roll is public but the GM-selected DC is not printed to the player.
+5. Run Prepare from Another Spellbook as a trained Arcana character and confirm the GM DC handoff works.
+6. Run Create Forgery and confirm the check is blind against DC 20.
+7. Select an animal and run Command an Animal against its Will DC.
+8. Run Maneuver in Flight with a manual DC and confirm untrained Acrobatics is blocked.
+9. Re-test Treat Wounds, Demoralize, one social secret action, and First Aid to confirm the expansion did not disturb existing broker/application flows.
 
 ## Automated checks
 
@@ -109,6 +104,6 @@ npm test
 npm run check
 ```
 
-Current suite: **102/102 tests passing**.
+Current suite: **111/111 tests passing**.
 
-The next expansion block can focus on **Knowledge, Magic & Downtime Actions** before the full integration review.
+The next step should be the full **MVP / Player Core Integration Review**, including a deliberate audit of what belongs in Action Forge beyond the completed skill-action surface.
