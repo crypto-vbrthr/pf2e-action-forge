@@ -1,3 +1,97 @@
+## 0.1.0-dev.18.7 – GM DC Dialog Localization Hotfix
+
+### Fixed
+
+- Fixed the GM DC dialog crashing before render on Foundry v14 with `TypeError: Cannot read properties of undefined (reading 'translations')`.
+- The handoff formatter no longer detaches `game.i18n.format` from its localization object; it is now invoked with the correct `game.i18n` receiver so Foundry can access its internal translation state.
+- Retained the dev.18.6 client diagnostics for further verification.
+
+### Tests
+
+- Added a regression test using a context-sensitive `i18n.format` implementation that fails when called unbound, matching the Foundry v14 failure observed in the GM log.
+
+## 0.1.0-dev.18.7 – GM DC Client Diagnostics
+
+### Added
+
+- Added a client-local ring-buffer diagnostic trace for the complete GM-DC handoff lifecycle.
+- GM-DC diagnostics are emitted at console `info` level with the prefix `[PF2E Action Forge][GM-DC]` so they are visible in the normal Foundry/Electron developer console.
+- Added trace points for module initialization, broker selection, transient ChatMessage creation, `createChatMessage`/`updateChatMessage` hooks, every GM-side guard/drop reason, dialog opening/closing, pending-request resolution, socket acknowledgements/responses, User-query fallback, and final failure.
+- Added a public development API for reading, displaying, copying, and clearing the trace on each client: `game.modules.get("pf2e-action-forge").api.debug`.
+- Diagnostic snapshots include Foundry/PF2e/module versions, current user role, connected-user state, and relevant transport capabilities without exposing target defense values or credentials.
+
+### Debug workflow
+
+- After reproducing a failed player -> GM DC request, run `game.modules.get("pf2e-action-forge").api.debug.showGmDc()` in the console on both the player and GM clients.
+- Use `copyGmDc()` to copy the JSON report to the clipboard, or `getGmDcText()` to print/read it directly.
+
+## 0.1.0-dev.18.5 – GM DC Duplicate Delivery Hotfix
+
+- Fixed the `duplicate-request` failure observed when a player requested a GM-defined DC. In Foundry v14 the same replicated transport message can reach the GM handler more than once while the first delivery is still waiting for the GM dialog.
+- Reworked GM request de-duplication from a reject-on-second-delivery set into a shared promise cache keyed by requester + request id. Concurrent deliveries now join the same adjudication instead of one delivery invalidating the other.
+- Late socket/query fallbacks reuse the already resolved adjudication for a short grace period, preventing duplicate GM dialogs without returning a false error to the player.
+- A single player request therefore opens at most one GM DC dialog and all matching transport deliveries receive the same DC/cancel result.
+
+### Tests
+
+- Added regression coverage for two concurrent deliveries of the same GM-DC request: exactly one `DialogV2.input` is opened and both deliveries receive the same successful result.
+
+## 0.1.0-dev.18.3 – GM DC Core Query Hotfix
+
+- Restored Foundry v14's native `DialogV2.query(userId, "input", config)` as the primary player-to-GM DC handoff. This is the core API specifically intended to display a dialog on another connected user's client.
+- Passes the selected GM's user id directly and keeps the remote dialog configuration strictly JSON-serializable.
+- Retains the module socket implementation only as a compatibility fallback instead of making it the primary path.
+- Keeps local GM execution on `DialogV2.input`.
+- Added regression coverage for the exact core remote-dialog path before rolling.
+
+## [0.1.0-dev.18.2] - 2026-08-24
+
+### Fixed
+
+- Fixed the remaining player-to-GM DC handoff failure seen in dev.18.1. The previous hotfix only used the module-socket fallback when `User#query` was missing; if `User#query` existed but rejected or failed at runtime, the request aborted before the socket path was attempted.
+- GM DC adjudication now uses the Action Forge module socket as the primary transport and routes the request to exactly one deterministic active GM.
+- Added a short acknowledgement handshake so a missing GM-side socket listener fails over quickly instead of leaving the player waiting for the full adjudication timeout.
+- The GM opens the existing local `DialogV2.input` window and returns only the selected/calculated DC to the requesting player.
+- `User#query` remains as a secondary fallback when the module socket is unavailable or fails to acknowledge.
+- Socket responses are correlated to the original request and selected GM before they are accepted.
+
+### Tests
+
+- Added a cross-client socket regression test that simulates a player request, GM acknowledgement, GM dialog, and correlated response while `User#query` would fail.
+- Retained query-fallback coverage for environments without the module socket.
+- Automated suite remains at **158 passing tests**.
+
+## [0.1.0-dev.18.2] - 2026-08-24
+
+### Fixed
+
+- Fixed player-to-GM DC handoff on Foundry v14. The previous implementation incorrectly treated `DialogV2.query` as a cross-client dialog transport, so a player's DC request did not open a window on the GM client.
+- GM DC requests now use Foundry v14 `User#query`; the registered query handler runs on the selected GM client and opens `DialogV2.input` there.
+- Added deterministic active-GM routing, a long adjudication timeout, and a targeted module-socket fallback for environments where `User#query` is unavailable.
+- Expanded failure handling for unavailable dialogs, query failures, socket timeouts, and dialog errors.
+- The level/difficulty DC assistant introduced in dev.18 remains available in the GM request dialog.
+
+### Tests
+
+- Replaced the incorrect mocked `DialogV2.query` transport test with a cross-client `User#query` regression test that verifies the dialog is created on the GM side.
+- Added bootstrap regression checks ensuring the GM DC query handler and fallback transport are initialized.
+- Automated suite remains at **158 passing tests**.
+
+## [0.1.0-dev.18] - 2026-08-24
+
+### Added
+
+- Added a **level-based DC assistant** for every workflow where the GM supplies an adjudicated/manual DC.
+- The helper reproduces the **DCs by Level** table for levels 0-25 and the difficulty adjustments from *GM Core / Kernregeln: Spielleitung* p. 53.
+- GM users can choose a level and difficulty directly in the Action Forge workspace; the calculated DC is inserted into the existing manual DC field automatically and remains editable.
+- Player-triggered GM DC requests now include the same level/difficulty helper in the remote GM dialog. The GM can either type a DC or leave the manual field blank and have Action Forge calculate it from the selected level and difficulty.
+- Added a neutral **Standard (±0)** option representing the unadjusted level DC alongside the six published difficulty adjustments.
+
+### Tests
+
+- Added regression coverage for the complete level table, all six difficulty adjustments, invalid input, GM-handoff calculation, manual-DC precedence, and both UI integration points.
+- Automated suite now contains **158 passing tests**.
+
 ## [0.1.0-dev.17] - 2026-08-24
 
 ### Added

@@ -7,6 +7,7 @@ import { dcResolver, statisticRank } from "../core/dc-resolver.js";
 import { favoritesService } from "../core/favorites-service.js";
 import { explorationActivityService } from "../core/exploration-activity-service.js";
 import { gmDcHandoff } from "../core/gm-dc-handoff.js";
+import { calculateLevelDc, getDifficultyOptions, getLevelDcOptions } from "../core/level-dc-calculator.js";
 import { pf2eActionAdapter } from "../core/pf2e-action-adapter.js";
 import { prerequisiteBroker } from "../core/prerequisite-broker.js";
 import { prerequisiteValidator } from "../core/prerequisite-validator.js";
@@ -23,6 +24,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   searchQuery = "";
   activeActionId = null;
   manualDcByAction = new Map();
+  dcLevelByAction = new Map();
+  dcDifficultyByAction = new Map();
   statisticByAction = new Map();
   lastRoll = null;
   pendingGmDcRequest = null;
@@ -74,6 +77,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#instance.searchQuery = "";
       this.#instance.activeActionId = null;
       this.#instance.manualDcByAction.clear();
+      this.#instance.dcLevelByAction.clear();
+      this.#instance.dcDifficultyByAction.clear();
       this.#instance.statisticByAction.clear();
       this.#instance.lastRoll = null;
       this.#instance.pendingGmDcRequest = null;
@@ -357,7 +362,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.17",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.18.7",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -433,12 +438,29 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const manualDcInput = this.element.querySelector('[data-role="manual-dc"]');
     manualDcInput?.addEventListener("input", (event) => {
       if (!this.activeActionId || this.pendingGmDcRequest) return;
-      const action = actionRegistry.get(this.activeActionId);
       // Free-form DC entry is GM-only. The resolver also enforces this, so a
       // player cannot bypass the UI by editing the DOM or dispatching input.
       if (!game.user?.isGM) return;
       this.manualDcByAction.set(this.activeActionId, event.currentTarget.value ?? "");
+      // Manual entry remains authoritative. Keep any helper selections visible
+      // as a reference; changing either selector again will recalculate the DC.
       this.#updateExecutionControls();
+    });
+
+    const levelDcLevel = this.element.querySelector('[data-role="level-dc-level"]');
+    levelDcLevel?.addEventListener("change", (event) => {
+      if (!this.activeActionId || this.pendingGmDcRequest || !game.user?.isGM) return;
+      const value = event.currentTarget.value;
+      if (value === "") this.dcLevelByAction.delete(this.activeActionId);
+      else this.dcLevelByAction.set(this.activeActionId, value);
+      this.#applyLevelDcSuggestion();
+    });
+
+    const levelDcDifficulty = this.element.querySelector('[data-role="level-dc-difficulty"]');
+    levelDcDifficulty?.addEventListener("change", (event) => {
+      if (!this.activeActionId || this.pendingGmDcRequest || !game.user?.isGM) return;
+      this.dcDifficultyByAction.set(this.activeActionId, event.currentTarget.value || "standard");
+      this.#applyLevelDcSuggestion();
     });
 
     const fixedChoiceDc = this.element.querySelector('[data-role="fixed-choice-dc"]');
@@ -549,6 +571,22 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ? "PF2EActionForge.DC.Ready"
           : "PF2EActionForge.DC.Required";
 
+    const showManualInput =
+      (state.strategy === "manual" && state.allowsManualDc) ||
+      (state.strategy === "fixed-choice" && state.allowsManualDc) ||
+      (state.strategy === "gm-defined" && state.allowsManualDc) ||
+      (state.strategy === "target-dying" && state.allowsManualDc) ||
+      (state.strategy === "target-defense" && !state.target && state.allowsManualDc);
+    const showLevelDcHelper = Boolean(
+      game.user?.isGM &&
+      showManualInput &&
+      ["gm", "manual"].includes(state.source) &&
+      ["manual", "gm-defined", "target-dying", "target-defense"].includes(state.strategy)
+    );
+    const levelDcLevel = this.dcLevelByAction.get(action.id) ?? "";
+    const levelDcDifficulty = this.dcDifficultyByAction.get(action.id) ?? "standard";
+    const levelDcSuggestion = calculateLevelDc(levelDcLevel, levelDcDifficulty);
+
     return {
       ...state,
       sourceText,
@@ -576,16 +614,42 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ],
       choiceLabel: game.i18n.localize(action?.dc?.choiceLabel ?? "PF2EActionForge.DC.FixedChoiceLabel"),
       choiceHint: game.i18n.localize(action?.dc?.choiceHint ?? "PF2EActionForge.DC.FixedChoiceHint"),
-      showManualInput:
-        (state.strategy === "manual" && state.allowsManualDc) ||
-        (state.strategy === "fixed-choice" && state.allowsManualDc) ||
-        (state.strategy === "gm-defined" && state.allowsManualDc) ||
-        (state.strategy === "target-dying" && state.allowsManualDc) ||
-        (state.strategy === "target-defense" && !state.target && state.allowsManualDc),
+      showManualInput,
+      showLevelDcHelper,
+      levelDcLevelOptions: getLevelDcOptions().map((entry) => ({
+        value: entry.level,
+        selected: String(entry.level) === String(levelDcLevel),
+        label: game.i18n.format("PF2EActionForge.DC.LevelHelper.LevelOption", { level: entry.level, dc: entry.dc })
+      })),
+      levelDcDifficultyOptions: getDifficultyOptions().map((entry) => ({
+        value: entry.id,
+        selected: entry.id === levelDcDifficulty,
+        label: game.i18n.format("PF2EActionForge.DC.LevelHelper.DifficultyOption", {
+          difficulty: game.i18n.localize(`PF2EActionForge.DC.LevelHelper.Difficulty.${entry.id}`),
+          adjustment: entry.adjustment > 0 ? `+${entry.adjustment}` : String(entry.adjustment)
+        })
+      })),
+      levelDcSuggestion: levelDcSuggestion
+        ? game.i18n.format("PF2EActionForge.DC.LevelHelper.Result", {
+            dc: levelDcSuggestion.dc,
+            base: levelDcSuggestion.baseDc,
+            adjustment: levelDcSuggestion.adjustment > 0 ? `+${levelDcSuggestion.adjustment}` : String(levelDcSuggestion.adjustment)
+          })
+        : game.i18n.localize("PF2EActionForge.DC.LevelHelper.NoResult"),
       manualInputValue: this.manualDcByAction.get(action.id) ?? state.manualDc ?? "",
       manualInputLabel: game.i18n.localize(action?.dc?.customLabel ?? "PF2EActionForge.DC.ManualInput"),
       manualInputHint: game.i18n.localize(action?.dc?.customHint ?? "PF2EActionForge.DC.ManualInputHint")
     };
+  }
+
+  #applyLevelDcSuggestion() {
+    if (!this.activeActionId || !game.user?.isGM) return;
+    const level = this.dcLevelByAction.get(this.activeActionId) ?? null;
+    const difficulty = this.dcDifficultyByAction.get(this.activeActionId) ?? "standard";
+    const suggestion = calculateLevelDc(level, difficulty);
+    if (suggestion) this.manualDcByAction.set(this.activeActionId, String(suggestion.dc));
+    this.lastRoll = null;
+    this.render({ force: true });
   }
 
   #meetsMinimumRank(action, actor, selectedStatistic = null) {
@@ -950,9 +1014,22 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
           rejected: "PF2EActionForge.GMDC.Rejected",
           "invalid-dc": "PF2EActionForge.GMDC.Invalid",
           "dialog-query-unavailable": "PF2EActionForge.GMDC.Unavailable",
-          "query-error": "PF2EActionForge.GMDC.Unavailable"
+          "dialog-unavailable": "PF2EActionForge.GMDC.Unavailable",
+          "dialog-error": "PF2EActionForge.GMDC.Unavailable",
+          "query-error": "PF2EActionForge.GMDC.Unavailable",
+          "query-failed": "PF2EActionForge.GMDC.Unavailable",
+          timeout: "PF2EActionForge.GMDC.Unavailable",
+          "chat-unavailable": "PF2EActionForge.GMDC.Unavailable",
+          "chat-error": "PF2EActionForge.GMDC.Unavailable",
+          "chat-timeout": "PF2EActionForge.GMDC.Unavailable",
+          "duplicate-request": "PF2EActionForge.GMDC.Unavailable"
         }[handoff.reason] ?? "PF2EActionForge.GMDC.Unavailable";
-        ui.notifications.warn(game.i18n.localize(key));
+        const baseMessage = game.i18n.localize(key);
+        const diagnosticReasons = new Set(["core-query-failed", "handoff-failed", "socket-no-ack", "socket-error", "socket-unavailable", "chat-unavailable", "chat-error", "chat-timeout", "duplicate-request"]);
+        const message = diagnosticReasons.has(handoff.reason)
+          ? game.i18n.format("PF2EActionForge.GMDC.UnavailableDetailed", { message: baseMessage, reason: handoff.reason })
+          : baseMessage;
+        ui.notifications.warn(message);
         app.render({ force: true });
         return;
       }

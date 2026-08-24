@@ -1,8 +1,44 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.17 - Prerequisite & Equipment Validation**.
+Development build **0.1.0-dev.18.7 - GM DC Dialog Localization Hotfix**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
+
+## New in dev.18.5
+
+- Fixed the `duplicate-request` failure seen in real Foundry play when a GM-defined DC was requested by a player.
+- The replicated GM request can be delivered more than once while the GM dialog is still pending. Those deliveries now **coalesce onto one shared adjudication promise** instead of treating the second delivery as an invalid second request.
+- Exactly one GM DC dialog is opened for a requester/request-id pair. Concurrent ChatMessage deliveries and late socket/query fallbacks receive the same final DC or cancellation result.
+- The successful adjudication is retained briefly so a late fallback cannot reopen the dialog.
+- Automated suite: **161/161 passing tests**, including a dedicated concurrent duplicate-delivery regression test.
+
+## New in dev.18.4
+
+- Player-to-GM DC adjudication uses a transient whispered ChatMessage as the primary server-replicated handoff. The selected GM opens `DialogV2.input` locally and returns the adjudicated DC through the same document.
+- Internal transport messages are hidden from chat and cleaned up after response replication.
+- Socket and registered `User#query` paths remain bounded compatibility fallbacks.
+
+## New in dev.18.2
+
+- Fixed the remaining player-to-GM DC request failure from dev.18.1. The module socket is now the primary transport for GM DC adjudication, so the workflow does not depend on a successful `User#query`.
+- Added a request acknowledgement from the selected GM. If the socket path is not actually received, Action Forge fails over after a few seconds instead of waiting for the full GM adjudication timeout.
+- The selected GM still receives the same local `DialogV2.input` window with manual DC entry and the level/difficulty calculator from dev.18.
+- Correlated socket responses are accepted only for the request id and selected GM expected by the player client.
+- `User#query` remains available as a secondary fallback.
+- Automated suite: **158/158 passing tests**.
+
+## New in dev.18.1
+
+- Introduced a targeted `User#query` handoff and local GM `DialogV2.input`. dev.18.2 supersedes its transport selection after a real-world runtime failure showed that the socket fallback was not reached when the query API existed but failed.
+
+## New in dev.18
+
+- When the GM must supply an adjudicated DC, Action Forge now offers a **DC by Level** helper based on the tables on page 53 of *GM Core / Kernregeln: Spielleitung*.
+- Choose a level from 0-25 and a difficulty adjustment. The Forge calculates the resulting DC and fills the existing GM-only DC field, which can still be edited manually afterward.
+- Available adjustments are Incredibly Easy (-10), Very Easy (-5), Easy (-2), Standard (±0), Hard (+2), Very Hard (+5), and Incredibly Hard (+10).
+- The same helper is available in the remote GM dialog when a player requests a GM-defined DC, so both GM-originated and player-originated workflows use the same table and calculation logic.
+- Manual GM entry remains authoritative. The calculator is a convenience tool, not a replacement for GM adjudication.
+- Automated suite now contains **158 passing tests**.
 
 ## New in dev.17
 
@@ -172,3 +208,19 @@ npm run check
 Current suite: **143/143 tests passing**.
 
 The Player Core skill-action catalog and the common exploration/core-utility layer are now represented. The next major review can focus on multi-target/shared-roll resolution and deeper integration rather than catalog gaps.
+
+
+## GM DC diagnostics (development)
+
+`0.1.0-dev.18.7` retains the client diagnostics from dev.18.6 and records the GM-DC handoff lifecycle independently on every connected client. After reproducing a problem, open the Foundry developer console (F12 / Ctrl+Shift+I) and filter for `PF2E Action Forge][GM-DC`.
+
+Useful console commands:
+
+```js
+game.modules.get("pf2e-action-forge").api.debug.showGmDc()
+game.modules.get("pf2e-action-forge").api.debug.copyGmDc()
+game.modules.get("pf2e-action-forge").api.debug.getGmDcText()
+game.modules.get("pf2e-action-forge").api.debug.clearGmDc()
+```
+
+For cross-client failures, capture the report once on the requesting player client and once on the selected GM client. The two traces share the request id, which makes the exact point at which the handoff stops visible.

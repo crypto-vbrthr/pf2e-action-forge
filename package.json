@@ -1,10 +1,10 @@
 {
   "name": "pf2e-action-forge",
-  "version": "0.1.0-dev.17",
+  "version": "0.1.0-dev.18.7",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check scripts/action-forge.js && node --check scripts/data/core-action-catalog.js && node --check scripts/core/action-registry.js && node --check scripts/core/actor-resolver.js && node --check scripts/core/target-resolver.js && node --check scripts/core/target-picker-service.js && node --check scripts/core/exploration-activity-service.js && node --check scripts/core/dc-resolver.js && node --check scripts/core/gm-dc-handoff.js && node --check scripts/core/shared-roll-resolver.js && node --check scripts/core/prerequisite-validator.js && node --check scripts/core/prerequisite-broker.js && node --check scripts/core/pf2e-action-adapter.js && node --check scripts/core/visibility-engine.js && node --check scripts/core/favorites-service.js && node --check scripts/ui/action-forge-app.js && node --check scripts/ui/scene-controls.js && node --check scripts/core/action-transaction.js && node --check scripts/core/application-engine.js && node --check scripts/core/application-broker.js && node --check scripts/core/application-chat.js && node --check scripts/core/action-immunity.js"
+    "check": "node --check scripts/action-forge.js && node --check scripts/data/core-action-catalog.js && node --check scripts/core/action-registry.js && node --check scripts/core/actor-resolver.js && node --check scripts/core/target-resolver.js && node --check scripts/core/target-picker-service.js && node --check scripts/core/exploration-activity-service.js && node --check scripts/core/dc-resolver.js && node --check scripts/core/gm-dc-handoff.js && node --check scripts/core/gm-dc-debug.js && node --check scripts/core/level-dc-calculator.js && node --check scripts/core/shared-roll-resolver.js && node --check scripts/core/prerequisite-validator.js && node --check scripts/core/prerequisite-broker.js && node --check scripts/core/pf2e-action-adapter.js && node --check scripts/core/visibility-engine.js && node --check scripts/core/favorites-service.js && node --check scripts/ui/action-forge-app.js && node --check scripts/ui/scene-controls.js && node --check scripts/core/action-transaction.js && node --check scripts/core/application-engine.js && node --check scripts/core/application-broker.js && node --check scripts/core/application-chat.js && node --check scripts/core/action-immunity.js"
   }
 }

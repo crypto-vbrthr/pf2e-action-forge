@@ -214,37 +214,46 @@ test("Target Picker query fallback chooses one active GM at a time and can fail 
   }
 });
 
-test("GM DC Handoff prefers activeGM and fails over only on transport failure", async () => {
+test("GM DC Handoff uses bounded registered User.query failover when chat and socket transport are unavailable", async () => {
   const oldGame = globalThis.game;
   const oldFoundry = globalThis.foundry;
+  const oldChatMessage = globalThis.ChatMessage;
   try {
-    const gm1 = { id: "gm1", isGM: true, active: true };
-    const gm2 = { id: "gm2", isGM: true, active: true };
-    const users = usersCollection([gm2, gm1], gm1);
-    globalThis.game = { users, i18n: { localize: (key) => key } };
+    const player = { id: "player", isGM: false, active: true };
     const calls = [];
-    globalThis.foundry = {
-      utils: { escapeHTML: String },
-      applications: { api: { DialogV2: { query: async (user) => {
-        calls.push(user.id);
-        if (user.id === "gm1") throw new Error("disconnect");
-        return { dc: 25 };
-      } } } }
+    const gm1 = {
+      id: "gm1", isGM: true, active: true,
+      query: async (_name, _payload, options) => {
+        calls.push(["gm1", options?.timeout]);
+        throw new Error("disconnect");
+      }
     };
+    const gm2 = {
+      id: "gm2", isGM: true, active: true,
+      query: async (_name, _payload, options) => {
+        calls.push(["gm2", options?.timeout]);
+        return { ok: true, dc: 25, gmId: "gm2" };
+      }
+    };
+    const users = usersCollection([gm2, gm1, player], gm1);
+    globalThis.ChatMessage = undefined;
+    globalThis.game = { user: player, users, i18n: { localize: (key) => key, format: (_key, data) => JSON.stringify(data) }, socket: null };
+    globalThis.foundry = { utils: { escapeHTML: String }, applications: { api: { DialogV2: { input: async () => ({ dc: 25 }) } } } };
     const oldWarn = console.warn;
     console.warn = () => {};
     try {
-      const { GmDcHandoff } = await import(`../scripts/core/gm-dc-handoff.js?dev9-failover=${Date.now()}`);
+      const { GmDcHandoff } = await import(`../scripts/core/gm-dc-handoff.js?dev18-4-query-fallback=${Date.now()}`);
       const result = await new GmDcHandoff().request({ definition: { id: "x", label: "X" }, actor: { name: "A" }, requestId: "r" });
       assert.equal(result.ok, true);
       assert.equal(result.gmId, "gm2");
-      assert.deepEqual(calls, ["gm1", "gm2"]);
+      assert.deepEqual(calls, [["gm1", 8000], ["gm2", 8000]]);
     } finally {
       console.warn = oldWarn;
     }
   } finally {
     globalThis.game = oldGame;
     globalThis.foundry = oldFoundry;
+    globalThis.ChatMessage = oldChatMessage;
   }
 });
 

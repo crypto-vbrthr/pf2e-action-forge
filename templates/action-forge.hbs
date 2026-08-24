@@ -243,6 +243,41 @@
         </label>
       {{/if}}
 
+      {{#if dcContext.showLevelDcHelper}}
+        <div class="af-level-dc-helper">
+          <div class="af-level-dc-helper-heading">
+            <span>
+              <strong>{{localize "PF2EActionForge.DC.LevelHelper.Title"}}</strong>
+              <small>{{localize "PF2EActionForge.DC.LevelHelper.Hint"}}</small>
+            </span>
+            <i class="fa-solid fa-table-list" aria-hidden="true"></i>
+          </div>
+          <div class="af-level-dc-helper-grid">
+            <label>
+              <span>{{localize "PF2EActionForge.DC.LevelHelper.Level"}}</span>
+              <select data-role="level-dc-level" {{#if interactionLocked}}disabled{{/if}}>
+                <option value="">{{localize "PF2EActionForge.DC.LevelHelper.LevelPlaceholder"}}</option>
+                {{#each dcContext.levelDcLevelOptions}}
+                  <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <label>
+              <span>{{localize "PF2EActionForge.DC.LevelHelper.DifficultyLabel"}}</span>
+              <select data-role="level-dc-difficulty" {{#if interactionLocked}}disabled{{/if}}>
+                {{#each dcContext.levelDcDifficultyOptions}}
+                  <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                {{/each}}
+              </select>
+            </label>
+          </div>
+          <div class="af-level-dc-result">
+            <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+            <span>{{dcContext.levelDcSuggestion}}</span>
+          </div>
+        </div>
+      {{/if}}
+
       <div class="af-dc-status {{dcContext.statusClass}}" data-role="dc-status">
         <i class="fa-solid {{#if dcContext.waitingForGmDc}}fa-hourglass-half{{else}}{{#if dcContext.handoffRequired}}fa-hourglass-half{{else}}{{#if dcContext.valid}}fa-check{{else}}fa-circle-exclamation{{/if}}{{/if}}{{/if}}" aria-hidden="true"></i>
         <span>{{dcContext.statusText}}</span>

@@ -1360,3 +1360,125 @@
 .pf2e-action-forge-shared-roll p {
   margin: 0.35rem 0;
 }
+
+/* dev.18 level-based DC assistant */
+.pf2e-action-forge .af-level-dc-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--af-accent) 34%, var(--af-border));
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--af-accent) 5%, var(--af-panel-strong));
+}
+
+.pf2e-action-forge .af-level-dc-helper-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pf2e-action-forge .af-level-dc-helper-heading > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf2e-action-forge .af-level-dc-helper-heading small,
+.pf2e-action-forge .af-level-dc-helper-grid label > span,
+.pf2e-action-forge .af-level-dc-result {
+  color: var(--af-muted);
+  font-size: 0.7rem;
+}
+
+.pf2e-action-forge .af-level-dc-helper-heading i,
+.pf2e-action-forge .af-level-dc-result i {
+  color: var(--af-accent);
+}
+
+.pf2e-action-forge .af-level-dc-helper-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pf2e-action-forge .af-level-dc-helper-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pf2e-action-forge .af-level-dc-helper-grid select {
+  width: 100%;
+}
+
+.pf2e-action-forge .af-level-dc-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  border-radius: 6px;
+  padding: 5px 7px;
+  background: var(--af-panel);
+}
+
+.af-gm-dc-or {
+  align-self: center;
+  color: var(--color-text-subtle, #777);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.af-gm-level-dc-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  border: 1px solid var(--color-border-light-primary, #999);
+  border-radius: 6px;
+  padding: 8px 10px 10px;
+}
+
+.af-gm-level-dc-helper legend {
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+.af-gm-level-dc-helper p,
+.af-gm-level-dc-helper small {
+  margin: 0;
+  color: var(--color-text-subtle, #777);
+}
+
+.af-gm-level-dc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.af-gm-level-dc-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.af-gm-level-dc-grid select {
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .pf2e-action-forge .af-level-dc-helper-grid,
+  .af-gm-level-dc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Internal GM-DC transport messages are server-replicated workflow envelopes,
+   not user-facing chat content. The render hook hides them as well; :has is a
+   defensive fallback for Foundry chat containers rendered after the hook. */
+.chat-message:has(.pf2e-action-forge-gm-dc-transport) {
+  display: none !important;
+}

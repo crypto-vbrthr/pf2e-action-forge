@@ -8,6 +8,8 @@ import { targetPickerService } from "./core/target-picker-service.js";
 import { sharedRollResolver } from "./core/shared-roll-resolver.js";
 import { explorationActivityService } from "./core/exploration-activity-service.js";
 import { prerequisiteBroker } from "./core/prerequisite-broker.js";
+import { gmDcHandoff } from "./core/gm-dc-handoff.js";
+import { gmDcDebugLog } from "./core/gm-dc-debug.js";
 
 const MODULE_ID = "pf2e-action-forge";
 
@@ -17,6 +19,7 @@ Hooks.once("init", () => {
   targetPickerService.registerQueryHandler();
   sharedRollResolver.registerQueryHandler();
   prerequisiteBroker.registerQueryHandler();
+  gmDcHandoff.registerQueryHandler();
 
   const module = game.modules.get(MODULE_ID);
   if (module) {
@@ -29,11 +32,18 @@ Hooks.once("init", () => {
       exploration: Object.freeze({
         get: (actor) => explorationActivityService.get(actor),
         clear: (actor) => explorationActivityService.clear(actor)
+      }),
+      debug: Object.freeze({
+        getGmDc: () => gmDcDebugLog.snapshot(),
+        getGmDcText: () => gmDcDebugLog.text(),
+        showGmDc: () => gmDcDebugLog.show(),
+        copyGmDc: () => gmDcDebugLog.copy(),
+        clearGmDc: () => gmDcDebugLog.clear()
       })
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.17"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-dev.18.7"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -67,6 +77,7 @@ Hooks.on("updateActor", (_actor, changes) => {
 Hooks.once("ready", () => {
   applicationBroker.initialize();
   targetPickerService.initialize();
+  gmDcHandoff.initialize();
   applicationChat.bindGlobalClickHandler();
 });
 
