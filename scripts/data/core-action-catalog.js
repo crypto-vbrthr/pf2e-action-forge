@@ -1,10 +1,9 @@
 /**
  * Core skill-action catalog.
  *
- * dev.11 expands the catalog with social and exploration actions across
- * Performance, Diplomacy, Deception, Intimidation, Stealth, and Survival.
+ * dev.12 expands the catalog with Medicine, Thievery, and Crafting actions.
  * PF2e system actions remain preferred, with statistic-roll fallbacks for
- * compatibility and a no-roll activity mode where the rules require none.
+ * compatibility, GM-mediated DC handoff, and declarative result applications.
  */
 export const CORE_ACTIONS = Object.freeze([
   {
@@ -291,6 +290,76 @@ export const CORE_ACTIONS = Object.freeze([
     execution: { enabled: true, mode: "system-or-statistic", statistic: "performance" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
+
+  {
+    id: "palm-an-object",
+    label: "PF2EActionForge.Actions.PalmAnObject.Name",
+    description: "PF2EActionForge.Actions.PalmAnObject.Description",
+    category: "thievery",
+    categoryLabel: "PF2EActionForge.Categories.Thievery",
+    categoryIcon: "fa-solid fa-hand",
+    categoryOrder: 26,
+    order: 10,
+    icon: "fa-solid fa-hand",
+    keywords: ["thievery", "palm an object", "perception", "observer", "manipulate"],
+    target: { mode: "multiple", type: "creature", required: false },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "palm-an-object" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", singleTargetOnly: true },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "steal",
+    label: "PF2EActionForge.Actions.Steal.Name",
+    description: "PF2EActionForge.Actions.Steal.Description",
+    category: "thievery",
+    categoryLabel: "PF2EActionForge.Categories.Thievery",
+    categoryIcon: "fa-solid fa-hand",
+    categoryOrder: 26,
+    order: 20,
+    icon: "fa-solid fa-sack-dollar",
+    keywords: ["thievery", "steal", "perception", "pickpocket", "manipulate"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-defense", defense: "perception", allowUnknown: true },
+    systemAction: { slug: "steal" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "disable-a-device",
+    label: "PF2EActionForge.Actions.DisableADevice.Name",
+    description: "PF2EActionForge.Actions.DisableADevice.Description",
+    category: "thievery",
+    categoryLabel: "PF2EActionForge.Categories.Thievery",
+    categoryIcon: "fa-solid fa-hand",
+    categoryOrder: 26,
+    order: 30,
+    icon: "fa-solid fa-screwdriver-wrench",
+    keywords: ["thievery", "disable a device", "trap", "mechanism", "trained", "gm dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "disable-a-device" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "pick-a-lock",
+    label: "PF2EActionForge.Actions.PickALock.Name",
+    description: "PF2EActionForge.Actions.PickALock.Description",
+    category: "thievery",
+    categoryLabel: "PF2EActionForge.Categories.Thievery",
+    categoryIcon: "fa-solid fa-hand",
+    categoryOrder: 26,
+    order: 40,
+    icon: "fa-solid fa-lock-open",
+    keywords: ["thievery", "pick a lock", "lock", "trained", "gm dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "pick-a-lock" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "thievery", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
   {
     id: "make-an-impression",
     label: "PF2EActionForge.Actions.MakeAnImpression.Name",
@@ -586,6 +655,137 @@ export const CORE_ACTIONS = Object.freeze([
     execution: { enabled: true, mode: "activity", minRank: 1 },
     visibility: { announcement: "public", roll: "none", outcome: "public" }
   },
+
+  {
+    id: "repair",
+    label: "PF2EActionForge.Actions.Repair.Name",
+    description: "PF2EActionForge.Actions.Repair.Description",
+    category: "crafting",
+    categoryLabel: "PF2EActionForge.Categories.Crafting",
+    categoryIcon: "fa-solid fa-hammer",
+    categoryOrder: 48,
+    order: 10,
+    icon: "fa-solid fa-hammer",
+    keywords: ["crafting", "repair", "item", "object", "exploration", "gm dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "repair" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "crafting" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "identify-alchemy",
+    label: "PF2EActionForge.Actions.IdentifyAlchemy.Name",
+    description: "PF2EActionForge.Actions.IdentifyAlchemy.Description",
+    category: "crafting",
+    categoryLabel: "PF2EActionForge.Categories.Crafting",
+    categoryIcon: "fa-solid fa-hammer",
+    categoryOrder: 48,
+    order: 20,
+    icon: "fa-solid fa-flask-vial",
+    keywords: ["crafting", "identify alchemy", "alchemical", "exploration", "secret", "trained"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "identify-alchemy" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "crafting", minRank: 1 },
+    visibility: { announcement: "player-gm", roll: "blind", outcome: "gm" }
+  },
+  {
+    id: "craft",
+    label: "PF2EActionForge.Actions.Craft.Name",
+    description: "PF2EActionForge.Actions.Craft.Description",
+    category: "crafting",
+    categoryLabel: "PF2EActionForge.Categories.Crafting",
+    categoryIcon: "fa-solid fa-hammer",
+    categoryOrder: 48,
+    order: 30,
+    icon: "fa-solid fa-gears",
+    keywords: ["crafting", "craft", "downtime", "item", "formula", "trained", "gm dc"],
+    target: { mode: "none", type: "creature", required: false },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "craft" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "crafting", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
+
+  {
+    id: "administer-first-aid-stabilize",
+    label: "PF2EActionForge.Actions.AdministerFirstAidStabilize.Name",
+    description: "PF2EActionForge.Actions.AdministerFirstAidStabilize.Description",
+    category: "medicine",
+    categoryLabel: "PF2EActionForge.Categories.Medicine",
+    categoryIcon: "fa-solid fa-kit-medical",
+    categoryOrder: 50,
+    order: 5,
+    icon: "fa-solid fa-heart-pulse",
+    keywords: ["medicine", "administer first aid", "stabilize", "dying", "healer tools"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "target-dying", allowUnknown: true },
+    systemAction: { slug: "administer-first-aid" },
+    execution: { enabled: true, mode: "statistic", statistic: "medicine" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" },
+    application: {
+      mode: "confirm",
+      outcomes: {
+        criticalSuccess: [{ id: "remove-dying", type: "condition-remove", condition: "dying", target: "target", label: "PF2EActionForge.FirstAid.RemoveDying" }],
+        success: [{ id: "remove-dying", type: "condition-remove", condition: "dying", target: "target", label: "PF2EActionForge.FirstAid.RemoveDying" }],
+        criticalFailure: [{ id: "increase-dying", type: "condition-increase", condition: "dying", delta: 1, target: "target", label: "PF2EActionForge.FirstAid.IncreaseDying" }]
+      }
+    }
+  },
+  {
+    id: "administer-first-aid-stop-bleeding",
+    label: "PF2EActionForge.Actions.AdministerFirstAidStopBleeding.Name",
+    description: "PF2EActionForge.Actions.AdministerFirstAidStopBleeding.Description",
+    category: "medicine",
+    categoryLabel: "PF2EActionForge.Categories.Medicine",
+    categoryIcon: "fa-solid fa-kit-medical",
+    categoryOrder: 50,
+    order: 7,
+    icon: "fa-solid fa-droplet",
+    keywords: ["medicine", "administer first aid", "bleeding", "persistent bleed", "healer tools", "gm dc"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "administer-first-aid" },
+    execution: { enabled: true, mode: "statistic", statistic: "medicine" },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "treat-disease",
+    label: "PF2EActionForge.Actions.TreatDisease.Name",
+    description: "PF2EActionForge.Actions.TreatDisease.Description",
+    category: "medicine",
+    categoryLabel: "PF2EActionForge.Categories.Medicine",
+    categoryIcon: "fa-solid fa-kit-medical",
+    categoryOrder: 50,
+    order: 20,
+    icon: "fa-solid fa-virus",
+    keywords: ["medicine", "treat disease", "downtime", "disease", "trained", "healer tools", "gm dc"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "treat-disease" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "medicine", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+  {
+    id: "treat-poison",
+    label: "PF2EActionForge.Actions.TreatPoison.Name",
+    description: "PF2EActionForge.Actions.TreatPoison.Description",
+    category: "medicine",
+    categoryLabel: "PF2EActionForge.Categories.Medicine",
+    categoryIcon: "fa-solid fa-kit-medical",
+    categoryOrder: 50,
+    order: 30,
+    icon: "fa-solid fa-skull-crossbones",
+    keywords: ["medicine", "treat poison", "poison", "trained", "healer tools", "gm dc"],
+    target: { mode: "single", type: "creature", required: true },
+    dc: { strategy: "gm-defined", allowUnknown: true },
+    systemAction: { slug: "treat-poison" },
+    execution: { enabled: true, mode: "system-or-statistic", statistic: "medicine", minRank: 1 },
+    visibility: { announcement: "public", roll: "public", outcome: "public" }
+  },
+
   {
     id: "treat-wounds",
     label: "PF2EActionForge.Actions.TreatWounds.Name",

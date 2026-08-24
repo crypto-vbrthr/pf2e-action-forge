@@ -3,6 +3,7 @@ import { getActiveActionImmunity } from "./action-immunity.js";
 
 export const APPLICATION_TYPES = new Set([
   "condition-add",
+  "condition-increase",
   "condition-remove",
   "heal",
   "damage",
@@ -73,6 +74,8 @@ export class ApplicationEngine {
     switch (effect.type) {
       case "condition-add":
         return this.#addCondition({ effect, targetActor, sourceActor, transactionId });
+      case "condition-increase":
+        return this.#increaseCondition({ effect, targetActor, sourceActor, transactionId });
       case "condition-remove":
         return this.#removeCondition({ effect, targetActor });
       case "heal":
@@ -152,6 +155,45 @@ export class ApplicationEngine {
       };
     } catch (error) {
       console.error("PF2E Action Forge | Failed to apply condition", error);
+      return { ok: false, reason: "apply-error", error };
+    }
+  }
+
+  async #increaseCondition({ effect, targetActor, sourceActor, transactionId }) {
+    const slug = String(effect.condition ?? "").trim();
+    const delta = Number.isFinite(Number(effect.delta)) ? Math.trunc(Number(effect.delta)) : 1;
+    if (!slug || delta <= 0) return { ok: false, reason: "invalid-condition" };
+
+    try {
+      const existing = targetActor.conditions?.bySlug?.(slug, { active: true, temporary: false })?.at?.(0)
+        ?? targetActor.conditions?.bySlug?.(slug, { active: true })?.at?.(0)
+        ?? null;
+      if (!existing) {
+        return this.#addCondition({
+          effect: { ...effect, type: "condition-add", value: delta },
+          targetActor,
+          sourceActor,
+          transactionId
+        });
+      }
+
+      const currentValue = Number(existing.value ?? existing.system?.value?.value ?? 0);
+      if (!Number.isFinite(currentValue) || currentValue < 0 || typeof existing.update !== "function") {
+        return { ok: false, reason: "condition-not-valued" };
+      }
+
+      const nextValue = Math.max(0, Math.trunc(currentValue) + delta);
+      await existing.update({ "system.value.value": nextValue });
+      return {
+        ok: true,
+        changed: nextValue !== currentValue,
+        condition: slug,
+        value: nextValue,
+        previousValue: currentValue,
+        updatedId: existing.id ?? null
+      };
+    } catch (error) {
+      console.error("PF2E Action Forge | Failed to increase condition", error);
       return { ok: false, reason: "apply-error", error };
     }
   }

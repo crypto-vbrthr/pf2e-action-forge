@@ -1,50 +1,47 @@
 # PF2E Action Forge
 
-Development build **0.1.0-dev.11.1 - Selected Action Auto-Scroll**.
+Development build **0.1.0-dev.12 - Medicine, Thievery & Crafting Actions**.
 
-The dev.11.1 UX hotfix keeps the 32-action Social & Exploration build intact and makes action selection faster to operate: choosing an action now scrolls the workspace directly to the purple execution block where target, DC, visibility, and roll controls appear.
+dev.12 expands the catalog from **32 to 43 actions** and adds the remaining core workflows for Medicine, Thievery, and Crafting. Administer First Aid is represented as two operational cards because Stabilize and Stop Bleeding use different DC and outcome logic.
 
+## New in dev.12
 
-## New in dev.11.1
+### Thievery
 
-When an action card is selected, Action Forge now automatically scrolls the main workspace to the newly rendered **Selected Action** block. This avoids manually scrolling back up from long skill groups before choosing targets or resolving the check.
+- **Palm an Object** - Thievery against the Perception DC of an observer. Multiple observers can be selected, while one observer is resolved per check until per-target batching is implemented.
+- **Steal** - Thievery against the selected creature's Perception DC.
+- **Disable a Device** - trained Thievery against a GM-defined device DC.
+- **Pick a Lock** - trained Thievery against a GM-defined lock DC.
 
-The behavior is intentionally one-shot: target changes, DC edits, statistic changes, and other rerenders still preserve the current scroll position and focused control. Smooth scrolling respects the operating system's reduced-motion preference.
+### Crafting
 
-## New in dev.11
+- **Repair** - Crafting against the GM-defined repair/crafting DC.
+- **Identify Alchemy** - trained, secret Crafting check with blind roll and GM-only outcome.
+- **Craft** - trained Crafting check against the GM-defined item DC.
 
-### Performance
+### Medicine
 
-- **Perform** - Performance against a situational DC.
+- **Administer First Aid: Stabilize** - Medicine against `15 + Dying`. On success or critical success, Action Forge can remove Dying through the GM Broker. On a critical failure, it can increase Dying by 1.
+- **Administer First Aid: Stop Bleeding** - Medicine against the GM-defined bleeding-effect DC.
+- **Treat Disease** - trained Medicine against the disease DC.
+- **Treat Poison** - trained Medicine against the poison DC.
+- Existing **Treat Wounds** remains fully integrated with healing, Wounded removal, timed immunity, out-of-combat foreign-PC targeting, and public result summary.
 
-### Diplomacy
+## First Aid target-aware DC
 
-- **Make an Impression** - Diplomacy against a selected creature's Will DC.
-- **Request** - Diplomacy with a situational DC chosen for the request.
-- **Gather Information** - a secret Diplomacy check using the existing GM DC handoff.
+The DC Resolver now supports a dedicated `target-dying` strategy. If the target Actor is readable, the Forge derives the stabilization DC directly from the target's current Dying value. A readable target that is not Dying is rejected immediately instead of unnecessarily asking the GM for a DC.
 
-### Deception
+If the patient is a secure picker-only target whose conditions are intentionally opaque to the player, the existing GM DC handoff is used instead. The player's client never receives the hidden target state.
 
-- **Impersonate** - a secret Deception check against an observer's Perception DC when an observer is selected; otherwise the hidden DC is supplied through the GM handoff.
+The Application Engine also gains a declarative `condition-increase` effect so privileged condition changes such as **Dying 2 → Dying 3** remain validated and idempotent rather than relying on arbitrary client updates.
 
-### Intimidation
+## GM-defined situational DCs
 
-- **Coerce** - Intimidation against a selected creature's Will DC.
+The previous secret-DC handoff is now worded generically as a **GM-defined DC** workflow. This allows public checks such as Disable a Device, Pick a Lock, Repair, Craft, Treat Disease, Treat Poison, and Stop Bleeding to use the same secure handoff when the player should not choose the relevant object, affliction, or environmental DC.
 
-### Stealth
+## UI
 
-- **Conceal an Object** - secret Stealth against an observer's Perception DC, with GM handoff when the observer is not represented directly.
-- **Hide** - secret Stealth against an observer's Perception DC, with GM handoff when needed.
-- **Sneak** - secret Stealth against an observer's Perception DC, with GM handoff when needed.
-
-### General and Survival
-
-- **Subsist** - choose Society in a settlement or Survival in the wilderness, then roll against a situational DC.
-- **Sense Direction** - secret Survival check using a GM-supplied hidden DC.
-- **Track** - trained Survival against an environmental/trail DC.
-- **Cover Tracks** - trained Survival exploration activity. It intentionally performs no immediate check: creatures following the trail make the relevant Track check against the character's Survival DC when applicable.
-
-All 19 actions from dev.10 remain available, including the original MVP actions, Combat & Movement expansion, Treat Wounds, and Demoralize.
+The wide 1120 px responsive catalog, purple execution-workflow block, preserved scroll/focus behavior, and dev.11.1 automatic scroll to **Selected Action** all remain intact. The footer version is now rendered from the actual module version instead of a hardcoded development string.
 
 ## Execution compatibility
 
@@ -68,6 +65,8 @@ The registry and PF2e adapter now support an **activity** execution mode for rul
 
 ## Current automation boundary
 
+The dev.12 workflows intentionally stop where Action Forge does not yet have a safe item/affliction target model. **Repair** performs the Crafting check but does not automatically select or modify an item’s HP. **Craft** performs the rule check but does not create an item or consume raw materials. **Pick a Lock** and **Disable a Device** do not yet persist multi-success progress or automatically break tools on a critical failure. **Treat Disease** and **Treat Poison** currently resolve the Medicine check but do not create one-save-only +4/+2/−2 modifiers on the patient. **First Aid: Stop Bleeding** likewise leaves the persistent-damage recovery resolution to PF2e/GM adjudication.
+
 Some social and stealth actions can logically involve several creatures with different defenses. dev.11 deliberately resolves **one observer/target per check** where a concrete target is used. In particular, the multi-target option of Make an Impression is not batch-automated yet.
 
 Situational non-secret DCs such as Perform, Request, Track, and Subsist use the normal manual DC field. Secret or unknowable DCs use the GM handoff instead.
@@ -90,18 +89,18 @@ The dev.10.1 wide responsive layout and purple execution-workflow block remain u
 - hidden/deleted target hardening;
 - preserved scroll position and input focus across rerenders.
 
-## dev.11 manual test checklist
+## dev.12 manual test checklist
 
-1. Test Perform with a manual DC and verify PF2e uses Performance.
-2. Test Make an Impression and Coerce against visible targets and confirm their Will DCs are used.
-3. Test Request with a selected creature and a situational manual DC.
-4. As a player, start Gather Information and Sense Direction and confirm the hidden GM DC handoff occurs before the blind check.
-5. Test Impersonate, Conceal an Object, Hide, and Sneak with a readable observer and confirm the roll stays secret while using Perception DC.
-6. Repeat one of those secret observer actions without a readable observer and confirm the GM DC handoff is used without exposing the DC or outcome.
-7. Test Subsist and switch between Society and Survival before rolling.
-8. Confirm an untrained character cannot use Track or Cover Tracks.
-9. Start Cover Tracks and confirm it creates an activity announcement without an unnecessary d20 roll.
-10. Re-test Treat Wounds and Demoralize on a foreign player character to confirm the social/exploration expansion did not disturb GM-brokered applications.
+1. Test Palm an Object and Steal against a visible creature and confirm its Perception DC is used.
+2. As a player, run Disable a Device and Pick a Lock and confirm the GM receives the DC handoff before the public Thievery check.
+3. Confirm an untrained character cannot use Disable a Device, Pick a Lock, Identify Alchemy, Craft, Treat Disease, or Treat Poison.
+4. Run Identify Alchemy and confirm both DC and outcome remain hidden from the player.
+5. Test First Aid: Stabilize on Dying 1, Dying 2, and a non-Dying target. The first two should derive DC 16/17; the non-Dying target should be rejected.
+6. On a successful stabilization, apply **Remove Dying** to a foreign player character through the GM Broker.
+7. On a critical failure, apply **Increase Dying** and verify the valued condition increases by exactly 1.
+8. Test First Aid: Stop Bleeding, Treat Disease, and Treat Poison with GM-supplied DCs.
+9. Test Repair and Craft checks and confirm no item mutation is falsely implied yet.
+10. Re-test Treat Wounds, Demoralize, and one secret social action to confirm dev.12 did not disturb existing broker and visibility behavior.
 
 ## Automated checks
 
@@ -110,6 +109,6 @@ npm test
 npm run check
 ```
 
-Current suite: **96/96 tests passing**.
+Current suite: **102/102 tests passing**.
 
-The next expansion blocks can focus on the remaining **Medicine, Thievery, Crafting, Knowledge, and Magic** actions before the full integration review.
+The next expansion block can focus on **Knowledge, Magic & Downtime Actions** before the full integration review.

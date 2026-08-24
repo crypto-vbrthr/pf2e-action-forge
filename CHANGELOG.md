@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.1.0-dev.12] - 2026-08-24
+
+### Added
+
+- Expanded the enabled catalog from **32 to 43 actions** with the Medicine, Thievery & Crafting block.
+- Added **Palm an Object**, **Steal**, trained **Disable a Device**, and trained **Pick a Lock** for Thievery.
+- Added **Repair**, secret trained **Identify Alchemy**, and trained **Craft** for Crafting.
+- Added **Administer First Aid: Stabilize**, **Administer First Aid: Stop Bleeding**, trained **Treat Disease**, and trained **Treat Poison** for Medicine.
+- Split Administer First Aid into two cards because stabilization and bleeding treatment use different DC and outcome models.
+- Added the `target-dying` DC strategy. Readable patients use the rule-derived stabilization DC of `15 + Dying`; opaque picker-only patients reuse the secure GM DC handoff without exposing condition state.
+- Added declarative `condition-increase` applications, used by a First Aid critical failure to increase Dying by exactly 1 through the GM Broker.
+- Added German and English localization for the Thievery/Crafting categories, all new actions, First Aid applications, and Dying DC presentation.
+- Added dev.12 regression coverage for catalog registration, proficiency gates, DC/visibility models, stabilization, opaque targets, valued-condition increments, PF2e statistic fallback, and the dynamic footer.
+
+### Changed
+
+- GM DC handoff wording is now generic rather than secret-only, allowing public checks with GM-defined object, affliction, or environmental DCs to use the same secure workflow.
+- A locally readable non-Dying patient is rejected immediately by First Aid: Stabilize rather than triggering an unnecessary GM handoff.
+- The Action Forge footer now renders the actual module version dynamically instead of carrying a hardcoded development version.
+- Automated suite now contains **102 passing tests**.
+
+### Current automation boundary
+
+- Repair does not yet select or mutate item HP; the current Target Resolver is creature-oriented.
+- Craft does not yet create items or consume materials.
+- Pick a Lock and Disable a Device do not yet persist multi-success progress or automatically break tools.
+- Treat Disease and Treat Poison do not yet install the one-save-only +4/+2/−2 circumstance modifier on the patient.
+- First Aid: Stop Bleeding does not automatically resolve persistent bleed recovery or critical-failure bleed damage.
+
 ## [0.1.0-dev.11.1] - 2026-08-24
 
 ### Changed

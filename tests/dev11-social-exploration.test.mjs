@@ -24,7 +24,7 @@ test("dev.11 registers the agreed social and exploration action set", async () =
   const { CORE_ACTIONS } = await import(`../scripts/data/core-action-catalog.js?dev11-catalog=${Date.now()}`);
   const byId = new Map(CORE_ACTIONS.map((action) => [action.id, action]));
 
-  assert.equal(CORE_ACTIONS.length, 32);
+  assert.equal(CORE_ACTIONS.length, 43);
   for (const id of DEV11_IDS) assert.ok(byId.has(id), `${id} should be registered`);
 
   assert.equal(byId.get("perform").execution.statistic, "performance");

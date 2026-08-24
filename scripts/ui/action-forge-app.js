@@ -302,7 +302,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.11.1",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-dev.12",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -457,6 +457,13 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (state.source === "system-target") {
         return game.i18n.format("PF2EActionForge.DC.SystemTargetValue", { target: state.target?.name ?? "" });
       }
+      if (state.source === "target-dying") {
+        return game.i18n.format("PF2EActionForge.DC.DyingRecoveryValue", {
+          target: state.target?.name ?? "",
+          dying: state.dyingValue ?? "",
+          dc: state.difficultyClass ?? ""
+        });
+      }
       if (state.source === "gm") {
         return game.i18n.localize("PF2EActionForge.DC.GMSecret");
       }
@@ -499,6 +506,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       showManualInput:
         state.strategy === "manual" ||
         (state.strategy === "gm-defined" && state.allowsManualDc) ||
+        (state.strategy === "target-dying" && state.allowsManualDc) ||
         (state.strategy === "target-defense" && !state.target && state.allowsManualDc),
       manualInputValue: this.manualDcByAction.get(action.id) ?? "",
       manualInputLabel: game.i18n.localize("PF2EActionForge.DC.ManualInput"),

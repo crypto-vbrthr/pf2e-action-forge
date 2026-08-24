@@ -1,4 +1,4 @@
-const DC_STRATEGIES = new Set(["none", "manual", "target-defense", "fixed", "fixed-choice", "gm-defined"]);
+const DC_STRATEGIES = new Set(["none", "manual", "target-defense", "target-dying", "fixed", "fixed-choice", "gm-defined"]);
 const DEFENSES = new Set(["ac", "perception", "fortitude", "reflex", "will"]);
 
 function normalizeManualDc(value) {
@@ -75,6 +75,30 @@ function resolveActorDefenseDc(actor, defense) {
   for (const candidate of candidates) {
     const value = Number(candidate);
     if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function resolveDyingValue(actor) {
+  if (!actor) return null;
+  let condition = null;
+  try {
+    condition = actor.conditions?.bySlug?.("dying", { active: true })?.at?.(0)
+      ?? actor.conditions?.get?.("dying")
+      ?? null;
+  } catch (_error) {
+    condition = null;
+  }
+
+  const candidates = [
+    condition?.value,
+    condition?.system?.value?.value,
+    actor.system?.attributes?.dying?.value,
+    actor.attributes?.dying?.value
+  ];
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isInteger(value) && value > 0) return value;
   }
   return null;
 }
@@ -213,6 +237,99 @@ export class DCResolver {
           labelKey: manualFallback
             ? "PF2EActionForge.DC.ManualFallback"
             : `PF2EActionForge.DC.Defense.${defense}`
+        };
+      }
+
+      case "target-dying": {
+        const targetActor = target?.actor ?? target?.token?.actor ?? null;
+        const dyingValue = resolveDyingValue(targetActor);
+        if (dyingValue !== null) {
+          const value = 15 + dyingValue;
+          return {
+            strategy,
+            valid: true,
+            source: "target-dying",
+            difficultyClass: value,
+            target,
+            dyingValue,
+            manualDc: parsedManualDc,
+            needsManualDc: false,
+            allowsManualDc: false,
+            labelKey: "PF2EActionForge.DC.DyingRecovery"
+          };
+        }
+
+        // A locally readable target without Dying is not a hidden-information
+        // case: First Aid (stabilize) simply is not applicable to that target.
+        if (targetActor) {
+          return {
+            strategy,
+            valid: false,
+            source: "missing-dying",
+            difficultyClass: undefined,
+            target,
+            manualDc: parsedManualDc,
+            needsManualDc: false,
+            allowsManualDc: false,
+            labelKey: "PF2EActionForge.DC.DyingRequired"
+          };
+        }
+
+        // Picker-only targets may intentionally be opaque to the player. In that
+        // case reuse the existing GM handoff rather than exposing target state.
+        if (dc.allowUnknown && target) {
+          if (canSetGmDefinedDc && parsedManualDc !== null) {
+            return {
+              strategy,
+              valid: true,
+              source: "manual",
+              difficultyClass: parsedManualDc,
+              target,
+              manualDc: parsedManualDc,
+              needsManualDc: false,
+              allowsManualDc: true,
+              requiresGmHandoff: false,
+              labelKey: "PF2EActionForge.DC.DyingRecovery"
+            };
+          }
+          if (canSetGmDefinedDc) {
+            return {
+              strategy,
+              valid: false,
+              source: "gm",
+              difficultyClass: undefined,
+              target,
+              manualDc: null,
+              needsManualDc: true,
+              allowsManualDc: true,
+              requiresGmHandoff: false,
+              labelKey: "PF2EActionForge.DC.DyingRecovery"
+            };
+          }
+          return {
+            strategy,
+            valid: true,
+            source: "gm",
+            difficultyClass: undefined,
+            target,
+            manualDc: null,
+            needsManualDc: false,
+            allowsManualDc: false,
+            requiresGmHandoff: true,
+            labelKey: "PF2EActionForge.DC.DyingRecovery"
+          };
+        }
+
+        return {
+          strategy,
+          valid: false,
+          source: "missing-dying",
+          difficultyClass: undefined,
+          target,
+          manualDc: parsedManualDc,
+          needsManualDc: false,
+          allowsManualDc: false,
+          labelKey: "PF2EActionForge.DC.DyingRequired"
         };
       }
 
@@ -360,5 +477,5 @@ export class DCResolver {
   }
 }
 
-export { normalizeManualDc, resolveActorDefenseDc, statisticRank };
+export { normalizeManualDc, resolveActorDefenseDc, resolveDyingValue, statisticRank };
 export const dcResolver = new DCResolver();

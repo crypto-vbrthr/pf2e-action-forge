@@ -59,7 +59,7 @@ export class ActionRegistry {
     const defaultRequired = targetMode === "single" || targetMode === "multiple";
 
     const dcDefinition = definition.dc && typeof definition.dc === "object" ? definition.dc : {};
-    const dcStrategy = ["none", "manual", "target-defense", "fixed", "fixed-choice", "gm-defined"].includes(
+    const dcStrategy = ["none", "manual", "target-defense", "target-dying", "fixed", "fixed-choice", "gm-defined"].includes(
       dcDefinition.strategy
     )
       ? dcDefinition.strategy
@@ -85,6 +85,7 @@ export class ActionRegistry {
         target: ["source", "target"].includes(effect?.target) ? effect.target : "target",
         condition: effect?.condition ? String(effect.condition).trim() : null,
         value: Number.isFinite(Number(effect?.value)) ? Math.max(0, Math.trunc(Number(effect.value))) : null,
+        delta: Number.isFinite(Number(effect?.delta)) ? Math.trunc(Number(effect.delta)) : null,
         label: effect?.label ? String(effect.label).trim() : null,
         formula: effect?.formula ? String(effect.formula).trim() : null,
         formulaByDc: Object.freeze(Object.fromEntries(
