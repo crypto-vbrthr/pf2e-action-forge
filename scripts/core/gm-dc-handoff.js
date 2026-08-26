@@ -154,7 +154,6 @@ export class GmDcHandoff {
         this.onChatMessageUpdated(message);
       });
       const hide = (message, html) => this.hideInternalChatMessage(message, html);
-      Hooks.on("renderChatMessage", hide);
       Hooks.on("renderChatMessageHTML", hide);
     }
   }

@@ -43,7 +43,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-rc.1"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-rc.2"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
@@ -82,5 +82,4 @@ Hooks.once("ready", () => {
 });
 
 const decorateApplicationMessage = (message, html) => applicationChat.decorate(message, html);
-Hooks.on("renderChatMessage", decorateApplicationMessage);
 Hooks.on("renderChatMessageHTML", decorateApplicationMessage);

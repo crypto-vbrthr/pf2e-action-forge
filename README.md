@@ -1,6 +1,6 @@
 # PF2E Action Forge
 
-Release candidate **0.1.0-rc.1 - Release Candidate & Final Integration Review**.
+Release candidate **0.1.0-rc.2 - Foundry v14 Chat Hook Compatibility Cleanup**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
 
@@ -9,7 +9,7 @@ Action Forge contains **65 actions and activities**: **51 skill-action cards rep
 - Completed the final cross-catalog integration review of rules metadata, target/DC models, PF2e execution, visibility, GM brokering, prerequisites, application effects, exploration state, localization, release metadata, and multiplayer safeguards.
 - **Steal** now supports the base-rule observer case with one immutable Thievery roll against the robbed creature and any selected observers.
 - GM-DC diagnostics remain available through `game.modules.get("pf2e-action-forge").api.debug`, but routine successful traces use console `debug` instead of `info`.
-- Release metadata and runtime fallback versions are synchronized to `0.1.0-rc.1`.
+- Release metadata and runtime fallback versions are synchronized to `0.1.0-rc.2`.
 - Known automation boundaries are deliberate: Item-document mutation, contextual feat-specific exceptions, forced token movement, future Search/Investigate triggers, and similar campaign-state-heavy consequences remain PF2e/GM controlled.
 - Release-candidate gate: **168/168 automated tests pass**, plus the complete JavaScript syntax check.
 

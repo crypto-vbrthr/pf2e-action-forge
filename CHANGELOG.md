@@ -1,3 +1,17 @@
+## 0.1.0-rc.2 – Foundry v14 Chat Hook Compatibility Cleanup
+
+### Fixed
+
+- Removed the deprecated `renderChatMessage` hook registrations from both application-result chat decoration and the internal GM-DC transport-message hider.
+- Action Forge now uses only Foundry v14's `renderChatMessageHTML` hook for chat-message DOM work, avoiding the compatibility warning that the legacy hook is deprecated since Foundry v13 and scheduled for removal in v15.
+- Kept the existing HTMLElement-first handlers unchanged; they already support the `renderChatMessageHTML` DOM argument used by Foundry v14.
+- Synchronized module/package/runtime release metadata to `0.1.0-rc.2`.
+
+### Tests
+
+- Added release-candidate compatibility coverage that fails if any shipped script registers the deprecated `renderChatMessage` hook.
+- Full automated suite and JavaScript syntax checks pass.
+
 ## 0.1.0-rc.1 – Release Candidate & Final Integration Review
 
 ### Fixed
