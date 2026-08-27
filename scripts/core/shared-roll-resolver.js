@@ -3,6 +3,7 @@ import { resolveActorDefenseDc } from "./dc-resolver.js";
 import { MODULE_ID } from "./action-transaction.js";
 import { targetPickerService } from "./target-picker-service.js";
 import { visibilityEngine } from "./visibility-engine.js";
+import { criticalForgeIntegration } from "./critical-forge-integration.js";
 
 const REQUEST_TIMEOUT = 10000;
 const QUERY_NAME = `${MODULE_ID}.resolveSharedRoll`;
@@ -231,7 +232,10 @@ export class SharedRollResolver {
         tokenUuid: entry.tokenUuid ?? null,
         name: targetActor.name ?? "",
         dc,
-        outcome: degreeOfSuccess(snapshot.total, dc, snapshot.dieResult)
+        outcome: degreeOfSuccess(snapshot.total, dc, snapshot.dieResult),
+        // GM-local document reference used only by optional integrations. It is
+        // deliberately stripped from every player-facing response and chat flag.
+        targetActor
       });
     }
 
@@ -240,6 +244,21 @@ export class SharedRollResolver {
       this.#processedMessages.add(`${requester.id}:${payload.rollMessageId}`);
     }
     await this.#createSummary({ definition, requester, sourceActor, snapshot, resolutions, rollMessageId: payload.rollMessageId });
+
+    // Normal Action Forge checks are native PF2e messages and Critical Forge can
+    // observe them directly. Shared rolls have no PF2e DC/degree until this GM
+    // resolver finishes, so feed only the final critical categories into Critical
+    // Forge's public automation API. Do not make the player wait on an optional
+    // Critical Forge prompt or card draw.
+    void criticalForgeIntegration.processSharedRoll({
+      definition,
+      sourceActor,
+      snapshot,
+      resolutions,
+      rollMessageId: payload.rollMessageId
+    }).catch((error) => {
+      console.warn("PF2E Action Forge | Critical Forge integration failed", error);
+    });
 
     const expose = visibilityEngine.canExposeOutcome(definition, requester);
     return {

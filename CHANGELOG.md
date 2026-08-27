@@ -1,3 +1,24 @@
+## 0.1.0-rc.3 – Critical Forge Shared-Roll Integration
+
+### Added
+
+- Added optional integration with PF2E Critical Forge's public critical-card automation API for Action Forge shared rolls.
+- Shared-roll actions now feed their GM-resolved critical skill outcomes back into Critical Forge after the one PF2e check has been compared against all selected observers.
+- One shared check can produce at most one Critical Forge event for critical success and at most one for critical failure, preventing a multi-target roll from drawing one card per observer.
+- When both extremes occur on the same check, Critical Forge may independently process one skill critical-success event and one skill critical-failure event.
+- The first target in each critical outcome group is supplied as the representative target; the full number of targets in that critical group is preserved in Critical Forge's runtime snapshot through `targetTokens` when token documents are available.
+- The bridge is fully optional and does nothing when Critical Forge is absent, disabled, lacks the `skillCheckCriticals` capability, or has the corresponding skill critical trigger disabled.
+
+### Changed
+
+- Shared-roll completion does not wait for optional Critical Forge prompts/card publication, so a player's Action Forge workflow remains responsive while the GM handles Critical Forge.
+- Synchronized release metadata and runtime fallbacks to `0.1.0-rc.3`.
+
+### Tests
+
+- Added regression coverage for critical-group collapsing, optional-module behavior, explicit skill context, target-count propagation, and success/failure dual-category processing.
+- Full automated suite and JavaScript syntax checks pass.
+
 ## 0.1.0-rc.2 – Foundry v14 Chat Hook Compatibility Cleanup
 
 ### Fixed

@@ -1,7 +1,7 @@
-# PF2E Action Forge 0.1.0-rc.2
+# PF2E Action Forge 0.1.0-rc.3
 ## Release Candidate & Final Integration Review
 
-**Review date:** 2026-08-24  
+**Review date:** 2026-08-27  
 **Foundry target:** v14  
 **PF2e minimum:** 8.4.0  
 **Reviewed action surface:** 65 cards
@@ -14,7 +14,7 @@ The final integration pass found one rules-fidelity gap worth fixing before the 
 
 No additional release-blocking defect was found in the reviewed catalog, normalization, GM authority, visibility, prerequisite, exploration, application, localization, or release-metadata paths.
 
-The automated suite now passes **168/168 tests**, and every shipped JavaScript entry covered by `npm run check` passes Node syntax validation.
+The automated suite now passes **174/174 tests**, and every shipped JavaScript entry covered by `npm run check` passes Node syntax validation.
 
 ## 1. Catalog and registry
 
@@ -58,6 +58,12 @@ one PF2e statistic roll
 ```
 
 Natural 20/1 degree adjustments are applied separately to each target comparison. Numeric target defenses remain on the GM side of the shared-roll broker.
+
+### Critical Forge interoperability (rc.3)
+
+Ordinary Action Forge skill checks already emit native PF2e ChatMessages and can be consumed by PF2E Critical Forge directly. Shared rolls required an explicit bridge because the native PF2e message is created before observer DCs and final per-target degrees exist. rc.3 now forwards the GM-resolved critical categories through Critical Forge's public `api.cards.automation.processMessage()` pipeline.
+
+A single shared roll produces at most one `skillCheckCriticalSuccess` event and at most one `skillCheckCriticalFailure` event, even when several targets share the same critical outcome. If the same roll is critically successful against one observer and critically fails against another, the two categories may each be processed once. The integration is optional and respects Critical Forge activation, its master enable setting, skill-check capability detection, configured trigger behavior, profile/history logic, and GM prompt/publication flow.
 
 ### Steal boundary
 
@@ -168,7 +174,7 @@ This is secure and uncommon, but it is a genuine integration-depth limit. A futu
 
 German and English localization expose identical key sets. The execution block remains visually separated from the catalog, explicit action selection scrolls to the execution workflow, and rerenders preserve the intended workspace behavior.
 
-Release metadata is synchronized to `0.1.0-rc.2` in:
+Release metadata is synchronized to `0.1.0-rc.3` in:
 
 - `module.json`;
 - `package.json`;
@@ -198,6 +204,6 @@ The final suite contains **168 passing tests** covering the accumulated developm
 
 ## Release decision
 
-**PF2E Action Forge 0.1.0-rc.2 is ready for live release-candidate smoke testing.**
+**PF2E Action Forge 0.1.0-rc.3 is ready for live release-candidate smoke testing.**
 
 No known HIGH-severity or release-blocking finding remains from the reviewed Player Core-facing scope. If the live RC smoke test remains clean, the next step can be **1.0.0** without opening another feature block.

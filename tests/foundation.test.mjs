@@ -5,13 +5,13 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
-test("manifest identifies the rc.2 build and Foundry/PF2e compatibility", async () => {
+test("manifest identifies the rc.3 build and Foundry/PF2e compatibility", async () => {
   const manifest = await readJson("module.json");
   assert.equal(manifest.id, "pf2e-action-forge");
-  assert.equal(manifest.version, "0.1.0-rc.2");
+  assert.equal(manifest.version, "0.1.0-rc.3");
   assert.equal(manifest.url, "https://github.com/crypto-vbrthr/pf2e-action-forge");
   assert.equal(manifest.manifest, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/latest/download/module.json");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.2/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.3/pf2e-action-forge.zip");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].id, "pf2e");
