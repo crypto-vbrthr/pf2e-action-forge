@@ -1,3 +1,16 @@
+## 0.1.0-rc.3.1 – Perform Variant Compatibility Hotfix
+
+### Fixed
+
+- Fixed **Perform / Auftreten** failing on PF2e 8.4.x with `Action Perform has multiple variants, but no variant was selected`.
+- Action Forge no longer invokes PF2e's multi-variant `perform` system action directly because the Forge currently exposes no performance-variant selector. It resolves Perform through the actor's native `performance` statistic instead, preserving the configured manual DC, PF2e chat roll, degree of success, and `action:perform` roll context.
+- This avoids arbitrarily choosing a PF2e Perform variant while keeping the Action Forge workflow deterministic.
+- Synchronized release metadata and runtime fallbacks to `0.1.0-rc.3.1`.
+
+### Tests
+
+- Added regression coverage proving that Perform uses the statistic path even when a PF2e `perform` system action is available and would throw because no variant was selected.
+
 ## 0.1.0-rc.3 – Critical Forge Shared-Roll Integration
 
 ### Added

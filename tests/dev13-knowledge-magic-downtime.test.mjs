@@ -197,9 +197,9 @@ test("rc.3 manifest, fallback versions, and release URL are synchronized", async
   const pkg = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
   const bootstrap = await readFile(new URL("scripts/action-forge.js", root), "utf8");
-  assert.equal(manifest.version, "0.1.0-rc.3");
-  assert.equal(pkg.version, "0.1.0-rc.3");
-  assert.match(manifest.download, /v0\.1\.0-rc\.3\/pf2e-action-forge\.zip$/);
+  assert.equal(manifest.version, "0.1.0-rc.3.1");
+  assert.equal(pkg.version, "0.1.0-rc.3.1");
+  assert.match(manifest.download, /v0\.1\.0-rc\.3\.1\/pf2e-action-forge\.zip$/);
   assert.match(app, /0\.1\.0-rc\.3/);
   assert.match(bootstrap, /0\.1\.0-rc\.3/);
 });

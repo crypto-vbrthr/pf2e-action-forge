@@ -43,7 +43,7 @@ Hooks.once("init", () => {
     });
   }
 
-  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-rc.3"}`);
+  console.info(`PF2E Action Forge | Initialized ${module?.version ?? "0.1.0-rc.3.1"}`);
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {

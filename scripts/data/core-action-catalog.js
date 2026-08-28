@@ -722,7 +722,7 @@ export const CORE_ACTIONS = Object.freeze([
     target: { mode: "none", type: "creature", required: false },
     dc: { strategy: "manual" },
     systemAction: { slug: "perform" },
-    execution: { enabled: true, mode: "system-or-statistic", statistic: "performance" },
+    execution: { enabled: true, mode: "statistic", statistic: "performance" },
     visibility: { announcement: "public", roll: "public", outcome: "public" }
   },
 

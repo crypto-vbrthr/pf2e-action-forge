@@ -1,6 +1,6 @@
 # PF2E Action Forge
 
-Release candidate **0.1.0-rc.3 - Critical Forge Shared-Roll Integration**.
+Release candidate **0.1.0-rc.3.1 - Perform Variant Compatibility Hotfix**.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
 
@@ -9,7 +9,7 @@ Action Forge contains **65 actions and activities**: **51 skill-action cards rep
 - Completed the final cross-catalog integration review of rules metadata, target/DC models, PF2e execution, visibility, GM brokering, prerequisites, application effects, exploration state, localization, release metadata, and multiplayer safeguards.
 - **Steal** now supports the base-rule observer case with one immutable Thievery roll against the robbed creature and any selected observers.
 - GM-DC diagnostics remain available through `game.modules.get("pf2e-action-forge").api.debug`, but routine successful traces use console `debug` instead of `info`.
-- Release metadata and runtime fallback versions are synchronized to `0.1.0-rc.3`.
+- Release metadata and runtime fallback versions are synchronized to `0.1.0-rc.3.1`.
 - Known automation boundaries are deliberate: Item-document mutation, contextual feat-specific exceptions, forced token movement, future Search/Investigate triggers, and similar campaign-state-heavy consequences remain PF2e/GM controlled.
 - Release-candidate gate: **174/174 automated tests pass**, plus the complete JavaScript syntax check.
 
@@ -119,7 +119,7 @@ dev.14 stores and presents the activity state, but it does not yet automatically
 
 Action Forge is optionally compatible with **PF2E Critical Forge**. Ordinary Action Forge skill checks are native PF2e ChatMessages and can already be processed by Critical Forge directly. Shared-roll actions need a small bridge because PF2e creates the single check before any observer DC is attached.
 
-In `0.1.0-rc.3`, the GM-side shared-roll resolver forwards only the final critical skill categories to Critical Forge's public `api.cards.automation.processMessage()` pipeline. A single shared roll can therefore draw at most one critical-success card and one critical-failure card, regardless of how many observers were compared. The first target in each critical group is used as the representative target, while the group size is preserved in the Critical Forge runtime snapshot when token documents are available.
+In `0.1.0-rc.3.1`, the GM-side shared-roll resolver forwards only the final critical skill categories to Critical Forge's public `api.cards.automation.processMessage()` pipeline. A single shared roll can therefore draw at most one critical-success card and one critical-failure card, regardless of how many observers were compared. The first target in each critical group is used as the representative target, while the group size is preserved in the Critical Forge runtime snapshot when token documents are available.
 
 The integration is optional. Critical Forge must be active, its Critical Forge feature enabled, support the `skillCheckCriticals` API capability, and have the relevant skill critical behavior enabled. No hard module dependency is added.
 

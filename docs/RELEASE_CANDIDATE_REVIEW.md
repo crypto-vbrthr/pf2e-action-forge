@@ -1,4 +1,4 @@
-# PF2E Action Forge 0.1.0-rc.3
+# PF2E Action Forge 0.1.0-rc.3.1
 ## Release Candidate & Final Integration Review
 
 **Review date:** 2026-08-27  
@@ -174,7 +174,7 @@ This is secure and uncommon, but it is a genuine integration-depth limit. A futu
 
 German and English localization expose identical key sets. The execution block remains visually separated from the catalog, explicit action selection scrolls to the execution workflow, and rerenders preserve the intended workspace behavior.
 
-Release metadata is synchronized to `0.1.0-rc.3` in:
+Release metadata is synchronized to `0.1.0-rc.3.1` in:
 
 - `module.json`;
 - `package.json`;
@@ -204,6 +204,6 @@ The final suite contains **168 passing tests** covering the accumulated developm
 
 ## Release decision
 
-**PF2E Action Forge 0.1.0-rc.3 is ready for live release-candidate smoke testing.**
+**PF2E Action Forge 0.1.0-rc.3.1 is ready for live release-candidate smoke testing.**
 
 No known HIGH-severity or release-blocking finding remains from the reviewed Player Core-facing scope. If the live RC smoke test remains clean, the next step can be **1.0.0** without opening another feature block.

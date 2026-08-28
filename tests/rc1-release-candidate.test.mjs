@@ -14,13 +14,13 @@ test("rc.3 release metadata, runtime fallbacks, and download URL are synchronize
   const bootstrap = await readFile(new URL("scripts/action-forge.js", root), "utf8");
   const app = await readFile(new URL("scripts/ui/action-forge-app.js", root), "utf8");
 
-  assert.equal(manifest.version, "0.1.0-rc.3");
-  assert.equal(pkg.version, "0.1.0-rc.3");
+  assert.equal(manifest.version, "0.1.0-rc.3.1");
+  assert.equal(pkg.version, "0.1.0-rc.3.1");
   assert.equal(manifest.compatibility.minimum, "14");
   assert.equal(manifest.compatibility.verified, "14");
   assert.equal(manifest.relationships.systems[0].compatibility.minimum, "8.4.0");
   assert.equal(manifest.socket, true);
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.3/pf2e-action-forge.zip");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.3.1/pf2e-action-forge.zip");
   assert.match(bootstrap, /0\.1\.0-rc\.3/);
   assert.match(app, /0\.1\.0-rc\.3/);
   assert.doesNotMatch(bootstrap, /0\.1\.0-dev\./);

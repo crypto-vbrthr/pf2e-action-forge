@@ -51,9 +51,9 @@ function referencedLocalizationKeys(action) {
 test("rc.3 release metadata is synchronized", async () => {
   const manifest = await readJson("module.json");
   const pkg = await readJson("package.json");
-  assert.equal(manifest.version, "0.1.0-rc.3");
-  assert.equal(pkg.version, "0.1.0-rc.3");
-  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.3/pf2e-action-forge.zip");
+  assert.equal(manifest.version, "0.1.0-rc.3.1");
+  assert.equal(pkg.version, "0.1.0-rc.3.1");
+  assert.equal(manifest.download, "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/v0.1.0-rc.3.1/pf2e-action-forge.zip");
 });
 
 test("full catalog has 65 unique cards with the reviewed 51 + 4 + 10 split", async () => {
