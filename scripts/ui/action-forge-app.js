@@ -164,6 +164,23 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   }
 
+  #yieldToSystemRollWindow() {
+    const element = this.element;
+    if (!element?.style) return () => {};
+
+    // Foundry ApplicationV2 windows raise their z-index when clicked. PF2e roll
+    // configuration dialogs can still be rendered through a different window stack,
+    // so a long-lived Action Forge window may eventually sit above a fresh roll dialog.
+    // Dropping the Forge back to its stylesheet-defined base layer lets the newly
+    // opened PF2e dialog take precedence without minimizing or moving the Forge.
+    element.style.removeProperty("z-index");
+
+    return () => {
+      if (!this.rendered) return;
+      try { this.bringToFront?.(); } catch (_error) { /* best-effort focus restoration */ }
+    };
+  }
+
   #scrollToExecutionAfterRender() {
     const shouldScroll = this._scrollToExecutionAfterRender;
     this._scrollToExecutionAfterRender = false;
@@ -362,7 +379,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
-      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-rc.3.1",
+      moduleVersion: game.modules.get("pf2e-action-forge")?.version ?? "0.1.0-rc.3.2",
       actor: resolution.actor
         ? {
             uuid: resolution.actor.uuid,
@@ -1041,7 +1058,8 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // prevents double-clicks, target mutation and action switching from creating
     // duplicate checks while the system roll dialog/result pipeline is active.
     app.executionInFlight = true;
-    app.render({ force: true });
+    await app.render({ force: true });
+    const restoreWindowStack = app.#yieldToSystemRollWindow();
     let actionCompleted = false;
 
     try {
@@ -1182,6 +1200,7 @@ export class ActionForgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       console.error("PF2E Action Forge | Post-roll workflow failed", error);
       ui.notifications.error(game.i18n.localize("PF2EActionForge.Notifications.PostRollFailed"));
     } finally {
+      restoreWindowStack();
       app.executionInFlight = false;
       if (actionCompleted) {
         actorResolver.unlockActionActor();

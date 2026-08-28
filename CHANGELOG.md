@@ -1,3 +1,15 @@
+## 0.1.0-rc.3.2 – PF2e Roll Dialog Window Stack Hotfix
+
+### Fixed
+
+- Fixed native PF2e roll configuration windows sometimes opening behind the long-lived Action Forge window after repeated rolls.
+- Action Forge now temporarily yields its ApplicationV2 z-index immediately before a native PF2e roll is opened, then returns to the foreground after the system roll dialog closes.
+- The execution-lock render is awaited before yielding the window stack so a late Action Forge re-render cannot jump back above the PF2e dialog.
+
+### Tests
+
+- Added regression coverage for window-stack yielding and rc.3.2 release metadata.
+
 ## 0.1.0-rc.3.1 – Perform Variant Compatibility Hotfix
 
 ### Fixed
@@ -238,6 +250,15 @@
 - Automated suite now contains **127 passing tests**.
 
 # Changelog
+
+## [0.1.0-rc.3.2] - 2026-08-28
+
+### Fixed
+
+- Fixed PF2e roll configuration windows sometimes opening behind the long-lived Action Forge window after repeated rolls.
+- The Action Forge now temporarily yields its ApplicationV2 z-index while a native PF2e roll dialog is active, then returns to the front after the roll dialog closes.
+- Waiting/execution UI is fully rendered before yielding the window stack, avoiding a late Action Forge re-render from jumping back above the PF2e dialog.
+
 
 ## [0.1.0-dev.14] - 2026-08-24
 
