@@ -1,6 +1,6 @@
 # PF2E Action Forge
 
-Release candidate **0.1.0-rc.3.2 - Perform Variant Compatibility Hotfix**.
+The PF2E Action provides a graphical interface that makes it easy for the GM and players to carry out PF2E actions.
 
 Action Forge contains **65 actions and activities**: **51 skill-action cards representing 50 distinct Player Core skill uses**, four selected core utility actions, and all ten common Player Core exploration activities.
 
