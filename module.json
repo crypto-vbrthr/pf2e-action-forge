@@ -37,7 +37,7 @@
     }
   ],
   "url": "https://github.com/crypto-vbrthr/pf2e-action-forge",
-  "manifest": "https://raw.githubusercontent.com/crypto-vbrthr/pf2e-action-forge/main/module.json",
-  "download": "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/1.0.1-rc.6.1/pf2e-action-forge.zip",
+  "manifest": "https://raw.githubusercontent.com/crypto-vbrthr/pf2e-action-forge/refs/heads/main/module.json",
+  "download": "https://github.com/crypto-vbrthr/pf2e-action-forge/releases/download/0.1.0-rc.3.2/pf2e-action-forge.zip",
   "socket": true
 }
